@@ -9,7 +9,7 @@
     <Nullable>disable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <DebugType>embedded</DebugType>
+    <DebugType>none</DebugType>
     <!-- Optional: path to your R.E.P.O. install, e.g. C:\Program Files (x86)\Steam\steamapps\common\REPO
          If set, the built DLL is copied into BepInEx\plugins automatically. -->
     <GameDir Condition="'$(GameDir)' == ''"></GameDir>
