@@ -1,8 +1,8 @@
 {
   "name": "HideAndSeekMonster",
-  "version_number": "1.0.0",
+  "version_number": "1.1.0",
   "website_url": "",
-  "description": "Hide & Seek game mode for R.E.P.O.: the host picks a seeker (or random), who turns into a monster and hunts down the hiders. All players need the mod.",
+  "description": "Hide & Seek for R.E.P.O.: one player becomes a real game monster (third person, attack, roar) and hunts the hiders. Host picks seeker + monster or random. All players need the mod.",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2100"
   ]

@@ -16,6 +16,10 @@ namespace HideAndSeekMonster
         public static string DisableEnemies => De ? "Normale Gegner deaktivieren" : "Disable normal enemies";
         public static string Invincible => De ? "Monster unverwundbar" : "Monster invincible";
         public static string Blind => De ? "Monster beim Verstecken blind" : "Blind monster while hiding";
+        public static string ChooseMonster => De ? "Welches Monster?" : "Which monster?";
+        public static string NoMonsters => De ? "(Keine Monster gefunden – eigenes Monster wird benutzt)" : "(No monsters found – custom monster is used)";
+        public static string AttackRange => De ? "Angriffsreichweite" : "Attack range";
+        public static string MonsterSize => De ? "Monstergröße" : "Monster size";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string Close => De ? "Schließen" : "Close";
@@ -24,7 +28,10 @@ namespace HideAndSeekMonster
 
         public static string YouAreSeeker => De ? "DU BIST DAS MONSTER" : "YOU ARE THE MONSTER";
         public static string WaitForHiders(int s) => De ? $"Die anderen verstecken sich... {s}s" : $"The others are hiding... {s}s";
-        public static string HideNow(string seeker, int s) => De ? $"VERSTECK DICH! {seeker} ist das Monster – {s}s" : $"HIDE! {seeker} is the monster – {s}s";
+        public static string HideNow(string seeker, string monster, int s) => De ? $"VERSTECK DICH! {seeker} ist {monster} – {s}s" : $"HIDE! {seeker} is the {monster} – {s}s";
+        public static string SeekerControls(string atk, string atkCd, string roar, string roarCd, string view) =>
+            De ? $"[{atk}] Angreifen{atkCd}   [{roar}] Brüllen{roarCd}   [{view}] Kamera"
+               : $"[{atk}] Attack{atkCd}   [{roar}] Roar{roarCd}   [{view}] Camera";
         public static string HuntStarted => De ? "Das Monster ist los!" : "The monster is loose!";
         public static string Hunt(int s, int left) => De ? $"Jagd: {s}s | Übrige Hider: {left}" : $"Hunt: {s}s | Hiders left: {left}";
         public static string Hiding(int s) => De ? $"Verstecken: {s}s" : $"Hiding: {s}s";
