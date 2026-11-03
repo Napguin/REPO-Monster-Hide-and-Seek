@@ -122,8 +122,8 @@ namespace HideAndSeekMonster
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-                if (CursorManager.instance != null) CursorManager.instance.Unlock(0.2f);
-                if (PlayerController.instance != null) PlayerController.instance.InputDisable(0.2f);
+                Compat.Call(Compat.Static("CursorManager", "instance"), "Unlock", 0.2f);
+                Compat.Call(PlayerController.instance, "InputDisable", 0.2f);
             }
 
             if (!RoundActive)
@@ -169,48 +169,52 @@ namespace HideAndSeekMonster
             // Own monster body only when the third-person camera really works – otherwise it would block the view.
             if (_monster != null) _monster.SetBodyVisible(ThirdPersonCamera.Working);
 
+            // Each part separately, so a changed game method can't take the others down.
+            Safe("grab", () => Compat.Set(Compat.Static("PhysGrabber", "instance"), "grabDisableTimer", 0.25f));
+
             var pc = PlayerController.instance;
-            if (pc == null) return;
-
-            // A monster has no hands for grabbing.
-            if (PhysGrabber.instance != null) PhysGrabber.instance.grabDisableTimer = 0.25f;
-
             if (Phase == Phase.Hiding)
             {
-                pc.InputDisable(0.2f); // frozen while the others hide
+                Safe("freeze", () => Compat.Call(pc, "InputDisable", 0.2f)); // frozen while the others hide
                 return;
             }
 
-            float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f);
-            if (!Mathf.Approximately(speed, 1f)) pc.OverrideSpeed(speed, 0.2f);
-            if (_roundInfStamina) pc.EnergyCurrent = pc.EnergyStart;
+            Safe("speed", () =>
+            {
+                float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f);
+                if (!Mathf.Approximately(speed, 1f)) Compat.Call(pc, "OverrideSpeed", speed, 0.2f);
+            });
+            if (_roundInfStamina)
+                Safe("stamina", () => Compat.Set(pc, "EnergyCurrent", Compat.Get(pc, "EnergyStart", 100f)));
 
             if (_menuOpen || GameRefs.IsTyping) return;
 
-            if (_viewAction.WasPressedThisFrame())
+            Safe("view key", () =>
             {
+                if (!_viewAction.WasPressedThisFrame()) return;
                 _thirdPerson = !_thirdPerson;
                 Plugin.Log.LogInfo($"[Monster] view -> {(_thirdPerson ? "third" : "first")} person (camera: {ThirdPersonCamera.MainCameraName})");
-            }
+            });
 
-            if (_attackAction.WasPressedThisFrame() && Time.time >= _attackReadyAt)
+            Safe("attack key", () =>
             {
+                if (!_attackAction.WasPressedThisFrame() || Time.time < _attackReadyAt) return;
                 _attackReadyAt = Time.time + Plugin.AttackCooldown.Value;
                 _lungeUntil = Time.time + 0.35f;
                 var cam = GameRefs.ViewTransform(Seeker);
                 Plugin.Log.LogInfo("[Monster] attack pressed");
                 Send(MsgAttack, SeekerPosition(), cam != null ? cam.forward : Seeker.transform.forward);
-            }
+            });
 
-            if (_roarAction.WasPressedThisFrame() && Time.time >= _roarReadyAt)
+            Safe("roar key", () =>
             {
+                if (!_roarAction.WasPressedThisFrame() || Time.time < _roarReadyAt) return;
                 _roarReadyAt = Time.time + Plugin.RoarCooldown.Value;
                 Plugin.Log.LogInfo("[Monster] roar pressed");
                 Banner(L.RoarBanner, new Color(1f, 0.3f, 0.2f), 1f);
                 Send(MsgRoar, SeekerPosition());
-            }
+            });
         }
-
 
         private void HostTick()
         {
@@ -394,8 +398,8 @@ namespace HideAndSeekMonster
                 if (e == null) continue;
                 try
                 {
-                    if (e.Spawned) e.Despawn();
-                    if (e.DespawnedTimer < 30f) e.DespawnedTimer = 30f;
+                    if (Compat.Get(e, "Spawned", false)) Compat.Call(e, "Despawn");
+                    if (Compat.Get(e, "DespawnedTimer", 0f) < 30f) Compat.Set(e, "DespawnedTimer", 30f);
                 }
                 catch (System.Exception ex)
                 {
@@ -668,9 +672,10 @@ namespace HideAndSeekMonster
             {
                 if (health != null)
                 {
-                    health.godMode = false;
-                    health.invincibleTimer = 0f;
-                    health.Hurt(Mathf.Max(health.health, health.maxHealth) + 999, false);
+                    Compat.Set(health, "godMode", false);
+                    Compat.Set(health, "invincibleTimer", 0f);
+                    int dmg = Mathf.Max(Compat.Get(health, "health", 100), Compat.Get(health, "maxHealth", 100)) + 999;
+                    Compat.Call(health, "Hurt", dmg, false);
                 }
             }
             catch (System.Exception ex)
@@ -685,8 +690,8 @@ namespace HideAndSeekMonster
             yield return new WaitForSeconds(0.4f);
             if (victim != null && IsAlive(victim))
             {
-                try { victim.PlayerDeath(-1); }
-                catch (System.Exception ex) { Plugin.Log.LogError("PlayerDeath failed: " + ex); }
+                if (!Compat.Call(victim, "PlayerDeath", -1))
+                    Plugin.Log.LogError("PlayerDeath could not be called in this game version");
             }
         }
 

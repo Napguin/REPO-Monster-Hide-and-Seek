@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.3
+- Fix for R.E.P.O. v0.5.0: `PlayerController.OverrideSpeed` changed, which crashed the whole monster control
+  every frame (no camera, attack, roar, speed or stamina). Game methods that can change between versions are
+  now called version-tolerantly, and every monster feature runs separately.
+- Harmony patches are applied one by one; a missing target only disables that one feature.
+- Monster models are stripped in dependency order: no more "Can't remove … depends on it" errors in the log.
+
 ## 1.2.2
 - Third-person camera now hooks into R.E.P.O.'s own camera render step (CameraUpdate) in addition to the render callbacks.
 - Camera distance and height adapt to the size of the monster.

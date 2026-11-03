@@ -57,18 +57,8 @@ namespace HideAndSeekMonster
             if (main != null) GameCams.Add(main);
             MainCameraName = main != null ? main.name : "NOT FOUND";
 
-            try
-            {
-                if (RenderTextureMain.instance != null && RenderTextureMain.instance.cameras != null)
-                    foreach (var c in RenderTextureMain.instance.cameras) if (c != null) GameCams.Add(c);
-            }
-            catch { /* ignore */ }
-            try
-            {
-                if (CameraZoom.Instance != null && CameraZoom.Instance.cams != null)
-                    foreach (var c in CameraZoom.Instance.cams) if (c != null) GameCams.Add(c);
-            }
-            catch { /* ignore */ }
+            AddCams(Compat.Get<List<Camera>>(Compat.Static("RenderTextureMain", "instance"), "cameras"));
+            AddCams(Compat.Get<List<Camera>>(Compat.Static("CameraZoom", "Instance"), "cams"));
 
             // Cameras sitting on the same spot as the main camera (stacked overlay cameras).
             if (main != null)
@@ -76,6 +66,12 @@ namespace HideAndSeekMonster
                     if (c != null && (c.transform.position - main.transform.position).sqrMagnitude < 0.04f) GameCams.Add(c);
 
             GameCameraCount = GameCams.Count;
+        }
+
+        private static void AddCams(List<Camera> cams)
+        {
+            if (cams == null) return;
+            foreach (var c in cams) if (c != null) GameCams.Add(c);
         }
 
         private static Transform ReferenceTransform()
@@ -177,13 +173,13 @@ namespace HideAndSeekMonster
     {
         private static void Prefix(CameraUpdate __instance)
         {
-            try { ThirdPersonCamera.BeforeGameRender(__instance.cams); }
+            try { ThirdPersonCamera.BeforeGameRender(Compat.Get<List<Camera>>(__instance, "cams")); }
             catch (System.Exception ex) { Plugin.Log.LogDebug("TP prefix: " + ex.Message); }
         }
 
         private static void Postfix(CameraUpdate __instance)
         {
-            try { ThirdPersonCamera.AfterGameRender(__instance.cams); }
+            try { ThirdPersonCamera.AfterGameRender(Compat.Get<List<Camera>>(__instance, "cams")); }
             catch (System.Exception ex) { Plugin.Log.LogDebug("TP postfix: " + ex.Message); }
         }
     }

@@ -1,6 +1,6 @@
 # Hide And Seek Monster – R.E.P.O. Mod
 
-**Download:** [`release/HideAndSeekMonster-1.2.2.zip`](release/HideAndSeekMonster-1.2.2.zip) – Thunderstore-ready package.
+**Download:** [`release/HideAndSeekMonster-1.2.3.zip`](release/HideAndSeekMonster-1.2.3.zip) – Thunderstore-ready package.
 
 Mod description (also shown on Thunderstore): [`thunderstore/README.md`](thunderstore/README.md)  
 Build & upload guide: [`BUILD.md`](BUILD.md)

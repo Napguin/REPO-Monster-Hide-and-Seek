@@ -10,8 +10,10 @@ namespace HideAndSeekMonster
         {
             get
             {
-                try { if (CameraUtils.Instance != null && CameraUtils.Instance.MainCamera != null) return CameraUtils.Instance.MainCamera; } catch { }
-                try { if (GameDirector.instance != null && GameDirector.instance.MainCamera != null) return GameDirector.instance.MainCamera; } catch { }
+                var c = Compat.Get<Camera>(Compat.Static("CameraUtils", "Instance"), "MainCamera");
+                if (c != null) return c;
+                c = Compat.Get<Camera>(Compat.Static("GameDirector", "instance"), "MainCamera");
+                if (c != null) return c;
                 return Camera.main;
             }
         }
@@ -20,8 +22,8 @@ namespace HideAndSeekMonster
         {
             var c = MainCamera;
             if (c != null) return c.transform;
-            if (PlayerController.instance != null && PlayerController.instance.cameraGameObject != null)
-                return PlayerController.instance.cameraGameObject.transform;
+            var go = Compat.Get<GameObject>(PlayerController.instance, "cameraGameObject");
+            if (go != null) return go.transform;
             return fallback != null ? fallback.transform : null;
         }
 
@@ -30,7 +32,7 @@ namespace HideAndSeekMonster
             get
             {
                 if (PlayerAvatar.instance != null) return PlayerAvatar.instance;
-                try { return SemiFunc.PlayerAvatarLocal(); } catch { return null; }
+                return Compat.Call(typeof(SemiFunc), "PlayerAvatarLocal", out var r) ? r as PlayerAvatar : null;
             }
         }
 
@@ -47,8 +49,10 @@ namespace HideAndSeekMonster
         {
             get
             {
-                try { return ChatManager.instance != null && ChatManager.instance.chatState == ChatManager.ChatState.Active; }
-                catch { return false; }
+                var chat = Compat.Static("ChatManager", "instance");
+                if (chat == null) return false;
+                var state = Compat.Get<object>(chat, "chatState");
+                return state != null && state.ToString() == "Active";
             }
         }
     }

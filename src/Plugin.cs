@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.2.2";
+        public const string Version = "1.2.3";
 
         internal static ManualLogSource Log;
 
@@ -105,7 +105,13 @@ namespace HideAndSeekMonster
                 new ConfigDescription("Number of training dummies spawned around you in test mode.", new AcceptableValueRange<int>(0, 20)));
 
             _harmony = new Harmony(Guid);
-            _harmony.PatchAll(typeof(Plugin).Assembly);
+            // Patch each class separately: if a game update removed a target, only that feature is lost.
+            foreach (var type in typeof(Plugin).Assembly.GetTypes())
+            {
+                if (type.GetCustomAttributes(typeof(HarmonyPatch), false).Length == 0) continue;
+                try { _harmony.CreateClassProcessor(type).Patch(); }
+                catch (System.Exception ex) { Log.LogWarning($"Patch {type.Name} skipped: {ex.Message}"); }
+            }
 
             // Own persistent object, so we don't depend on the BepInEx manager object surviving.
             var go = new GameObject("HideAndSeekMonster_Manager");

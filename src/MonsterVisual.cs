@@ -109,15 +109,7 @@ namespace HideAndSeekMonster
             holder.SetActive(false); // nothing on the clone will Awake while we strip it
             var clone = Instantiate(prefab, holder.transform);
 
-            for (int pass = 0; pass < 4; pass++)
-            {
-                foreach (var c in clone.GetComponentsInChildren<Component>(true))
-                {
-                    if (c == null || Keep(c)) continue;
-                    try { DestroyImmediate(c); _stripped++; }
-                    catch { if (pass == 3) _stripFailed++; /* dependency, retry next pass */ }
-                }
-            }
+            StripComponents(clone);
 
             // Pick the subtree that actually looks like the monster: the animator with the most renderers.
             Transform best = null;
@@ -159,6 +151,67 @@ namespace HideAndSeekMonster
                 if (r is SkinnedMeshRenderer smr) smr.updateWhenOffscreen = true;
             }
             return body;
+        }
+
+        /// <summary>
+        /// Removes every non-visual component. Only removes a component once nothing left on its
+        /// GameObject still requires it ([RequireComponent]), so Unity never complains.
+        /// </summary>
+        private void StripComponents(GameObject clone)
+        {
+            var remaining = clone.GetComponentsInChildren<Component>(true).Where(c => c != null && !Keep(c)).ToList();
+            for (int pass = 0; pass < 12 && remaining.Count > 0; pass++)
+            {
+                bool progress = false;
+                foreach (var c in remaining.ToArray())
+                {
+                    if (c == null) { remaining.Remove(c); continue; }
+                    if (IsRequiredByOther(c)) continue;
+                    DestroyImmediate(c);
+                    remaining.Remove(c);
+                    _stripped++;
+                    progress = true;
+                }
+                if (!progress) break;
+            }
+            remaining.RemoveAll(c => c == null);
+            _stripFailed = remaining.Count;
+            // Whatever is still left can't run anyway: disable it.
+            foreach (var c in remaining)
+                if (c is Behaviour b) b.enabled = false;
+        }
+
+        private static readonly Dictionary<System.Type, System.Type[]> RequiresCache = new Dictionary<System.Type, System.Type[]>();
+
+        private static System.Type[] Requires(System.Type t)
+        {
+            if (RequiresCache.TryGetValue(t, out var r)) return r;
+            var list = new List<System.Type>();
+            foreach (RequireComponent rc in t.GetCustomAttributes(typeof(RequireComponent), true))
+            {
+                if (rc.m_Type0 != null) list.Add(rc.m_Type0);
+                if (rc.m_Type1 != null) list.Add(rc.m_Type1);
+                if (rc.m_Type2 != null) list.Add(rc.m_Type2);
+            }
+            r = list.ToArray();
+            RequiresCache[t] = r;
+            return r;
+        }
+
+        private static bool IsRequiredByOther(Component c)
+        {
+            var ct = c.GetType();
+            foreach (var other in c.GetComponents<Component>())
+            {
+                if (other == null || other == c) continue;
+                foreach (var req in Requires(other.GetType()))
+                    if (req.IsAssignableFrom(ct))
+                    {
+                        // Only blocks if c is the last component of that type on the object.
+                        if (c.GetComponents(req).Length <= 1) return true;
+                    }
+            }
+            return false;
         }
 
         private static bool Keep(Component c) =>
