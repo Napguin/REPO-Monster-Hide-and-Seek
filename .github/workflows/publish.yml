@@ -1,0 +1,89 @@
+name: Publish to Thunderstore
+
+# Runs when a new release zip / version is pushed to main (or manually).
+# Publishes only if this version is not on Thunderstore yet.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "thunderstore/manifest.json"
+      - "release/**"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: thunderstore-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: v
+        run: |
+          VERSION=$(jq -r .version_number thunderstore/manifest.json)
+          NAME=$(jq -r .name thunderstore/manifest.json)
+          ZIP="release/${NAME}-${VERSION}.zip"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "Version $VERSION, package $ZIP"
+          if [ ! -f "$ZIP" ]; then
+            echo "::error::$ZIP not found – build the release zip for version $VERSION first."
+            exit 1
+          fi
+          # The zip must contain the same version as the manifest.
+          ZIPVER=$(unzip -p "$ZIP" manifest.json | jq -r .version_number)
+          if [ "$ZIPVER" != "$VERSION" ]; then
+            echo "::error::$ZIP contains version $ZIPVER, manifest says $VERSION."
+            exit 1
+          fi
+
+      - name: Already on Thunderstore?
+        id: exists
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+            "https://thunderstore.io/api/experimental/package/Napguin/HideAndSeekMonster/${{ steps.v.outputs.version }}/")
+          echo "HTTP $CODE"
+          if [ "$CODE" = "200" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Version ${{ steps.v.outputs.version }} is already published – nothing to do."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pick categories that exist on Thunderstore
+        if: steps.exists.outputs.skip == 'false'
+        run: |
+          WANTED='["mods","monsters","client-side","server-side","misc"]'
+          AVAILABLE=$(curl -s "https://thunderstore.io/api/experimental/community/repo/category/" | jq -c '[.results[].slug]' || echo '[]')
+          echo "Available categories: $AVAILABLE"
+          CHOSEN=$(jq -nc --argjson w "$WANTED" --argjson a "$AVAILABLE" '[$w[] | select(. as $x | $a | index($x))]')
+          echo "Using categories: $CHOSEN"
+          LIST=$(echo "$CHOSEN" | jq -r 'map("\"" + . + "\"") | join(", ")')
+          sed -i "s/^repo = \[ \]$/repo = [ $LIST ]/" thunderstore.toml
+          grep -A1 "publish.categories" thunderstore.toml
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.exists.outputs.skip == 'false'
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish
+        if: steps.exists.outputs.skip == 'false'
+        env:
+          TSTORE_TOKEN: ${{ secrets.TSTORE_TOKEN }}
+        run: |
+          if [ -z "$TSTORE_TOKEN" ]; then
+            echo "::error::Secret TSTORE_TOKEN is missing (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          dotnet tool install -g tcli --version 0.2.4
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          sed -i "s/^versionNumber = .*/versionNumber = \"${{ steps.v.outputs.version }}\"/" thunderstore.toml
+          tcli publish \
+            --config-path thunderstore.toml \
+            --file "${{ steps.v.outputs.zip }}" \
+            --token "$TSTORE_TOKEN"

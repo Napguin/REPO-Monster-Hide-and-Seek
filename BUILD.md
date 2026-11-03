@@ -20,3 +20,10 @@ Erstellt `dist/HideAndSeekMonster-<version>.zip`. Auf https://thunderstore.io/c/
 Vor jedem Upload: Version in `thunderstore/manifest.json` **und** `src/Plugin.cs` (+ `HideAndSeek.csproj`) erhöhen
 und `thunderstore/CHANGELOG.md` ergänzen. Die BepInExPack-Version in `manifest.json` mit der aktuellen auf
 Thunderstore abgleichen.
+
+## Automatisch veröffentlichen (GitHub Action)
+`.github/workflows/publish.yml` lädt die Mod automatisch auf Thunderstore hoch (Team **Napguin**), sobald auf `main`
+eine neue Version gepusht wird (`thunderstore/manifest.json` + passende `release/HideAndSeekMonster-<version>.zip`).
+Ist die Version schon auf Thunderstore, passiert nichts. Manuell starten: GitHub → Actions → "Publish to Thunderstore" → Run workflow.
+
+Benötigt das Repository-Secret `TSTORE_TOKEN` (Service-Account-Token des Thunderstore-Teams).
