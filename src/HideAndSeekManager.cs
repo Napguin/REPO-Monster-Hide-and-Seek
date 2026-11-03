@@ -93,6 +93,7 @@ namespace HideAndSeekMonster
             ThirdPersonCamera.Hook();
             _attackAction = MakeAction(Plugin.AttackBinding.Value, "<Mouse>/leftButton");
             _roarAction = MakeAction(Plugin.RoarBinding.Value, "<Mouse>/rightButton");
+            try { _roarAction.Disable(); _roarAction.AddBinding("<Keyboard>/r"); _roarAction.Enable(); } catch { /* optional */ }
             _viewAction = MakeAction(Plugin.ToggleViewBinding.Value, "<Keyboard>/v");
         }
 
@@ -160,11 +161,13 @@ namespace HideAndSeekMonster
         {
             bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
             ThirdPersonCamera.Active = localSeeker && Phase == Phase.Hunting && _thirdPerson;
-            ThirdPersonCamera.Distance = Plugin.CameraDistance.Value;
+            float h = _monster != null ? _monster.BodyHeight : 2f;
+            ThirdPersonCamera.Distance = Mathf.Max(Plugin.CameraDistance.Value, h * 1.1f + 1.5f);
+            ThirdPersonCamera.Height = Mathf.Clamp(h - 1.3f, 0.6f, 3f);
             if (!localSeeker) return;
 
-            // In first person the own monster body would block the view.
-            if (_monster != null) _monster.SetBodyVisible(ThirdPersonCamera.Active);
+            // Own monster body only when the third-person camera really works – otherwise it would block the view.
+            if (_monster != null) _monster.SetBodyVisible(ThirdPersonCamera.Working);
 
             var pc = PlayerController.instance;
             if (pc == null) return;
@@ -203,6 +206,7 @@ namespace HideAndSeekMonster
             {
                 _roarReadyAt = Time.time + Plugin.RoarCooldown.Value;
                 Plugin.Log.LogInfo("[Monster] roar pressed");
+                Banner(L.RoarBanner, new Color(1f, 0.3f, 0.2f), 1f);
                 Send(MsgRoar, SeekerPosition());
             }
         }
@@ -550,7 +554,11 @@ namespace HideAndSeekMonster
                         break;
                     case MsgRoar:
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
-                        if (_monster != null) _monster.PlayRoar();
+                        if (_monster != null)
+                        {
+                            _monster.PlayRoar();
+                            Plugin.Log.LogInfo("[Monster] roar -> " + _monster.LastSoundInfo);
+                        }
                         var local = GameRefs.LocalAvatar;
                         if (local != null && local != Seeker && Vector3.Distance(local.transform.position, (Vector3)data[2]) < 18f)
                             _flashUntil = Time.time + 0.6f;
@@ -806,12 +814,13 @@ namespace HideAndSeekMonster
                 $"{L.TestModeTitle}\n" +
                 $"Monster: {_monsterName}  ({idx + 1}/{cat.Count})\n" +
                 (_monster != null ? _monster.DebugInfo + "\n" : "") +
-                $"Camera: {(ThirdPersonCamera.Active ? "third person" : "first person")}   Phase: {Phase}\n" +
+                $"Camera: {(ThirdPersonCamera.Active ? (ThirdPersonCamera.Working ? "third person" : "third person NOT WORKING") : "first person")}   Phase: {Phase}\n" +
+                $"Last sound: {(_monster != null ? _monster.LastSoundInfo : "-")}\n" +
                 $"Dummies alive: {AliveDummies().Count}   Attacks: {_attackCount}   Kills: {_killCount}\n" +
                 $"Last attack: {_lastAttackInfo}\n" +
                 $"Attack range: {_roundAttackRange:0.0}m   Touch range: {Plugin.KillRange.Value:0.0}m\n" +
                 $"[Diag] local seeker: {(Seeker != null && GameRefs.IsLocal(Seeker))}  isLocal: {Seeker?.isLocal}  " +
-                $"typing: {GameRefs.IsTyping}  camera: {ThirdPersonCamera.MainCameraName} " +
+                $"typing: {GameRefs.IsTyping}  camera: {ThirdPersonCamera.MainCameraName} ({ThirdPersonCamera.GameCameraCount} cams) " +
                 $"(moved {ThirdPersonCamera.CamerasMoved}, last frame {Time.frameCount - ThirdPersonCamera.AppliedFrame} ago)\n" +
                 $"[Diag] clicks L/R: {_rawAttackPresses}/{_rawRoarPresses}  pos: {SeekerPosition():F1}\n" +
                 $"[Diag] last error: {_lastError}\n\n" +

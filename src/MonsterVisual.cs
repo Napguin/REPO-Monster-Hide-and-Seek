@@ -31,6 +31,8 @@ namespace HideAndSeekMonster
 
         public string MonsterName => _entry != null ? _entry.Name : "Monster";
         public bool IsFallback { get; private set; }
+        public float BodyHeight { get; private set; } = 2f;
+        public string LastSoundInfo { get; private set; } = "-";
         public string DebugInfo { get; private set; } = "";
         private int _stripped, _stripFailed;
         private string _subtree = "-";
@@ -68,6 +70,7 @@ namespace HideAndSeekMonster
             _body.localScale *= scale;
             SetLayerRecursive(gameObject, 0);
             Vector3 size = GroundBody();
+            if (size.y > 0.2f) BodyHeight = size.y;
 
             int rendCount = _body.GetComponentsInChildren<Renderer>(true).Length;
             string animInfo = "none";
@@ -345,21 +348,68 @@ namespace HideAndSeekMonster
                     if (p.type == AnimatorControllerParameterType.Trigger && p.name.ToLowerInvariant().Contains("attack"))
                         _animator.SetTrigger(p.nameHash);
             }
-            PlayRandom(_entry?.AttackClips, 1f);
+            PlaySound(_entry?.AttackSounds, _entry?.AttackClips, 1f);
         }
 
         public void PlayRoar()
         {
-            if (_entry == null || _entry.RoarClips.Count == 0) { PlayRandom(null, 1f); return; }
-            PlayRandom(_entry.RoarClips, 1f);
+            PlaySound(_entry?.RoarSounds, _entry?.RoarClips, 1.3f);
         }
 
-        private void PlayRandom(List<AudioClip> clips, float volume)
+        /// <summary>
+        /// Plays through the game's own Sound system first (correct mixer/volume),
+        /// falls back to a plain AudioSource, and finally to a generated growl.
+        /// </summary>
+        private void PlaySound(List<Sound> sounds, List<AudioClip> clips, float volume)
         {
-            if (_audio == null || clips == null || clips.Count == 0) return;
-            var clip = clips[Random.Range(0, clips.Count)];
+            Vector3 pos = transform.position + Vector3.up * Mathf.Min(BodyHeight, 2.5f) * 0.7f;
+            if (sounds != null && sounds.Count > 0)
+            {
+                var snd = sounds[Random.Range(0, sounds.Count)];
+                try
+                {
+                    var src = snd.Play(pos, volume, 1f, 1f, 1f);
+                    if (src != null) { LastSoundInfo = "game sound: " + (src.clip != null ? src.clip.name : "?"); return; }
+                    LastSoundInfo = "game sound returned no source";
+                }
+                catch (System.Exception ex) { LastSoundInfo = "game sound failed: " + ex.Message; }
+            }
+
+            AudioClip clip = null;
+            if (clips != null && clips.Count > 0) clip = clips[Random.Range(0, clips.Count)];
+            if (clip == null) { clip = Growl(); LastSoundInfo = "generated growl (monster has no sounds)"; }
+            else LastSoundInfo = "audio source: " + clip.name;
+
+            if (_audio == null) return;
+            if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
             _audio.pitch = Random.Range(0.9f, 1.05f);
             _audio.PlayOneShot(clip, volume);
+        }
+
+        private static AudioClip _growl;
+
+        /// <summary>A synthetic low growl, used when the monster has no usable sounds.</summary>
+        private static AudioClip Growl()
+        {
+            if (_growl != null) return _growl;
+            const int rate = 44100;
+            int n = (int)(rate * 1.4f);
+            var data = new float[n];
+            var rnd = new System.Random(7);
+            float phase = 0f, noise = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)rate;
+                float env = Mathf.Clamp01(t * 6f) * Mathf.Clamp01((1.4f - t) * 2f);
+                float freq = 70f + 25f * Mathf.Sin(t * 9f) + 15f * Mathf.Sin(t * 23f);
+                phase += 2f * Mathf.PI * freq / rate;
+                noise = noise * 0.97f + ((float)rnd.NextDouble() * 2f - 1f) * 0.03f;
+                float saw = (phase / Mathf.PI % 2f) - 1f;
+                data[i] = env * (0.55f * saw + 3f * noise) * 0.6f;
+            }
+            _growl = AudioClip.Create("HNS_Growl", n, 1, rate, false);
+            _growl.SetData(data, 0);
+            return _growl;
         }
 
         public void SetBodyVisible(bool visible)

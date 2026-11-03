@@ -18,6 +18,9 @@ namespace HideAndSeekMonster
             public GameObject Prefab;
             public List<AudioClip> RoarClips = new List<AudioClip>();
             public List<AudioClip> AttackClips = new List<AudioClip>();
+            // The game's own sound objects (play through R.E.P.O.'s audio system / mixer)
+            public List<Sound> RoarSounds = new List<Sound>();
+            public List<Sound> AttackSounds = new List<Sound>();
         }
 
         private static List<Entry> _entries;
@@ -93,6 +96,7 @@ namespace HideAndSeekMonster
         private static void CollectSounds(GameObject prefab, Entry entry)
         {
             var all = new List<AudioClip>();
+            var allSounds = new List<Sound>();
             foreach (var mb in prefab.GetComponentsInChildren<MonoBehaviour>(true))
             {
                 if (mb == null) continue;
@@ -105,13 +109,16 @@ namespace HideAndSeekMonster
                     var clips = s.Sounds.Where(c => c != null).ToList();
                     if (clips.Count == 0) continue;
                     string n = f.Name.ToLowerInvariant();
-                    if (RoarWords.Any(n.Contains)) entry.RoarClips.AddRange(clips);
-                    if (AttackWords.Any(n.Contains)) entry.AttackClips.AddRange(clips);
+                    if (RoarWords.Any(n.Contains)) { entry.RoarClips.AddRange(clips); entry.RoarSounds.Add(s); }
+                    if (AttackWords.Any(n.Contains)) { entry.AttackClips.AddRange(clips); entry.AttackSounds.Add(s); }
                     all.AddRange(clips);
+                    if (clips.Any(c => c.length > 0.6f)) allSounds.Add(s);
                 }
             }
             if (entry.RoarClips.Count == 0) entry.RoarClips.AddRange(all.Where(c => c.length > 0.6f).Take(6));
             if (entry.AttackClips.Count == 0) entry.AttackClips.AddRange(entry.RoarClips);
+            if (entry.RoarSounds.Count == 0) entry.RoarSounds.AddRange(allSounds.Take(4));
+            if (entry.AttackSounds.Count == 0) entry.AttackSounds.AddRange(entry.RoarSounds);
         }
     }
 }

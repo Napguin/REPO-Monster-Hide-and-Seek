@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.2
+- Third-person camera now hooks into R.E.P.O.'s own camera render step (CameraUpdate) in addition to the render callbacks.
+- Camera distance and height adapt to the size of the monster.
+- Safety: if the third-person camera doesn't work, your own monster body is hidden so it never blocks your view.
+- Roar plays through the game's own sound system; falls back to a generated growl if a monster has no sounds.
+- Roar also on **R**, and shows a "ROAR!" banner.
+- Test overlay shows camera status and the last played sound.
+
 ## 1.2.1
 - Fix: third-person camera did nothing (R.E.P.O.'s camera is not Unity's `Camera.main`).
 - Fix: monster controls were blocked by a wrong chat check.

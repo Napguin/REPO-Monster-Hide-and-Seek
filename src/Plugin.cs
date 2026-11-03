@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.2.1";
+        public const string Version = "1.2.2";
 
         internal static ManualLogSource Log;
 
@@ -95,7 +95,7 @@ namespace HideAndSeekMonster
             AttackBinding = Config.Bind("Controls", "Attack", "<Mouse>/leftButton",
                 "Monster attack (Unity Input System path, e.g. <Mouse>/leftButton or <Keyboard>/f).");
             RoarBinding = Config.Bind("Controls", "Roar", "<Mouse>/rightButton",
-                "Monster roar (Unity Input System path).");
+                "Monster roar (Unity Input System path). R always works as well.");
             ToggleViewBinding = Config.Bind("Controls", "ToggleView", "<Keyboard>/v",
                 "Switch the monster between third and first person (Unity Input System path).");
 

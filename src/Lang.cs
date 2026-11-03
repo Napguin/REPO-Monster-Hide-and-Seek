@@ -31,6 +31,7 @@ namespace HideAndSeekMonster
             ? $"verfehlt – nächste Puppe {name}: {dist:0.0}m (Reichweite {range:0.0}m), Winkel {angle:0}° (max ~70°)"
             : $"missed – nearest {name}: {dist:0.0}m (range {range:0.0}m), angle {angle:0}° (max ~70°)";
         public static string AttackMissNoTarget => De ? "verfehlt – keine Puppen mehr" : "missed – no dummies left";
+        public static string RoarBanner => De ? "BRÜLLEN!" : "ROAR!";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string Close => De ? "Schließen" : "Close";
