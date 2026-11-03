@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1
+- Fix: third-person camera did nothing (R.E.P.O.'s camera is not Unity's `Camera.main`).
+- Fix: monster controls were blocked by a wrong chat check.
+- Fix: test keys (F9/F10/F11) now work independently of the monster controls.
+- Seeker position for kills/dummies now taken from the player controller.
+- One failing part no longer stops the rest of the mod; errors are shown in the test overlay and the log.
+- More diagnostics in the test overlay and the log.
+
 ## 1.2.0
 - **Test mode** for solo testing: start a round alone, you become the monster and training dummies act as hiders.
 - Attack and touch kills work on the dummies; the overlay shows hit/miss with distance and angle.

@@ -61,6 +61,8 @@ namespace HideAndSeekMonster
         private readonly List<TestDummy> _dummies = new List<TestDummy>();
         private int _dummyCounter;
         private bool _debugOverlay = true;
+        private int _rawAttackPresses, _rawRoarPresses;
+        private string _lastError = "none";
         private string _lastAttackInfo = "-";
         private int _attackCount, _killCount;
         private GUIStyle _debugStyle;
@@ -144,14 +146,19 @@ namespace HideAndSeekMonster
                 if (_monster != null) _monster.PlayRoar();
             }
 
-            LocalSeekerTick();
-
-            if (IsHost) HostTick();
+            Safe("input", () =>
+            {
+                if (_attackAction.WasPressedThisFrame()) _rawAttackPresses++;
+                if (_roarAction.WasPressedThisFrame()) _rawRoarPresses++;
+            });
+            if (_roundTest && !_menuOpen) Safe("test keys", TestKeys);
+            Safe("seeker", LocalSeekerTick);
+            if (IsHost) Safe("host", HostTick);
         }
 
         private void LocalSeekerTick()
         {
-            bool localSeeker = Seeker != null && Seeker.isLocal;
+            bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
             ThirdPersonCamera.Active = localSeeker && Phase == Phase.Hunting && _thirdPerson;
             ThirdPersonCamera.Distance = Plugin.CameraDistance.Value;
             if (!localSeeker) return;
@@ -175,27 +182,31 @@ namespace HideAndSeekMonster
             if (!Mathf.Approximately(speed, 1f)) pc.OverrideSpeed(speed, 0.2f);
             if (_roundInfStamina) pc.EnergyCurrent = pc.EnergyStart;
 
-            if (_menuOpen || IsChatOpen()) return;
+            if (_menuOpen || GameRefs.IsTyping) return;
 
-            if (_viewAction.WasPressedThisFrame()) _thirdPerson = !_thirdPerson;
-            if (_roundTest) TestKeys();
+            if (_viewAction.WasPressedThisFrame())
+            {
+                _thirdPerson = !_thirdPerson;
+                Plugin.Log.LogInfo($"[Monster] view -> {(_thirdPerson ? "third" : "first")} person (camera: {ThirdPersonCamera.MainCameraName})");
+            }
 
             if (_attackAction.WasPressedThisFrame() && Time.time >= _attackReadyAt)
             {
                 _attackReadyAt = Time.time + Plugin.AttackCooldown.Value;
                 _lungeUntil = Time.time + 0.35f;
-                var cam = Camera.main != null ? Camera.main.transform : Seeker.transform;
-                Send(MsgAttack, Seeker.transform.position, cam.forward);
+                var cam = GameRefs.ViewTransform(Seeker);
+                Plugin.Log.LogInfo("[Monster] attack pressed");
+                Send(MsgAttack, SeekerPosition(), cam != null ? cam.forward : Seeker.transform.forward);
             }
 
             if (_roarAction.WasPressedThisFrame() && Time.time >= _roarReadyAt)
             {
                 _roarReadyAt = Time.time + Plugin.RoarCooldown.Value;
-                Send(MsgRoar, Seeker.transform.position);
+                Plugin.Log.LogInfo("[Monster] roar pressed");
+                Send(MsgRoar, SeekerPosition());
             }
         }
 
-        private static bool IsChatOpen() => ChatManager.instance != null && ChatManager.instance.chatActive;
 
         private void HostTick()
         {
@@ -214,7 +225,7 @@ namespace HideAndSeekMonster
             if (Phase == Phase.Hunting)
             {
                 // Touching a hider also kills.
-                Vector3 sp = Seeker.transform.position;
+                Vector3 sp = SeekerPosition();
                 foreach (var h in hiders)
                     if (Vector3.Distance(sp, h.transform.position) <= Plugin.KillRange.Value)
                         HostKill(h);
@@ -326,14 +337,19 @@ namespace HideAndSeekMonster
             var kb = Keyboard.current;
             if (kb == null) return;
 
-            if (kb[Key.F9].wasPressedThisFrame) CycleMonster(kb[Key.LeftShift].isPressed ? -1 : 1);
+            if (kb[Key.F9].wasPressedThisFrame)
+            {
+                Plugin.Log.LogInfo("[Test] F9 pressed");
+                CycleMonster(kb[Key.LeftShift].isPressed ? -1 : 1);
+            }
 
             if (kb[Key.F10].wasPressedThisFrame && Seeker != null)
             {
-                var cam = Camera.main != null ? Camera.main.transform : Seeker.transform;
-                var f = cam.forward; f.y = 0;
+                var cam = GameRefs.ViewTransform(Seeker);
+                var f = cam != null ? cam.forward : Seeker.transform.forward; f.y = 0;
                 if (f.sqrMagnitude < 0.001f) f = Seeker.transform.forward;
-                SpawnDummyAt(Seeker.transform.position + f.normalized * 4f);
+                SpawnDummyAt(SeekerPosition() + f.normalized * 4f);
+                Plugin.Log.LogInfo("[Test] F10 dummy spawned");
             }
 
             if (kb[Key.F11].wasPressedThisFrame) _debugOverlay = !_debugOverlay;
@@ -342,7 +358,12 @@ namespace HideAndSeekMonster
         private void CycleMonster(int dir)
         {
             var list = MonsterCatalog.Entries;
-            if (Seeker == null || list.Count == 0) return;
+            if (Seeker == null || list.Count == 0)
+            {
+                Plugin.Log.LogWarning($"[Test] cannot cycle: seeker {(Seeker == null ? "missing" : "ok")}, catalog {list.Count} monsters");
+                Banner(L.NoMonsters, Color.white, 2f);
+                return;
+            }
             int idx = -1;
             for (int i = 0; i < list.Count; i++) if (list[i].Name == _monsterName) idx = i;
             idx = ((idx + dir) % list.Count + list.Count) % list.Count;
@@ -382,6 +403,39 @@ namespace HideAndSeekMonster
         // =====================================================================
         // Helpers
         // =====================================================================
+        private readonly Dictionary<string, float> _errorLogged = new Dictionary<string, float>();
+
+        /// <summary>Runs one part of the update; an error there is logged (max every 5 s) instead of breaking everything else.</summary>
+        private void Safe(string part, System.Action action)
+        {
+            try { action(); }
+            catch (System.Exception ex)
+            {
+                if (!_errorLogged.TryGetValue(part, out float t) || Time.time - t > 5f)
+                {
+                    _errorLogged[part] = Time.time;
+                    Plugin.Log.LogError($"[{part}] {ex}");
+                    _lastError = $"{part}: {ex.GetType().Name}: {ex.Message}";
+                }
+            }
+        }
+
+        /// <summary>Where the seeker really is (for the local seeker the controller is the truth).</summary>
+        private Vector3 SeekerPosition()
+        {
+            if (Seeker == null) return Vector3.zero;
+            if (GameRefs.IsLocal(Seeker) && PlayerController.instance != null)
+            {
+                var p = PlayerController.instance.transform.position;
+                // controller origin may sit inside the capsule: use the floor below it
+                if (Physics.Raycast(p + Vector3.up * 0.2f, Vector3.down, out var hit, 3f, ~0, QueryTriggerInteraction.Ignore)
+                    && hit.collider.GetComponentInParent<PlayerController>() == null)
+                    return hit.point;
+                return p;
+            }
+            return Seeker.transform.position;
+        }
+
         private static bool InLevel()
         {
             try { return SemiFunc.RunIsLevel(); }
@@ -486,14 +540,18 @@ namespace HideAndSeekMonster
                         EndRoundLocal((Winner)(int)data[2], true);
                         break;
                     case MsgAttack:
-                        if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
+                        if (!SenderIsSeeker(sender) || Phase != Phase.Hunting)
+                        {
+                            Plugin.Log.LogInfo($"[Monster] attack ignored (sender {sender} is seeker: {SenderIsSeeker(sender)}, phase {Phase})");
+                            return;
+                        }
                         if (_monster != null) _monster.PlayAttack();
                         if (IsHost) HostHandleAttack((Vector3)data[2], (Vector3)data[3]);
                         break;
                     case MsgRoar:
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
                         if (_monster != null) _monster.PlayRoar();
-                        var local = PlayerAvatar.instance;
+                        var local = GameRefs.LocalAvatar;
                         if (local != null && local != Seeker && Vector3.Distance(local.transform.position, (Vector3)data[2]) < 18f)
                             _flashUntil = Time.time + 0.6f;
                         break;
@@ -533,7 +591,12 @@ namespace HideAndSeekMonster
             _roundTest = test;
             _attackCount = _killCount = 0;
             _lastAttackInfo = "-";
-            if (test) SpawnDummyRing(seeker.transform.position, Plugin.TestDummyCount.Value, 5f);
+            if (test)
+            {
+                Vector3 c = GameRefs.IsLocal(seeker) && PlayerController.instance != null ? PlayerController.instance.transform.position : seeker.transform.position;
+                SpawnDummyRing(c, Plugin.TestDummyCount.Value, 5f);
+                Plugin.Log.LogInfo($"[Test] round start: {_dummies.Count} dummies around {c}");
+            }
 
             Send(MsgStart,
                 seeker.photonView.ViewID,
@@ -669,7 +732,7 @@ namespace HideAndSeekMonster
             float sw = Screen.width, sh = Screen.height;
             float u = sh / 1080f;
             int secs = Mathf.Max(0, Mathf.CeilToInt(_phaseEndTime - Time.time));
-            bool localIsSeeker = RoundActive && Seeker != null && Seeker.isLocal;
+            bool localIsSeeker = RoundActive && Seeker != null && GameRefs.IsLocal(Seeker);
 
             if (RoundActive)
             {
@@ -720,7 +783,11 @@ namespace HideAndSeekMonster
             }
             GUI.color = Color.white;
 
-            if (RoundActive && _roundTest && _debugOverlay) DrawDebugOverlay(u);
+            if (RoundActive && _roundTest && _debugOverlay)
+            {
+                try { DrawDebugOverlay(u); }
+                catch (System.Exception ex) { _lastError = "overlay: " + ex.Message; }
+            }
 
             if (_menuOpen)
                 _window = GUILayout.Window(0x48A5, _window, DrawWindow, L.MenuTitle);
@@ -742,10 +809,15 @@ namespace HideAndSeekMonster
                 $"Camera: {(ThirdPersonCamera.Active ? "third person" : "first person")}   Phase: {Phase}\n" +
                 $"Dummies alive: {AliveDummies().Count}   Attacks: {_attackCount}   Kills: {_killCount}\n" +
                 $"Last attack: {_lastAttackInfo}\n" +
-                $"Attack range: {_roundAttackRange:0.0}m   Touch range: {Plugin.KillRange.Value:0.0}m\n\n" +
+                $"Attack range: {_roundAttackRange:0.0}m   Touch range: {Plugin.KillRange.Value:0.0}m\n" +
+                $"[Diag] local seeker: {(Seeker != null && GameRefs.IsLocal(Seeker))}  isLocal: {Seeker?.isLocal}  " +
+                $"typing: {GameRefs.IsTyping}  camera: {ThirdPersonCamera.MainCameraName} " +
+                $"(moved {ThirdPersonCamera.CamerasMoved}, last frame {Time.frameCount - ThirdPersonCamera.AppliedFrame} ago)\n" +
+                $"[Diag] clicks L/R: {_rawAttackPresses}/{_rawRoarPresses}  pos: {SeekerPosition():F1}\n" +
+                $"[Diag] last error: {_lastError}\n\n" +
                 L.TestKeys;
 
-            var rect = new Rect(12, 60 * u, 560 * u, 420 * u);
+            var rect = new Rect(12, 60 * u, 640 * u, 500 * u);
             GUI.color = new Color(0, 0, 0, 0.6f);
             GUI.DrawTexture(rect, _white);
             GUI.color = Color.white;

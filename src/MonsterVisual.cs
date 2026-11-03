@@ -47,7 +47,7 @@ namespace HideAndSeekMonster
         private void Init(PlayerAvatar avatar, string monsterName, float scale)
         {
             _avatar = avatar;
-            _isLocal = avatar.isLocal;
+            _isLocal = GameRefs.IsLocal(avatar);
             _entry = MonsterCatalog.Find(monsterName);
 
             var target = FollowTarget();
@@ -287,9 +287,10 @@ namespace HideAndSeekMonster
             transform.position = target.position;
             // Local seeker: face where the camera looks. Remote: face where the avatar faces.
             float wantYaw = target.eulerAngles.y;
-            if (_isLocal && Camera.main != null)
+            var view = _isLocal ? GameRefs.ViewTransform(null) : null;
+            if (view != null)
             {
-                var f = Camera.main.transform.forward; f.y = 0;
+                var f = view.forward; f.y = 0;
                 if (f.sqrMagnitude > 0.001f) wantYaw = Quaternion.LookRotation(f).eulerAngles.y;
             }
             _yaw = Mathf.LerpAngle(_yaw, wantYaw, 1f - Mathf.Exp(-12f * Time.deltaTime));
