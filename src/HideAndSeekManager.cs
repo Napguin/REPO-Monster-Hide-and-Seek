@@ -56,6 +56,15 @@ namespace HideAndSeekMonster
         private float _attackReadyAt, _roarReadyAt, _lungeUntil;
         private InputAction _attackAction, _roarAction, _viewAction;
 
+        // ---- test mode (host-local) ----
+        private bool _roundTest;
+        private readonly List<TestDummy> _dummies = new List<TestDummy>();
+        private int _dummyCounter;
+        private bool _debugOverlay = true;
+        private string _lastAttackInfo = "-";
+        private int _attackCount, _killCount;
+        private GUIStyle _debugStyle;
+
         // ---- host only ----
         private readonly Dictionary<int, float> _killCooldown = new Dictionary<int, float>();
         private float _enemyTick;
@@ -169,6 +178,7 @@ namespace HideAndSeekMonster
             if (_menuOpen || IsChatOpen()) return;
 
             if (_viewAction.WasPressedThisFrame()) _thirdPerson = !_thirdPerson;
+            if (_roundTest) TestKeys();
 
             if (_attackAction.WasPressedThisFrame() && Time.time >= _attackReadyAt)
             {
@@ -208,8 +218,12 @@ namespace HideAndSeekMonster
                 foreach (var h in hiders)
                     if (Vector3.Distance(sp, h.transform.position) <= Plugin.KillRange.Value)
                         HostKill(h);
+                foreach (var d in AliveDummies())
+                    if (FlatDistance(sp, d.transform.position) <= Plugin.KillRange.Value)
+                        KillDummy(d, sp, "touch");
 
-                if (hiders.Count == 0)
+                // Test mode keeps running so you can respawn dummies (F10) and try more monsters.
+                if (hiders.Count == 0 && AliveDummies().Count == 0 && !_roundTest)
                 {
                     Send(MsgEnd, (int)Winner.Seeker);
                     return;
@@ -217,7 +231,7 @@ namespace HideAndSeekMonster
                 if (Time.time >= _phaseEndTime)
                     Send(MsgEnd, (int)Winner.Hiders);
             }
-            else if (Phase == Phase.Hiding && hiders.Count == 0)
+            else if (Phase == Phase.Hiding && hiders.Count == 0 && !_roundTest)
             {
                 Send(MsgEnd, (int)Winner.Aborted);
             }
@@ -245,6 +259,105 @@ namespace HideAndSeekMonster
                 if (dist > 1.2f && flat.sqrMagnitude > 0.001f && Vector3.Dot(flat.normalized, forward) < 0.35f) continue;
                 HostKill(h);
             }
+
+            if (!_roundTest) return;
+            _attackCount++;
+            TestDummy nearest = null;
+            float nearestDist = float.MaxValue, nearestAngle = 0f;
+            bool hit = false;
+            foreach (var d in AliveDummies())
+            {
+                Vector3 to = d.transform.position - pos;
+                Vector3 flat = new Vector3(to.x, 0, to.z);
+                float dist = flat.magnitude;
+                float angle = flat.sqrMagnitude > 0.001f ? Vector3.Angle(flat, forward) : 0f;
+                if (dist < nearestDist) { nearestDist = dist; nearestAngle = angle; nearest = d; }
+                if (dist > _roundAttackRange) continue;
+                if (dist > 1.2f && Vector3.Dot(flat.normalized, forward) < 0.35f) continue;
+                KillDummy(d, pos, "attack");
+                _lastAttackInfo = L.AttackHit(d.DummyName, dist);
+                hit = true;
+            }
+            if (!hit)
+                _lastAttackInfo = nearest == null ? L.AttackMissNoTarget
+                    : L.AttackMiss(nearest.DummyName, nearestDist, nearestAngle, _roundAttackRange);
+        }
+
+        // =====================================================================
+        // Test mode
+        // =====================================================================
+        private static float FlatDistance(Vector3 a, Vector3 b) => new Vector2(a.x - b.x, a.z - b.z).magnitude;
+
+        private List<TestDummy> AliveDummies()
+        {
+            _dummies.RemoveAll(d => d == null);
+            return _dummies.Where(d => !d.Dead).ToList();
+        }
+
+        private void KillDummy(TestDummy d, Vector3 from, string how)
+        {
+            if (d == null || d.Dead) return;
+            d.Kill(from);
+            _killCount++;
+            Banner(L.Caught(d.DummyName), new Color(1f, 0.35f, 0.2f), 2f);
+            if (_monster != null) _monster.PlayAttack();
+            Plugin.Log.LogInfo($"[Test] {d.DummyName} killed by {how} at {FlatDistance(from, d.transform.position):0.0}m");
+        }
+
+        private void SpawnDummyRing(Vector3 center, int count, float radius)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                float a = (i / (float)count) * Mathf.PI * 2f;
+                SpawnDummyAt(center + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * radius);
+            }
+        }
+
+        private void SpawnDummyAt(Vector3 pos)
+        {
+            // snap to the floor
+            if (Physics.Raycast(pos + Vector3.up * 1.5f, Vector3.down, out var hit, 6f, ~0, QueryTriggerInteraction.Ignore))
+                pos = hit.point;
+            _dummies.Add(TestDummy.Spawn(pos, ++_dummyCounter));
+        }
+
+        private void TestKeys()
+        {
+            var kb = Keyboard.current;
+            if (kb == null) return;
+
+            if (kb[Key.F9].wasPressedThisFrame) CycleMonster(kb[Key.LeftShift].isPressed ? -1 : 1);
+
+            if (kb[Key.F10].wasPressedThisFrame && Seeker != null)
+            {
+                var cam = Camera.main != null ? Camera.main.transform : Seeker.transform;
+                var f = cam.forward; f.y = 0;
+                if (f.sqrMagnitude < 0.001f) f = Seeker.transform.forward;
+                SpawnDummyAt(Seeker.transform.position + f.normalized * 4f);
+            }
+
+            if (kb[Key.F11].wasPressedThisFrame) _debugOverlay = !_debugOverlay;
+        }
+
+        private void CycleMonster(int dir)
+        {
+            var list = MonsterCatalog.Entries;
+            if (Seeker == null || list.Count == 0) return;
+            int idx = -1;
+            for (int i = 0; i < list.Count; i++) if (list[i].Name == _monsterName) idx = i;
+            idx = ((idx + dir) % list.Count + list.Count) % list.Count;
+
+            if (_monster != null) _monster.Remove();
+            _monster = MonsterVisual.Create(Seeker, list[idx].Name, Plugin.MonsterScale.Value);
+            _monsterName = _monster != null ? _monster.MonsterName : list[idx].Name;
+            Banner(_monsterName, new Color(1f, 0.6f, 0.4f), 1.5f);
+            if (_monster != null) _monster.PlayRoar();
+        }
+
+        private void ClearDummies()
+        {
+            foreach (var d in _dummies) if (d != null) Destroy(d.gameObject);
+            _dummies.Clear();
         }
 
         private static void DespawnEnemies()
@@ -398,11 +511,14 @@ namespace HideAndSeekMonster
         private void HostStartRound()
         {
             if (!IsHost || RoundActive || !InLevel()) return;
+            bool test = Plugin.TestMode.Value;
             var alive = AllPlayers().Where(IsAlive).ToList();
-            if (alive.Count < 2 && SemiFunc.IsMultiplayer()) return;
+            if (alive.Count < 2 && SemiFunc.IsMultiplayer() && !test) return;
             if (alive.Count == 0) return;
 
             PlayerAvatar seeker = _selectedViewId >= 0 ? alive.FirstOrDefault(p => p.photonView.ViewID == _selectedViewId) : null;
+            // In test mode "random" means: you are the monster.
+            if (seeker == null && test) seeker = alive.FirstOrDefault(p => p.isLocal);
             if (seeker == null) seeker = alive[Random.Range(0, alive.Count)];
 
             string monster = _selectedMonster;
@@ -413,9 +529,15 @@ namespace HideAndSeekMonster
             int[] hiders = alive.Where(p => p != seeker).Select(p => p.photonView.ViewID).ToArray();
 
             _killCooldown.Clear();
+            ClearDummies();
+            _roundTest = test;
+            _attackCount = _killCount = 0;
+            _lastAttackInfo = "-";
+            if (test) SpawnDummyRing(seeker.transform.position, Plugin.TestDummyCount.Value, 5f);
+
             Send(MsgStart,
                 seeker.photonView.ViewID,
-                Plugin.HideTime.Value,
+                test ? Mathf.Min(Plugin.HideTime.Value, 3f) : Plugin.HideTime.Value,
                 Plugin.RoundTime.Value,
                 Plugin.SeekerSpeed.Value,
                 Plugin.SeekerInfiniteStamina.Value,
@@ -512,6 +634,8 @@ namespace HideAndSeekMonster
             _hiderViewIds.Clear();
             _killCooldown.Clear();
             SeekerInvincibleThisRound = false;
+            ClearDummies();
+            _roundTest = false;
 
             if (!showBanner) return;
             switch (winner)
@@ -596,8 +720,36 @@ namespace HideAndSeekMonster
             }
             GUI.color = Color.white;
 
+            if (RoundActive && _roundTest && _debugOverlay) DrawDebugOverlay(u);
+
             if (_menuOpen)
                 _window = GUILayout.Window(0x48A5, _window, DrawWindow, L.MenuTitle);
+        }
+
+        private void DrawDebugOverlay(float u)
+        {
+            if (_debugStyle == null)
+                _debugStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperLeft, wordWrap = true, richText = false };
+            _debugStyle.fontSize = Mathf.RoundToInt(16 * u);
+
+            var cat = MonsterCatalog.Entries;
+            int idx = -1;
+            for (int i = 0; i < cat.Count; i++) if (cat[i].Name == _monsterName) idx = i;
+            string text =
+                $"{L.TestModeTitle}\n" +
+                $"Monster: {_monsterName}  ({idx + 1}/{cat.Count})\n" +
+                (_monster != null ? _monster.DebugInfo + "\n" : "") +
+                $"Camera: {(ThirdPersonCamera.Active ? "third person" : "first person")}   Phase: {Phase}\n" +
+                $"Dummies alive: {AliveDummies().Count}   Attacks: {_attackCount}   Kills: {_killCount}\n" +
+                $"Last attack: {_lastAttackInfo}\n" +
+                $"Attack range: {_roundAttackRange:0.0}m   Touch range: {Plugin.KillRange.Value:0.0}m\n\n" +
+                L.TestKeys;
+
+            var rect = new Rect(12, 60 * u, 560 * u, 420 * u);
+            GUI.color = new Color(0, 0, 0, 0.6f);
+            GUI.DrawTexture(rect, _white);
+            GUI.color = Color.white;
+            GUI.Label(new Rect(rect.x + 8, rect.y + 6, rect.width - 16, rect.height - 12), text, _debugStyle);
         }
 
         private static string BindName(InputAction a)
@@ -612,7 +764,7 @@ namespace HideAndSeekMonster
         }
 
         private int CountAliveHidersLocal() =>
-            AllPlayers().Count(p => _hiderViewIds.Contains(p.photonView.ViewID) && IsAlive(p));
+            AllPlayers().Count(p => _hiderViewIds.Contains(p.photonView.ViewID) && IsAlive(p)) + AliveDummies().Count;
 
         private static void ShadowLabel(Rect r, string text, GUIStyle style)
         {
@@ -689,9 +841,12 @@ namespace HideAndSeekMonster
             Plugin.DisableEnemies.Value = GUILayout.Toggle(Plugin.DisableEnemies.Value, " " + L.DisableEnemies);
             Plugin.SeekerInvincible.Value = GUILayout.Toggle(Plugin.SeekerInvincible.Value, " " + L.Invincible);
             Plugin.BlindSeekerWhileHiding.Value = GUILayout.Toggle(Plugin.BlindSeekerWhileHiding.Value, " " + L.Blind);
+            GUILayout.Space(4);
+            Plugin.TestMode.Value = GUILayout.Toggle(Plugin.TestMode.Value, " " + L.TestMode);
+            if (Plugin.TestMode.Value) GUILayout.Label(L.TestModeHint);
 
             GUILayout.Space(8);
-            bool enough = alive.Count >= 2 || !SemiFunc.IsMultiplayer();
+            bool enough = alive.Count >= 2 || !SemiFunc.IsMultiplayer() || Plugin.TestMode.Value;
             if (!enough) GUILayout.Label(L.NotEnoughPlayers);
             GUI.enabled = enough;
             if (GUILayout.Button(L.Start, GUILayout.Height(36))) HostStartRound();

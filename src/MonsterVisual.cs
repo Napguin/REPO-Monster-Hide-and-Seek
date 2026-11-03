@@ -30,6 +30,10 @@ namespace HideAndSeekMonster
         private static Shader _unlit;
 
         public string MonsterName => _entry != null ? _entry.Name : "Monster";
+        public bool IsFallback { get; private set; }
+        public string DebugInfo { get; private set; } = "";
+        private int _stripped, _stripFailed;
+        private string _subtree = "-";
 
         public static MonsterVisual Create(PlayerAvatar avatar, string monsterName, float scale)
         {
@@ -55,11 +59,32 @@ namespace HideAndSeekMonster
                 try { _body = CloneEnemyVisual(_entry.Prefab); }
                 catch (System.Exception ex) { Plugin.Log.LogWarning($"Could not clone '{_entry.Name}': {ex.Message}"); }
             }
-            if (_body == null) BuildFallback();
+            else if (!string.IsNullOrEmpty(monsterName))
+            {
+                Plugin.Log.LogWarning($"Monster '{monsterName}' not in catalog – using custom monster.");
+            }
+            if (_body == null) { IsFallback = true; BuildFallback(); }
 
             _body.localScale *= scale;
             SetLayerRecursive(gameObject, 0);
-            GroundBody();
+            Vector3 size = GroundBody();
+
+            int rendCount = _body.GetComponentsInChildren<Renderer>(true).Length;
+            string animInfo = "none";
+            if (_animator != null)
+            {
+                var ctrl = _animator.runtimeAnimatorController;
+                animInfo = ctrl == null ? "no controller"
+                    : $"{ctrl.name} [{string.Join(", ", _animator.parameters.Select(p => p.name + ":" + p.type))}]";
+            }
+            DebugInfo =
+                $"Model: {(IsFallback ? "CUSTOM (fallback)" : "game enemy")}\n" +
+                $"Subtree: {_subtree}\n" +
+                $"Renderers: {rendCount}   Size: {size.x:0.0} x {size.y:0.0} x {size.z:0.0} m\n" +
+                $"Stripped components: {_stripped} (failed: {_stripFailed})\n" +
+                $"Sounds: roar {_entry?.RoarClips.Count ?? 0}, attack {_entry?.AttackClips.Count ?? 0}\n" +
+                $"Animator: {animInfo}";
+            Plugin.Log.LogInfo($"[Monster] '{MonsterName}' built for {(_isLocal ? "local" : "remote")} player\n{DebugInfo}");
 
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.spatialBlend = 1f;
@@ -86,7 +111,8 @@ namespace HideAndSeekMonster
                 foreach (var c in clone.GetComponentsInChildren<Component>(true))
                 {
                     if (c == null || Keep(c)) continue;
-                    try { DestroyImmediate(c); } catch { /* dependency, retry next pass */ }
+                    try { DestroyImmediate(c); _stripped++; }
+                    catch { if (pass == 3) _stripFailed++; /* dependency, retry next pass */ }
                 }
             }
 
@@ -99,8 +125,10 @@ namespace HideAndSeekMonster
                 if (n > bestCount) { bestCount = n; best = anim.transform; }
             }
             if (best == null) best = clone.transform;
+            _subtree = best.name + $" ({bestCount} renderers under animator)";
             if (best.GetComponentsInChildren<Renderer>(true).Length == 0)
             {
+                Plugin.Log.LogWarning($"[Monster] '{prefab.name}' has no renderers after stripping – fallback.");
                 Destroy(holder);
                 return null;
             }
@@ -134,14 +162,15 @@ namespace HideAndSeekMonster
             c is Transform || (c is Renderer && !(c is ParticleSystemRenderer)) || c is MeshFilter || c is Animator ||
             c is Light || c is LODGroup;
 
-        private void GroundBody()
+        private Vector3 GroundBody()
         {
             var renderers = _body.GetComponentsInChildren<Renderer>(false).Where(r => r.enabled && !(r is ParticleSystemRenderer)).ToArray();
-            if (renderers.Length == 0) return;
+            if (renderers.Length == 0) return Vector3.zero;
             var b = renderers[0].bounds;
             foreach (var r in renderers) b.Encapsulate(r.bounds);
             float feet = b.min.y - transform.position.y;
             _body.position -= new Vector3(0, feet, 0);
+            return b.size;
         }
 
         // ------------------------------------------------------------------

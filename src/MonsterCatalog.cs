@@ -85,7 +85,9 @@ namespace HideAndSeekMonster
                 }
             }
             _entries.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-            Plugin.Log.LogInfo($"Monster catalog: {_entries.Count} monsters ({string.Join(", ", _entries.Select(e => e.Name))})");
+            Plugin.Log.LogInfo($"Monster catalog: {_entries.Count} monsters");
+            foreach (var e in _entries)
+                Plugin.Log.LogInfo($"  - {e.Name} (prefab '{e.Prefab.name}', roar sounds {e.RoarClips.Count}, attack sounds {e.AttackClips.Count})");
         }
 
         private static void CollectSounds(GameObject prefab, Entry entry)

@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.1.0";
+        public const string Version = "1.2.0";
 
         internal static ManualLogSource Log;
 
@@ -42,6 +42,8 @@ namespace HideAndSeekMonster
         internal static ConfigEntry<string> AttackBinding;
         internal static ConfigEntry<string> RoarBinding;
         internal static ConfigEntry<string> ToggleViewBinding;
+        internal static ConfigEntry<bool> TestMode;
+        internal static ConfigEntry<int> TestDummyCount;
 
         private Harmony _harmony;
 
@@ -96,6 +98,11 @@ namespace HideAndSeekMonster
                 "Monster roar (Unity Input System path).");
             ToggleViewBinding = Config.Bind("Controls", "ToggleView", "<Keyboard>/v",
                 "Switch the monster between third and first person (Unity Input System path).");
+
+            TestMode = Config.Bind("Test", "TestMode", false,
+                "Solo test mode: start a round alone, training dummies act as hiders, debug overlay, F9 = next monster, F10 = spawn dummy, F11 = overlay.");
+            TestDummyCount = Config.Bind("Test", "DummyCount", 4,
+                new ConfigDescription("Number of training dummies spawned around you in test mode.", new AcceptableValueRange<int>(0, 20)));
 
             _harmony = new Harmony(Guid);
             _harmony.PatchAll(typeof(Plugin).Assembly);

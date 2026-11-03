@@ -20,6 +20,17 @@ namespace HideAndSeekMonster
         public static string NoMonsters => De ? "(Keine Monster gefunden – eigenes Monster wird benutzt)" : "(No monsters found – custom monster is used)";
         public static string AttackRange => De ? "Angriffsreichweite" : "Attack range";
         public static string MonsterSize => De ? "Monstergröße" : "Monster size";
+        public static string TestMode => De ? "Testmodus (alleine testen)" : "Test mode (solo testing)";
+        public static string TestModeHint => De ? "Du wirst das Monster, Trainingspuppen sind die Hider." : "You become the monster, training dummies are the hiders.";
+        public static string TestModeTitle => De ? "=== TESTMODUS ===" : "=== TEST MODE ===";
+        public static string TestKeys => De
+            ? "F9 = nächstes Monster (Shift+F9 = vorheriges)\nF10 = Puppe vor dir spawnen\nF11 = diese Anzeige ein/aus\nF8 = Menü (Runde abbrechen)"
+            : "F9 = next monster (Shift+F9 = previous)\nF10 = spawn dummy in front of you\nF11 = toggle this overlay\nF8 = menu (abort round)";
+        public static string AttackHit(string name, float dist) => De ? $"TREFFER {name} ({dist:0.0}m)" : $"HIT {name} ({dist:0.0}m)";
+        public static string AttackMiss(string name, float dist, float angle, float range) => De
+            ? $"verfehlt – nächste Puppe {name}: {dist:0.0}m (Reichweite {range:0.0}m), Winkel {angle:0}° (max ~70°)"
+            : $"missed – nearest {name}: {dist:0.0}m (range {range:0.0}m), angle {angle:0}° (max ~70°)";
+        public static string AttackMissNoTarget => De ? "verfehlt – keine Puppen mehr" : "missed – no dummies left";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string Close => De ? "Schließen" : "Close";

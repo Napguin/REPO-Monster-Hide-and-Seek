@@ -25,6 +25,19 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 The monster is faster, has infinite stamina, is invincible and cannot pick up objects.
 Simply touching a hider also kills it.
 
+### Test mode (solo)
+Enable **Test mode** in the F8 menu (or `Test / TestMode` in the config) and start a round alone.
+You become the monster, training dummies stand around you as hiders, hiding time is only 3 s.
+
+| Key | Action |
+|---|---|
+| **F9** / **Shift+F9** | Next / previous monster model |
+| **F10** | Spawn a dummy in front of you |
+| **F11** | Toggle the debug overlay |
+
+The overlay shows the monster's model info and whether your last attack hit (distance and angle).
+Details are also written to `BepInEx/LogOutput.log`. Dummies only exist on the host's screen.
+
 ### Phases
 | Phase | What happens |
 |---|---|
@@ -56,4 +69,6 @@ The round settings of the **host** are used for everyone.
 | Seeker / Invincible | true | Monster can't be damaged |
 | Seeker / BlindWhileHiding | true | Black screen for the monster while the others hide |
 | Seeker / MonsterScale | 1.0 | Size of the monster model |
+| Test / TestMode | false | Solo test mode with training dummies |
+| Test / DummyCount | 4 | Dummies spawned around you in test mode |
 | Controls / Attack, Roar, ToggleView | mouse L / mouse R / V | Input System paths, e.g. `<Keyboard>/f` |
