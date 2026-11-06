@@ -3,6 +3,7 @@ name: Publish to Thunderstore
 # Runs when a new release zip / version is pushed to main (or manually).
 # Publishes only if this version is not on Thunderstore yet.
 # Test builds (test-builds/) are never published – only zips in release/.
+# Needs the repository secret TSTORE_TOKEN (Thunderstore service account of team Napguin).
 on:
   push:
     branches: [main]
