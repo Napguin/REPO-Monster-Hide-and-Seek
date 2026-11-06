@@ -23,6 +23,8 @@ namespace HideAndSeekMonster
         private float _refreshTimer;
         private float _lungeTimer;
         private float _yaw;
+        private float _age;
+        private int _regrounds;
 
         // fallback parts
         private Transform _jaw, _armL, _armR;
@@ -150,6 +152,7 @@ namespace HideAndSeekMonster
                 _animator.applyRootMotion = false;
                 _animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 _animator.enabled = true;
+                InitAnimator(_animator);
             }
             if (laser != null)
             {
@@ -231,6 +234,41 @@ namespace HideAndSeekMonster
                     }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Without the enemy's own script the animator stays in its start state, which for some monsters is
+        /// "despawned", "small form" (Elsa, Apex Predator) or waiting for a spawn trigger. Push it into a
+        /// visible, scary state: big form, spawned, not stunned/despawning/dead.
+        /// </summary>
+        private static void InitAnimator(Animator anim)
+        {
+            if (anim == null || anim.runtimeAnimatorController == null) return;
+            try
+            {
+                anim.Rebind();
+                var set = new List<string>();
+                foreach (var p in anim.parameters)
+                {
+                    string n = p.name.ToLowerInvariant();
+                    if (p.type == AnimatorControllerParameterType.Bool)
+                    {
+                        if (n.Contains("big") || n.Contains("grown")) { anim.SetBool(p.nameHash, true); set.Add(p.name + "=true"); }
+                        else if (n.Contains("despawn") || n.Contains("stun") || n.Contains("dead") || n.Contains("death")
+                                 || n.Contains("leav") || n.Contains("fall") || n.Contains("small"))
+                        { anim.SetBool(p.nameHash, false); set.Add(p.name + "=false"); }
+                    }
+                    else if (p.type == AnimatorControllerParameterType.Trigger)
+                    {
+                        bool spawn = n.Contains("spawn") && !n.Contains("despawn");
+                        bool toBig = n.Contains("tobig") || n.Contains("smalltobig") || (n.Contains("transform") && !n.Contains("small"));
+                        if (spawn || toBig) { anim.SetTrigger(p.nameHash); set.Add(p.name + "!"); }
+                    }
+                }
+                anim.Update(0f);
+                if (set.Count > 0) Plugin.Log.LogInfo("[Monster] animator init: " + string.Join(", ", set));
+            }
+            catch (System.Exception ex) { Plugin.Log.LogWarning("[Monster] animator init failed: " + ex.Message); }
         }
 
         private static bool Keep(Component c) =>
@@ -373,6 +411,19 @@ namespace HideAndSeekMonster
 
             _refreshTimer -= Time.deltaTime;
             if (_refreshTimer <= 0f) { _refreshTimer = 0.5f; HideOriginal(); }
+
+            // Animations (e.g. Elsa turning big) change the model's height: put the feet back on the ground.
+            _age += Time.deltaTime;
+            if (_body != null && ((_regrounds == 0 && _age > 0.6f) || (_regrounds == 1 && _age > 2f)))
+            {
+                _regrounds++;
+                bool wasActive = _body.gameObject.activeSelf;
+                if (!wasActive) _body.gameObject.SetActive(true);
+                var size = GroundBody();
+                if (!wasActive) _body.gameObject.SetActive(false);
+                if (size.y > 0.2f) BodyHeight = size.y;
+                Plugin.Log.LogInfo($"[Monster] '{MonsterName}' re-grounded, size {size.x:0.0} x {size.y:0.0} x {size.z:0.0} m");
+            }
 
             float speed = (transform.position - _lastPos).magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
             _lastPos = transform.position;

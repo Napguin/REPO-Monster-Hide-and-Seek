@@ -7,6 +7,8 @@
   hiders see the monster's special while hiding and get a warning when it is used.
 - **Echo roar:** roaring now shows the monster arrows towards every hider within 15 m for 1.5 s
   (direction only, no distance). Hiders it finds get an "Echoed!" warning.
+- Monster models: animators are pushed into a visible state (big form, spawned, not despawning/stunned)
+  and the model is re-grounded after transforming – fixes Elsa and similar two-form monsters.
 - New full-screen **start menu (F8)**: seeker, monster and rules side by side, scores, big start button.
 
 ## 1.3.1
