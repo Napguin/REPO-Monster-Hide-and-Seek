@@ -1,6 +1,8 @@
 # Changelog
 
 ## 1.3.1
+- New full-screen **monster selection**: card grid, details with the monster's abilities, countdown bar,
+  "Random monster" button, keyboard control (arrows/WASD, Enter), reopen with **C** during the hiding phase.
 - If the monster dies, the round now ends and the hiders win (scores are counted).
 - "Monster invincible" now blocks every way the game can hurt or kill a player, not just one.
 - Multiplayer: kills (touch, attack, laser) use the real network position of other players and

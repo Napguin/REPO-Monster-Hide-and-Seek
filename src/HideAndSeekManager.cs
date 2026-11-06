@@ -63,7 +63,9 @@ namespace HideAndSeekMonster
         private bool _choiceOpen;
         private float _roundScale = 1f;
         private Vector2 _choiceScroll;
-        private Rect _choiceWindow = new Rect(0, 0, 420, 560);
+        private float _hideDuration = 30f;
+        private readonly Dictionary<Color, Texture2D> _texCache = new Dictionary<Color, Texture2D>();
+        private GUIStyle _cardStyle, _cardSelStyle, _chTitle, _chBody, _chBtn, _chBtnMain;
 
         // ---- laser (all clients) ----
         private float _laserChargeUntil = -1f, _laserEndTime = -1f;
@@ -187,6 +189,7 @@ namespace HideAndSeekMonster
                 if (_roarAction.WasPressedThisFrame()) _rawRoarPresses++;
             });
             if (_roundTest && !_menuOpen) Safe("test keys", TestKeys);
+            Safe("choice keys", ChoiceKeys);
             Safe("seeker", LocalSeekerTick);
             Safe("laser", LaserTick);
             if (IsHost) Safe("host", HostTick);
@@ -944,6 +947,7 @@ namespace HideAndSeekMonster
             _roundAttackRange = attackRange;
             _roundScale = scale;
             _roundSeekerChooses = seekerChooses;
+            _hideDuration = Mathf.Max(1f, hide);
             _choiceOpen = seekerChooses && GameRefs.IsLocal(seeker);
             _specialReadyAt = 0f;
             _laserEndTime = -1f;
@@ -1067,6 +1071,11 @@ namespace HideAndSeekMonster
                     ShadowLabel(new Rect(0, sh * 0.44f, sw, 60 * u), _monsterName, _hudStyle);
                     GUI.color = Color.white;
                     ShadowLabel(new Rect(0, sh * 0.5f, sw, 80 * u), L.WaitForHiders(secs), _bigStyle);
+                    if (_roundSeekerChooses && !_choiceOpen)
+                    {
+                        GUI.color = new Color(1f, 0.8f, 0.6f);
+                        ShadowLabel(new Rect(0, sh * 0.6f, sw, 40 * u), L.ReopenChoice, _hudStyle);
+                    }
                 }
                 else if (localIsSeeker && Phase == Phase.Hunting)
                 {
@@ -1113,11 +1122,8 @@ namespace HideAndSeekMonster
             if (_choiceOpen && RoundActive && Phase == Phase.Hiding && localIsSeeker)
             {
                 GUI.color = Color.white;
-                _choiceWindow.width = 420 * Mathf.Max(1f, u);
-                _choiceWindow.height = 560 * Mathf.Max(1f, u);
-                _choiceWindow.x = (sw - _choiceWindow.width) / 2f;
-                _choiceWindow.y = (sh - _choiceWindow.height) / 2f;
-                GUILayout.Window(0x48A6, _choiceWindow, DrawChoiceWindow, L.ChooseYourMonster);
+                try { DrawChoiceScreen(sw, sh, u); }
+                catch (System.Exception ex) { _lastError = "choice: " + ex.Message; }
             }
 
             if (_menuOpen)
@@ -1192,21 +1198,154 @@ namespace HideAndSeekMonster
             if (hostControls && _sbNames.Length > 0 && GUILayout.Button(L.ResetScores)) HostResetScores();
         }
 
-        private void DrawChoiceWindow(int id)
+        // =====================================================================
+        // Monster selection screen (seeker, hiding phase)
+        // =====================================================================
+        private Texture2D Tex(Color c)
         {
-            int secs = Mathf.Max(0, Mathf.CeilToInt(_phaseEndTime - Time.time));
-            GUILayout.Label(L.ChoiceHint(secs));
-            GUILayout.Label(L.Current(_monsterName));
-            _choiceScroll = GUILayout.BeginScrollView(_choiceScroll);
-            foreach (var e in MonsterCatalog.Entries)
+            if (_texCache.TryGetValue(c, out var t) && t != null) return t;
+            t = new Texture2D(1, 1) { hideFlags = HideFlags.HideAndDontSave };
+            t.SetPixel(0, 0, c);
+            t.Apply();
+            _texCache[c] = t;
+            return t;
+        }
+
+        private void EnsureChoiceStyles(float u)
+        {
+            if (_cardStyle == null)
             {
-                bool sel = e.Name == _monsterName;
-                string label = (sel ? "> " : "   ") + e.Name + (e.HasLaser ? "  (Laser)" : "");
-                if (GUILayout.Button(label, GUILayout.Height(28)) && !sel)
-                    Send(MsgChoose, e.Name);
+                _cardStyle = new GUIStyle(GUI.skin.button) { alignment = TextAnchor.UpperLeft, wordWrap = true, richText = true };
+                _cardStyle.normal.background = Tex(new Color(0.11f, 0.08f, 0.09f, 0.97f));
+                _cardStyle.hover.background = Tex(new Color(0.22f, 0.12f, 0.13f, 1f));
+                _cardStyle.active.background = Tex(new Color(0.40f, 0.10f, 0.10f, 1f));
+                _cardStyle.normal.textColor = _cardStyle.hover.textColor = _cardStyle.active.textColor = Color.white;
+
+                _cardSelStyle = new GUIStyle(_cardStyle);
+                _cardSelStyle.normal.background = Tex(new Color(0.55f, 0.08f, 0.08f, 1f));
+                _cardSelStyle.hover.background = Tex(new Color(0.62f, 0.10f, 0.10f, 1f));
+
+                _chTitle = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft };
+                _chBody = new GUIStyle(GUI.skin.label) { wordWrap = true, richText = true, alignment = TextAnchor.UpperLeft };
+                _chBtn = new GUIStyle(GUI.skin.button) { fontStyle = FontStyle.Bold };
+                _chBtn.normal.background = Tex(new Color(0.18f, 0.16f, 0.17f, 1f));
+                _chBtn.hover.background = Tex(new Color(0.28f, 0.24f, 0.25f, 1f));
+                _chBtn.normal.textColor = _chBtn.hover.textColor = Color.white;
+                _chBtnMain = new GUIStyle(_chBtn);
+                _chBtnMain.normal.background = Tex(new Color(0.70f, 0.10f, 0.08f, 1f));
+                _chBtnMain.hover.background = Tex(new Color(0.85f, 0.15f, 0.10f, 1f));
             }
-            GUILayout.EndScrollView();
-            if (GUILayout.Button(L.Done, GUILayout.Height(34))) _choiceOpen = false;
+            _cardStyle.fontSize = _cardSelStyle.fontSize = Mathf.RoundToInt(19 * u);
+            _cardStyle.padding = _cardSelStyle.padding = new RectOffset((int)(12 * u), (int)(10 * u), (int)(9 * u), (int)(6 * u));
+            _chTitle.fontSize = Mathf.RoundToInt(34 * u);
+            _chBody.fontSize = Mathf.RoundToInt(18 * u);
+            _chBtn.fontSize = _chBtnMain.fontSize = Mathf.RoundToInt(20 * u);
+        }
+
+        private void DrawChoiceScreen(float sw, float sh, float u)
+        {
+            EnsureChoiceStyles(u);
+            var list = MonsterCatalog.Entries;
+            float left = Mathf.Max(0f, _phaseEndTime - Time.time);
+
+            // dim everything
+            GUI.color = new Color(0, 0, 0, 0.92f);
+            GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
+            GUI.color = Color.white;
+
+            float pw = Mathf.Min(sw - 40 * u, 1280 * u), ph = Mathf.Min(sh - 40 * u, 820 * u);
+            var panel = new Rect((sw - pw) / 2f, (sh - ph) / 2f, pw, ph);
+            GUI.DrawTexture(panel, Tex(new Color(0.06f, 0.045f, 0.05f, 1f)));
+            GUI.DrawTexture(new Rect(panel.x, panel.y, panel.width, 4 * u), Tex(new Color(0.8f, 0.1f, 0.08f, 1f)));
+
+            float pad = 24 * u;
+            // header: title + countdown
+            GUI.color = new Color(1f, 0.25f, 0.2f);
+            GUI.Label(new Rect(panel.x + pad, panel.y + 14 * u, pw * 0.7f, 50 * u), L.ChooseYourMonster.ToUpperInvariant(), _chTitle);
+            GUI.color = Color.white;
+            var cdStyle = new GUIStyle(_chTitle) { alignment = TextAnchor.MiddleRight };
+            GUI.Label(new Rect(panel.x + pw * 0.5f, panel.y + 14 * u, pw * 0.5f - pad, 50 * u), $"{Mathf.CeilToInt(left)}s", cdStyle);
+            GUI.color = new Color(1f, 1f, 1f, 0.75f);
+            GUI.Label(new Rect(panel.x + pad, panel.y + 62 * u, pw - 2 * pad, 26 * u), L.ChoiceHint(Mathf.CeilToInt(left)), _chBody);
+            // countdown bar
+            var bar = new Rect(panel.x + pad, panel.y + 92 * u, pw - 2 * pad, 6 * u);
+            GUI.color = Color.white;
+            GUI.DrawTexture(bar, Tex(new Color(1f, 1f, 1f, 0.12f)));
+            GUI.DrawTexture(new Rect(bar.x, bar.y, bar.width * Mathf.Clamp01(left / _hideDuration), bar.height), Tex(new Color(0.9f, 0.15f, 0.1f, 1f)));
+
+            // grid of monster cards (left)
+            float top = panel.y + 112 * u, bottom = panel.yMax - pad;
+            float gridW = pw * 0.64f;
+            var gridRect = new Rect(panel.x + pad, top, gridW - pad, bottom - top);
+            int cols = gridRect.width > 700 * u ? 3 : 2;
+            float gap = 10 * u, cardH = 66 * u;
+            float cardW = (gridRect.width - 18 * u - gap * (cols - 1)) / cols;
+            int rows = Mathf.CeilToInt(list.Count / (float)cols);
+            var content = new Rect(0, 0, gridRect.width - 18 * u, rows * (cardH + gap));
+            _choiceScroll = GUI.BeginScrollView(gridRect, _choiceScroll, content);
+            for (int i = 0; i < list.Count; i++)
+            {
+                var e = list[i];
+                bool sel = e.Name == _monsterName;
+                var r = new Rect((i % cols) * (cardW + gap), (i / cols) * (cardH + gap), cardW, cardH);
+                string tags = e.HasLaser ? $"<color=#ffb347>★ {L.SpecialLaser}</color>" : $"<color=#a89a9c>{L.BasicAbilities}</color>";
+                string text = $"<b>{e.Name}</b>\n<size={Mathf.RoundToInt(15 * u)}>{tags}</size>";
+                if (GUI.Button(r, text, sel ? _cardSelStyle : _cardStyle) && !sel) Send(MsgChoose, e.Name);
+            }
+            GUI.EndScrollView();
+
+            // details (right)
+            var det = new Rect(panel.x + gridW + pad * 0.5f, top, pw - gridW - pad * 1.5f, bottom - top);
+            GUI.DrawTexture(det, Tex(new Color(0.10f, 0.075f, 0.08f, 1f)));
+            var entry = MonsterCatalog.Find(_monsterName);
+            float dx = det.x + 18 * u, dw = det.width - 36 * u, dy = det.y + 16 * u;
+            GUI.color = new Color(1f, 0.6f, 0.5f);
+            GUI.Label(new Rect(dx, dy, dw, 26 * u), L.YouAre, _chBody);
+            GUI.color = Color.white;
+            var nameStyle = new GUIStyle(_chTitle) { wordWrap = true, fontSize = Mathf.RoundToInt(30 * u) };
+            GUI.Label(new Rect(dx, dy + 26 * u, dw, 80 * u), _monsterName ?? "?", nameStyle);
+            string abilities =
+                $"<b>{L.Abilities}</b>\n" +
+                $"• {BindName(_attackAction)}: {L.AbilityAttack}\n" +
+                $"• {BindName(_roarAction)}: {L.AbilityRoar}\n" +
+                (entry != null && entry.HasLaser ? $"• <color=#ffb347>{BindName(_specialAction)}: {L.AbilityLaser}</color>\n" : $"• <color=#a89a9c>{L.NoSpecialShort}</color>\n") +
+                $"• {BindName(_viewAction)}: {L.AbilityView}\n\n" +
+                $"<color=#bfb3b5>{L.ChoiceInfo}</color>";
+            GUI.Label(new Rect(dx, dy + 110 * u, dw, det.height - 110 * u - 140 * u), abilities, _chBody);
+
+            float by = det.yMax - 128 * u;
+            if (GUI.Button(new Rect(dx, by, dw, 52 * u), L.RandomMonster, _chBtn) && list.Count > 0)
+                Send(MsgChoose, list[Random.Range(0, list.Count)].Name);
+            if (GUI.Button(new Rect(dx, by + 62 * u, dw, 56 * u), L.Done + "  (Enter)", _chBtnMain))
+                _choiceOpen = false;
+        }
+
+        /// <summary>Keyboard control for the selection screen: arrows/WASD move, Enter closes, C reopens.</summary>
+        private void ChoiceKeys()
+        {
+            if (!RoundActive || Phase != Phase.Hiding || !_roundSeekerChooses || Seeker == null || !GameRefs.IsLocal(Seeker)) return;
+            var kb = Keyboard.current;
+            if (kb == null) return;
+            if (!_choiceOpen)
+            {
+                if (kb[Key.C].wasPressedThisFrame) _choiceOpen = true;
+                return;
+            }
+            if (kb[Key.Enter].wasPressedThisFrame || kb[Key.NumpadEnter].wasPressedThisFrame) { _choiceOpen = false; return; }
+
+            var list = MonsterCatalog.Entries;
+            if (list.Count == 0) return;
+            int cols = 3;
+            int step = 0;
+            if (kb[Key.RightArrow].wasPressedThisFrame || kb[Key.D].wasPressedThisFrame) step = 1;
+            else if (kb[Key.LeftArrow].wasPressedThisFrame || kb[Key.A].wasPressedThisFrame) step = -1;
+            else if (kb[Key.DownArrow].wasPressedThisFrame || kb[Key.S].wasPressedThisFrame) step = cols;
+            else if (kb[Key.UpArrow].wasPressedThisFrame || kb[Key.W].wasPressedThisFrame) step = -cols;
+            if (step == 0) return;
+            int idx = 0;
+            for (int i = 0; i < list.Count; i++) if (list[i].Name == _monsterName) idx = i;
+            idx = Mathf.Clamp(idx + step, 0, list.Count - 1);
+            if (list[idx].Name != _monsterName) Send(MsgChoose, list[idx].Name);
         }
 
         private static string BindName(InputAction a)
