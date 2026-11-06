@@ -27,7 +27,7 @@ namespace HideAndSeekMonster
     /// Host-authoritative round logic + networking (Photon RaiseEvent) + IMGUI.
     /// Every player needs the mod installed.
     /// </summary>
-    public class HideAndSeekManager : MonoBehaviour, IOnEventCallback
+    public partial class HideAndSeekManager : MonoBehaviour, IOnEventCallback
     {
         public static HideAndSeekManager Instance { get; private set; }
 
@@ -106,8 +106,7 @@ namespace HideAndSeekMonster
 
         // ---- UI ----
         private bool _menuOpen;
-        private Rect _window = new Rect(40, 40, 400, 640);
-        private Vector2 _scroll, _scrollMonsters;
+
         private int _selectedViewId = -1; // -1 = random
         private string _selectedMonster = RandomMonster;
         private string _bannerText;
@@ -192,6 +191,7 @@ namespace HideAndSeekMonster
             Safe("choice keys", ChoiceKeys);
             Safe("seeker", LocalSeekerTick);
             Safe("laser", LaserTick);
+            Safe("abilities", AbilityTick);
             if (IsHost) Safe("host", HostTick);
         }
 
@@ -221,7 +221,7 @@ namespace HideAndSeekMonster
 
             Safe("speed", () =>
             {
-                float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f);
+                float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f) * (Time.time < _sprintUntil ? 2.2f : 1f);
                 if (!Mathf.Approximately(speed, 1f)) Compat.Call(pc, "OverrideSpeed", speed, 0.2f);
             });
             if (_roundInfStamina)
@@ -258,11 +258,7 @@ namespace HideAndSeekMonster
             Safe("special key", () =>
             {
                 if (!_specialAction.WasPressedThisFrame()) return;
-                if (_monster == null || !_monster.HasLaser) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
-                if (Time.time < _specialReadyAt) return;
-                _specialReadyAt = Time.time + Plugin.LaserCooldown.Value + Plugin.LaserDuration.Value;
-                Plugin.Log.LogInfo("[Monster] laser pressed");
-                Send(MsgLaser, LocalAimDirection());
+                TriggerSpecial();
             });
 
             // Keep everybody updated where the laser points while it fires.
@@ -828,6 +824,10 @@ namespace HideAndSeekMonster
                         if (_monster != null) _monster.PlayAttack();
                         if (IsHost) HostHandleAttack((Vector3)data[2], (Vector3)data[3]);
                         break;
+                    case MsgSpecial:
+                        if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
+                        OnSpecial((AbilityType)(int)data[2], (Vector3)data[3], (Vector3)data[4]);
+                        break;
                     case MsgLaser:
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
                         _laserAim = (Vector3)data[2];
@@ -951,6 +951,7 @@ namespace HideAndSeekMonster
             _choiceOpen = seekerChooses && GameRefs.IsLocal(seeker);
             _specialReadyAt = 0f;
             _laserEndTime = -1f;
+            ClearAbilities();
             _hiderViewIds.Clear();
             foreach (var h in hiders) _hiderViewIds.Add(h);
             _thirdPerson = Plugin.ThirdPerson.Value;
@@ -1008,6 +1009,7 @@ namespace HideAndSeekMonster
             string seekerName = NameOf(Seeker);
 
             _laserEndTime = -1f;
+            ClearAbilities();
             if (_monster != null) _monster.Remove();
             _monster = null;
             ThirdPersonCamera.Active = false;
@@ -1081,18 +1083,22 @@ namespace HideAndSeekMonster
                 {
                     GUI.color = new Color(0.6f, 0f, 0f, 0.14f);
                     GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
-                    GUI.color = new Color(1f, 0.85f, 0.85f);
-                    ShadowLabel(new Rect(0, sh - 60 * u, sw, 40 * u),
-                        L.SeekerControls(BindName(_attackAction), Cooldown(_attackReadyAt), BindName(_roarAction), Cooldown(_roarReadyAt), BindName(_viewAction))
-                        + (_monster != null && _monster.HasLaser ? L.LaserControl(BindName(_specialAction), Cooldown(_specialReadyAt)) : ""),
-                        _smallStyle);
+                    GUI.color = Color.white;
+                    DrawRevealMarkers(u);
+                    DrawAbilityBar(sw, sh, u);
                 }
                 else if (Phase == Phase.Hiding)
                 {
                     GUI.color = new Color(1f, 0.85f, 0.2f);
                     ShadowLabel(new Rect(0, sh * 0.15f, sw, 80 * u), L.HideNow(NameOf(Seeker), _monsterName, secs), _bigStyle);
+                    if (_monster != null)
+                    {
+                        GUI.color = Abilities.UnityColor(_monster.Ability);
+                        ShadowLabel(new Rect(0, sh * 0.15f + 70 * u, sw, 40 * u), "★ " + L.Special + ": " + Abilities.Name(_monster.Ability) + " – " + Abilities.Description(_monster.Ability), _hudStyle);
+                    }
                 }
 
+                if (!localIsSeeker) DrawStunOverlay(sw, sh);
                 if (!localIsSeeker && Time.time < _flashUntil)
                 {
                     GUI.color = new Color(0.8f, 0f, 0f, 0.35f * ((_flashUntil - Time.time) / 0.6f));
@@ -1127,7 +1133,10 @@ namespace HideAndSeekMonster
             }
 
             if (_menuOpen)
-                _window = GUILayout.Window(0x48A5, _window, DrawWindow, L.MenuTitle);
+            {
+                try { DrawStartMenu(sw, sh, u); }
+                catch (System.Exception ex) { _lastError = "menu: " + ex.Message; GUI.color = Color.white; }
+            }
         }
 
         private void DrawDebugOverlay(float u)
@@ -1288,7 +1297,8 @@ namespace HideAndSeekMonster
                 var e = list[i];
                 bool sel = e.Name == _monsterName;
                 var r = new Rect((i % cols) * (cardW + gap), (i / cols) * (cardH + gap), cardW, cardH);
-                string tags = e.HasLaser ? $"<color=#ffb347>★ {L.SpecialLaser}</color>" : $"<color=#a89a9c>{L.BasicAbilities}</color>";
+                var ab = e.Ability;
+                string tags = $"<color={Abilities.Color(ab)}>★ {Abilities.Name(ab)}</color>";
                 string text = $"<b>{e.Name}</b>\n<size={Mathf.RoundToInt(15 * u)}>{tags}</size>";
                 if (GUI.Button(r, text, sel ? _cardSelStyle : _cardStyle) && !sel) Send(MsgChoose, e.Name);
             }
@@ -1308,7 +1318,7 @@ namespace HideAndSeekMonster
                 $"<b>{L.Abilities}</b>\n" +
                 $"• {BindName(_attackAction)}: {L.AbilityAttack}\n" +
                 $"• {BindName(_roarAction)}: {L.AbilityRoar}\n" +
-                (entry != null && entry.HasLaser ? $"• <color=#ffb347>{BindName(_specialAction)}: {L.AbilityLaser}</color>\n" : $"• <color=#a89a9c>{L.NoSpecialShort}</color>\n") +
+                (entry != null ? $"• <color={Abilities.Color(entry.Ability)}><b>{BindName(_specialAction)}: ★ {Abilities.Name(entry.Ability)}</b>\n   {Abilities.Description(entry.Ability)}</color>\n" : "") +
                 $"• {BindName(_viewAction)}: {L.AbilityView}\n\n" +
                 $"<color=#bfb3b5>{L.ChoiceInfo}</color>";
             GUI.Label(new Rect(dx, dy + 110 * u, dw, det.height - 110 * u - 140 * u), abilities, _chBody);
@@ -1369,100 +1379,6 @@ namespace HideAndSeekMonster
             GUI.Label(new Rect(r.x + 2, r.y + 2, r.width, r.height), text, style);
             GUI.color = c;
             GUI.Label(r, text, style);
-        }
-
-        private void DrawWindow(int id)
-        {
-            GUILayout.Space(4);
-
-            if (!IsHost)
-            {
-                GUILayout.Label(L.HostOnly);
-                if (RoundActive) GUILayout.Label(L.RoundRunning);
-                DrawScoreList(false);
-                if (GUILayout.Button(L.Close)) _menuOpen = false;
-                GUI.DragWindow();
-                return;
-            }
-
-            if (RoundActive)
-            {
-                GUILayout.Label(L.RoundRunning);
-                if (GUILayout.Button(L.Abort, GUILayout.Height(32))) Send(MsgEnd, (int)Winner.Aborted);
-                if (GUILayout.Button(L.Close)) _menuOpen = false;
-                GUI.DragWindow();
-                return;
-            }
-
-            if (!InLevel())
-            {
-                GUILayout.Label(L.OnlyInLevel);
-                if (GUILayout.Button(L.Close)) _menuOpen = false;
-                GUI.DragWindow();
-                return;
-            }
-
-            // --- Seeker ---
-            GUILayout.Label(L.ChooseSeeker);
-            var alive = AllPlayers().Where(IsAlive).ToList();
-            if (_selectedViewId >= 0 && !alive.Any(p => p.photonView.ViewID == _selectedViewId)) _selectedViewId = -1;
-
-            _scroll = GUILayout.BeginScrollView(_scroll, GUILayout.Height(130));
-            if (GUILayout.Toggle(_selectedViewId < 0, "  " + L.Random)) _selectedViewId = -1;
-            foreach (var p in alive)
-            {
-                int vid = p.photonView.ViewID;
-                bool sel = _selectedViewId == vid;
-                if (GUILayout.Toggle(sel, "  " + NameOf(p)) && !sel) _selectedViewId = vid;
-            }
-            GUILayout.EndScrollView();
-
-            // --- Monster ---
-            GUILayout.Label(L.ChooseMonster);
-            _scrollMonsters = GUILayout.BeginScrollView(_scrollMonsters, GUILayout.Height(130));
-            if (GUILayout.Toggle(_selectedMonster == RandomMonster, "  " + L.Random)) _selectedMonster = RandomMonster;
-            foreach (var e in MonsterCatalog.Entries)
-            {
-                bool sel = _selectedMonster == e.Name;
-                if (GUILayout.Toggle(sel, "  " + e.Name + (e.HasLaser ? "  (Laser)" : "")) && !sel) _selectedMonster = e.Name;
-            }
-            if (MonsterCatalog.Entries.Count == 0) GUILayout.Label(L.NoMonsters);
-            GUILayout.EndScrollView();
-
-            GUILayout.Space(6);
-            Plugin.HideTime.Value = Slider(L.HideTime, Plugin.HideTime.Value, 5f, 120f, "s", 0);
-            Plugin.RoundTime.Value = Slider(L.RoundTime, Plugin.RoundTime.Value, 30f, 900f, "s", 0);
-            Plugin.AttackRange.Value = Slider(L.AttackRange, Plugin.AttackRange.Value, 1f, 5f, "m", 1);
-            Plugin.SeekerSpeed.Value = Slider(L.SeekerSpeed, Plugin.SeekerSpeed.Value, 0.5f, 2.5f, "x", 2);
-            Plugin.MonsterScale.Value = Slider(L.MonsterSize, Plugin.MonsterScale.Value, 0.5f, 2f, "x", 2);
-            Plugin.DisableEnemies.Value = GUILayout.Toggle(Plugin.DisableEnemies.Value, " " + L.DisableEnemies);
-            Plugin.SeekerInvincible.Value = GUILayout.Toggle(Plugin.SeekerInvincible.Value, " " + L.Invincible);
-            Plugin.BlindSeekerWhileHiding.Value = GUILayout.Toggle(Plugin.BlindSeekerWhileHiding.Value, " " + L.Blind);
-            GUILayout.Space(4);
-            Plugin.SeekerChoosesMonster.Value = GUILayout.Toggle(Plugin.SeekerChoosesMonster.Value, " " + L.SeekerChooses);
-            Plugin.TestMode.Value = GUILayout.Toggle(Plugin.TestMode.Value, " " + L.TestMode);
-            if (Plugin.TestMode.Value) GUILayout.Label(L.TestModeHint);
-
-            GUILayout.Space(8);
-            DrawScoreList(true);
-
-            bool enough = alive.Count >= 2 || !SemiFunc.IsMultiplayer() || Plugin.TestMode.Value;
-            if (!enough) GUILayout.Label(L.NotEnoughPlayers);
-            GUI.enabled = enough;
-            if (GUILayout.Button(L.Start, GUILayout.Height(36))) HostStartRound();
-            GUI.enabled = true;
-            if (GUILayout.Button(L.Close)) _menuOpen = false;
-            GUI.DragWindow();
-        }
-
-        private static float Slider(string label, float value, float min, float max, string unit, int decimals)
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label($"{label}: {value.ToString("F" + decimals)}{unit}", GUILayout.Width(170));
-            value = GUILayout.HorizontalSlider(value, min, max);
-            GUILayout.EndHorizontal();
-            if (decimals == 0) value = Mathf.Round(value);
-            return value;
         }
     }
 }

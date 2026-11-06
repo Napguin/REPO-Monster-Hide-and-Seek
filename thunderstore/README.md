@@ -20,7 +20,7 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 |---|---|
 | **Left mouse** | Attack – lunge forward and kill hiders in front of you |
 | **Right mouse** / **R** | Roar – plays the monster's sound, nearby hiders see a red flash |
-| **Middle mouse** / **F** | Special ability – the Clown fires its laser |
+| **Middle mouse** / **F** | Special ability (see below) |
 | **V** | Switch between third person (see your monster) and first person |
 
 During the hiding phase the seeker can pick which monster they want to be.
@@ -39,6 +39,21 @@ You become the monster, training dummies stand around you as hiders, hiding time
 
 The overlay shows the monster's model info and whether your last attack hit (distance and angle).
 Details are also written to `BepInEx/LogOutput.log`. Dummies only exist on the host's screen.
+
+### Special abilities
+Every monster has one special (**middle mouse** / **F**). The ability bar at the bottom shows the cooldowns.
+
+| Special | What it does | Monsters |
+|---|---|---|
+| Laser | 3 s beam, kills everything in it, walls block it | Clown |
+| Shot | one long-range shot, kills the first hider in the line of fire | Huntsman |
+| Sprint | extremely fast for 3 s | Robe, Reaper, Animal |
+| Leap attack | big jump forward, anyone touched dies | Headman, Headgrab, Upscream, Snatcher, Chef, Tick, Apex Predator |
+| X-ray vision | see all hiders through walls for 5 s | Peeper, Mentalist, Loom, Oogly, Elsa |
+| Throw | projectile in an arc, kills on hit | Rugrat, Cleanup Crew, Spewer, Birthday Boy |
+| Shockwave | hiders within 10 m are heavily slowed for 2.5 s | Bowtie, Trudge, Heart Hugger, Gambit, Bella |
+
+Hiders see which special the monster has while they hide and get a warning when it is used.
 
 ### Scores
 Points add up over all rounds. They are shown after each round and in the F8 menu (the host can reset them).

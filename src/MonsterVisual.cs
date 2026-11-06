@@ -493,6 +493,7 @@ namespace HideAndSeekMonster
         private bool _gameLaserBroken;
 
         public bool HasLaser => _gameLaser != null || (_entry != null && _entry.HasLaser);
+        public AbilityType Ability => _gameLaser != null ? AbilityType.Laser : Abilities.For(_entry);
 
         public Vector3 MuzzlePosition
         {

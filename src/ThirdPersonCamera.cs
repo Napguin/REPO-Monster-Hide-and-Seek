@@ -33,6 +33,7 @@ namespace HideAndSeekMonster
         private static float _smoothedDist = 3.2f;
         private static int _offsetFrame = -1, _camsFrame = -1;
         private static Vector3 _offset;
+        public static Vector3 LastOffset => _offset;
 
         public static void Hook()
         {

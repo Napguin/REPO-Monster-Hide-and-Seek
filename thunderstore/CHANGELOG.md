@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0
+- **Every monster has a special ability** (middle mouse / F):
+  Laser, Shot, Sprint, Leap attack, X-ray vision, Throw, Shockwave – see the README for who has what.
+- Specials are visible everywhere: monster cards in both menus, ability bar with cooldowns for the monster,
+  hiders see the monster's special while hiding and get a warning when it is used.
+- New full-screen **start menu (F8)**: seeker, monster and rules side by side, scores, big start button.
+
 ## 1.3.1
 - New full-screen **monster selection**: card grid, details with the monster's abilities, countdown bar,
   "Random monster" button, keyboard control (arrows/WASD, Enter), reopen with **C** during the hiding phase.

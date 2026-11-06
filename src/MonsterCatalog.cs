@@ -22,6 +22,7 @@ namespace HideAndSeekMonster
             public List<Sound> RoarSounds = new List<Sound>();
             public List<Sound> AttackSounds = new List<Sound>();
             public bool HasLaser;
+            public AbilityType Ability => Abilities.For(this);
         }
 
         private static List<Entry> _entries;

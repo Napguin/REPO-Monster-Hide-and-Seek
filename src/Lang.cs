@@ -57,6 +57,65 @@ namespace HideAndSeekMonster
         public static string NoSpecialShort => De ? "keine Spezialfähigkeit" : "no special ability";
         public static string ChoiceInfo => De ? "Die anderen sehen dich sofort als dieses Monster. Du kannst wechseln, bis die Jagd beginnt. Berühren tötet ebenfalls." : "The others see you as this monster right away. You can switch until the hunt starts. Touching kills as well.";
         public static string RandomMonster => De ? "Zufälliges Monster" : "Random monster";
+        public static string AbilityName(AbilityType a)
+        {
+            switch (a)
+            {
+                case AbilityType.Laser: return "Laser";
+                case AbilityType.Shot: return De ? "Schuss" : "Shot";
+                case AbilityType.Sprint: return "Sprint";
+                case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
+                case AbilityType.Reveal: return De ? "Röntgenblick" : "X-ray vision";
+                case AbilityType.Throw: return De ? "Wurf" : "Throw";
+                case AbilityType.Shockwave: return De ? "Schockwelle" : "Shockwave";
+                default: return "-";
+            }
+        }
+
+        public static string AbilityDescription(AbilityType a)
+        {
+            switch (a)
+            {
+                case AbilityType.Laser: return De ? "Feuert 3 s einen Laser. Alles im Strahl stirbt, Wände blocken ihn." : "Fires a laser for 3 s. Everything in the beam dies, walls block it.";
+                case AbilityType.Shot: return De ? "Ein Schuss auf große Entfernung. Tötet den ersten Hider in der Schusslinie." : "One long-range shot. Kills the first hider in the line of fire.";
+                case AbilityType.Sprint: return De ? "3 s extrem schnell." : "Extremely fast for 3 s.";
+                case AbilityType.Leap: return De ? "Weiter Sprung nach vorn. Wer dabei berührt wird, stirbt." : "Big jump forward. Anyone touched during the jump dies.";
+                case AbilityType.Reveal: return De ? "5 s lang siehst du alle Hider durch Wände." : "See all hiders through walls for 5 s.";
+                case AbilityType.Throw: return De ? "Wirft ein Geschoss im Bogen. Tötet beim Treffer." : "Throws a projectile in an arc. Kills on hit.";
+                case AbilityType.Shockwave: return De ? "Hider in 10 m Umkreis werden 2,5 s stark verlangsamt." : "Hiders within 10 m are heavily slowed for 2.5 s.";
+                default: return "";
+            }
+        }
+
+        public static string AbilityUsedByMonster(AbilityType a)
+        {
+            switch (a)
+            {
+                case AbilityType.Sprint: return De ? "Das Monster sprintet!" : "The monster is sprinting!";
+                case AbilityType.Reveal: return De ? "Das Monster sieht dich durch Wände!" : "The monster sees you through walls!";
+                case AbilityType.Shockwave: return De ? "SCHOCKWELLE!" : "SHOCKWAVE!";
+                case AbilityType.Leap: return De ? "Das Monster springt!" : "The monster leaps!";
+                default: return "";
+            }
+        }
+
+        public static string Stunned => De ? "Betäubt!" : "Stunned!";
+        public static string Ready => De ? "bereit" : "ready";
+        public static string Special => De ? "Spezial" : "Special";
+        public static string Attack => De ? "Angriff" : "Attack";
+        public static string Roar => De ? "Brüllen" : "Roar";
+        public static string Camera => De ? "Kamera" : "Camera";
+        public static string MonsterSpecialInfo(string monster, string special) => De ? $"{monster} – Spezial: {special}" : $"{monster} – special: {special}";
+
+        public static string ChooseSeekerShort => De ? "Seeker" : "Seeker";
+        public static string You => De ? "du" : "you";
+        public static string StartMonsterHint => De ? "Der Seeker sucht sich sein Monster in der Versteckphase aus. Hier wählst du nur, womit er startet." : "The seeker picks their monster during the hiding phase. This only sets the starting monster.";
+        public static string FixedMonsterHint => De ? "Der Seeker wird genau dieses Monster." : "The seeker becomes exactly this monster.";
+        public static string RandomMonsterHint => De ? "Überraschung" : "Surprise";
+        public static string Rules => De ? "Regeln" : "Rules";
+        public static string CanGrab => De ? "Monster kann greifen (Türen öffnen)" : "Monster can grab (open doors)";
+        public static string On => De ? "AN" : "ON";
+        public static string Off => De ? "AUS" : "OFF";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string Close => De ? "Schließen" : "Close";
