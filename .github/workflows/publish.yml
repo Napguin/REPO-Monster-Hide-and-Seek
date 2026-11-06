@@ -2,6 +2,7 @@ name: Publish to Thunderstore
 
 # Runs when a new release zip / version is pushed to main (or manually).
 # Publishes only if this version is not on Thunderstore yet.
+# Test builds (test-builds/) are never published – only zips in release/.
 on:
   push:
     branches: [main]
