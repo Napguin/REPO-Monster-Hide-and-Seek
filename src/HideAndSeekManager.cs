@@ -32,7 +32,7 @@ namespace HideAndSeekMonster
 
         private const byte EventCode = 147;
         private const string Magic = "HNSM";
-        private const int MsgStart = 1, MsgKill = 2, MsgEnd = 3, MsgAttack = 4, MsgRoar = 5, MsgLaser = 6, MsgAim = 7, MsgChoose = 8;
+        private const int MsgStart = 1, MsgKill = 2, MsgEnd = 3, MsgAttack = 4, MsgRoar = 5, MsgLaser = 6, MsgAim = 7, MsgChoose = 8, MsgScore = 9;
         private const string RandomMonster = "<random>";
 
         // ---- round state (all clients) ----
@@ -80,6 +80,22 @@ namespace HideAndSeekMonster
         private string _lastAttackInfo = "-";
         private int _attackCount, _killCount;
         private GUIStyle _debugStyle;
+
+        // ---- scoring ----
+        // host: elimination order of this round + seeker kills; totals over the whole session
+        private readonly Dictionary<int, float> _hiderOutTime = new Dictionary<int, float>();
+        private readonly Dictionary<int, string> _roundNames = new Dictionary<int, string>();
+        private readonly Dictionary<int, string> _roundKeys = new Dictionary<int, string>();
+        private readonly HashSet<int> _seekerKilled = new HashSet<int>();
+        private int _roundSeekerId = -1;
+        private readonly Dictionary<string, int> _totals = new Dictionary<string, int>();
+        private readonly Dictionary<string, string> _totalNames = new Dictionary<string, string>();
+        // all clients: last scoreboard received
+        private string[] _sbNames = new string[0];
+        private int[] _sbRound = new int[0], _sbTotal = new int[0];
+        private bool[] _sbSeeker = new bool[0];
+        private float _resultsUntil;
+        private GUIStyle _scoreStyle;
 
         // ---- host only ----
         private readonly Dictionary<int, float> _killCooldown = new Dictionary<int, float>();
@@ -341,6 +357,7 @@ namespace HideAndSeekMonster
             }
 
             var hiders = AliveHiders();
+            if (!_roundTest) RecordEliminations(hiders);
 
             if (Phase == Phase.Hunting)
             {
@@ -356,11 +373,15 @@ namespace HideAndSeekMonster
                 // Test mode keeps running so you can respawn dummies (F10) and try more monsters.
                 if (hiders.Count == 0 && AliveDummies().Count == 0 && !_roundTest)
                 {
+                    HostSendScores();
                     Send(MsgEnd, (int)Winner.Seeker);
                     return;
                 }
                 if (Time.time >= _phaseEndTime)
+                {
+                    HostSendScores();
                     Send(MsgEnd, (int)Winner.Hiders);
+                }
             }
             else if (Phase == Phase.Hiding && hiders.Count == 0 && !_roundTest)
             {
@@ -373,7 +394,93 @@ namespace HideAndSeekMonster
             int id = h.photonView.ViewID;
             if (_killCooldown.TryGetValue(id, out float until) && Time.time < until) return;
             _killCooldown[id] = Time.time + 2f;
+            if (!_roundTest) _seekerKilled.Add(id); // 1 point per hider, counted once
             Send(MsgKill, id);
+        }
+
+        // =====================================================================
+        // Scoring (host)
+        // =====================================================================
+        private static string PlayerKey(PlayerAvatar p)
+        {
+            var id = Compat.Get<string>(p, "steamID");
+            return string.IsNullOrEmpty(id) ? "name:" + NameOf(p) : id;
+        }
+
+        private void HostBeginScoring(PlayerAvatar seeker, IEnumerable<PlayerAvatar> hiders)
+        {
+            _hiderOutTime.Clear();
+            _roundNames.Clear();
+            _roundKeys.Clear();
+            _seekerKilled.Clear();
+            _roundSeekerId = seeker.photonView.ViewID;
+            foreach (var p in hiders.Concat(new[] { seeker }))
+            {
+                int id = p.photonView.ViewID;
+                _roundNames[id] = NameOf(p);
+                _roundKeys[id] = PlayerKey(p);
+            }
+        }
+
+        /// <summary>Remembers when each hider was eliminated (eaten, or died any other way / left).</summary>
+        private void RecordEliminations(List<PlayerAvatar> aliveHiders)
+        {
+            foreach (int id in _hiderViewIds)
+            {
+                if (_hiderOutTime.ContainsKey(id)) continue;
+                if (aliveHiders.Any(p => p.photonView.ViewID == id)) continue;
+                _hiderOutTime[id] = Time.time;
+            }
+        }
+
+        /// <summary>
+        /// Hiders: the one who lasts longest gets as many points as there were hiders, the next one 1 less, ...
+        /// whoever was eliminated first gets 0. Everyone still alive at the end shares the top score.
+        /// Seeker: 1 point per hider eaten.
+        /// </summary>
+        private void HostSendScores()
+        {
+            if (_roundTest || _roundSeekerId < 0) return;
+            RecordEliminations(AliveHiders());
+
+            int h = _hiderViewIds.Count;
+            var round = new Dictionary<int, int>();
+            float firstOut = _hiderOutTime.Count > 0 ? _hiderOutTime.Values.Min() : float.MaxValue;
+            foreach (int id in _hiderViewIds)
+            {
+                bool survived = !_hiderOutTime.TryGetValue(id, out float t);
+                if (survived) { round[id] = h; continue; }
+                if (Mathf.Approximately(t, firstOut)) { round[id] = 0; continue; }
+                int outlasting = _hiderViewIds.Count(o => o != id && (!_hiderOutTime.TryGetValue(o, out float ot) || ot > t));
+                round[id] = Mathf.Max(0, h - outlasting);
+            }
+            round[_roundSeekerId] = _seekerKilled.Count;
+
+            foreach (var kv in round)
+            {
+                if (!_roundKeys.TryGetValue(kv.Key, out var key)) continue;
+                _totals.TryGetValue(key, out int tot);
+                _totals[key] = tot + kv.Value;
+                _totalNames[key] = _roundNames[kv.Key];
+            }
+
+            // everyone who ever scored, sorted by total
+            var keys = _totals.Keys.OrderByDescending(k => _totals[k]).ThenBy(k => _totalNames[k]).ToList();
+            var keyToId = _roundKeys.ToDictionary(kv => kv.Value, kv => kv.Key);
+            string[] names = keys.Select(k => _totalNames[k]).ToArray();
+            int[] roundPts = keys.Select(k => keyToId.TryGetValue(k, out int id) && round.TryGetValue(id, out int r) ? r : 0).ToArray();
+            int[] totals = keys.Select(k => _totals[k]).ToArray();
+            bool[] seeker = keys.Select(k => keyToId.TryGetValue(k, out int id) && id == _roundSeekerId).ToArray();
+            Plugin.Log.LogInfo("[Score] " + string.Join(", ", names.Select((n, i) => $"{n} +{roundPts[i]} = {totals[i]}")));
+            Send(MsgScore, names, roundPts, totals, seeker, true);
+            _roundSeekerId = -1;
+        }
+
+        private void HostResetScores()
+        {
+            _totals.Clear();
+            _totalNames.Clear();
+            Send(MsgScore, new string[0], new int[0], new int[0], new bool[0], false);
         }
 
         private void HostHandleAttack(Vector3 pos, Vector3 forward)
@@ -696,6 +803,14 @@ namespace HideAndSeekMonster
                         if (_monster != null) _monster.PlayRoar();
                         Plugin.Log.LogInfo("[Monster] laser fired");
                         break;
+                    case MsgScore:
+                        if (!SenderIsMaster(sender)) return;
+                        _sbNames = (string[])data[2];
+                        _sbRound = (int[])data[3];
+                        _sbTotal = (int[])data[4];
+                        _sbSeeker = (bool[])data[5];
+                        _resultsUntil = (bool)data[6] ? Time.time + 10f : 0f;
+                        break;
                     case MsgChoose:
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hiding || !_roundSeekerChooses) return;
                         var chosen = (string)data[2];
@@ -754,6 +869,7 @@ namespace HideAndSeekMonster
             _roundTest = test;
             _attackCount = _killCount = 0;
             _lastAttackInfo = "-";
+            if (!test) HostBeginScoring(seeker, alive.Where(p => p != seeker));
             if (test)
             {
                 Vector3 c = GameRefs.IsLocal(seeker) && PlayerController.instance != null ? PlayerController.instance.transform.position : seeker.transform.position;
@@ -961,6 +1077,8 @@ namespace HideAndSeekMonster
                 catch (System.Exception ex) { _lastError = "overlay: " + ex.Message; }
             }
 
+            if (Time.time < _resultsUntil && _sbNames.Length > 0) DrawResults(sw, sh, u);
+
             if (_choiceOpen && RoundActive && Phase == Phase.Hiding && localIsSeeker)
             {
                 GUI.color = Color.white;
@@ -1005,6 +1123,42 @@ namespace HideAndSeekMonster
             GUI.DrawTexture(rect, _white);
             GUI.color = Color.white;
             GUI.Label(new Rect(rect.x + 8, rect.y + 6, rect.width - 16, rect.height - 12), text, _debugStyle);
+        }
+
+        private void DrawResults(float sw, float sh, float u)
+        {
+            if (_scoreStyle == null)
+                _scoreStyle = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft };
+            _scoreStyle.fontSize = Mathf.RoundToInt(22 * u);
+            float rowH = 34 * u, w = 560 * u;
+            float h = (2 + _sbNames.Length) * rowH + 20 * u;
+            var box = new Rect((sw - w) / 2f, sh * 0.12f, w, h);
+            GUI.color = new Color(0, 0, 0, 0.75f);
+            GUI.DrawTexture(box, _white);
+            GUI.color = new Color(1f, 0.85f, 0.3f);
+            GUI.Label(new Rect(box.x + 16 * u, box.y + 8 * u, w, rowH), L.ScoreTitle, _scoreStyle);
+            for (int i = 0; i < _sbNames.Length; i++)
+            {
+                float y = box.y + 8 * u + (i + 1.3f) * rowH;
+                bool seeker = i < _sbSeeker.Length && _sbSeeker[i];
+                GUI.color = seeker ? new Color(1f, 0.45f, 0.4f) : Color.white;
+                GUI.Label(new Rect(box.x + 16 * u, y, w * 0.6f, rowH), $"{i + 1}. {_sbNames[i]}{(seeker ? "  (" + L.SeekerWord + ")" : "")}", _scoreStyle);
+                GUI.color = new Color(0.6f, 1f, 0.6f);
+                GUI.Label(new Rect(box.x + w * 0.62f, y, w * 0.18f, rowH), "+" + (i < _sbRound.Length ? _sbRound[i] : 0), _scoreStyle);
+                GUI.color = Color.white;
+                GUI.Label(new Rect(box.x + w * 0.8f, y, w * 0.2f, rowH), (i < _sbTotal.Length ? _sbTotal[i] : 0).ToString(), _scoreStyle);
+            }
+            GUI.color = Color.white;
+        }
+
+        private void DrawScoreList(bool hostControls)
+        {
+            GUILayout.Space(6);
+            GUILayout.Label(L.ScoreTitle);
+            if (_sbNames.Length == 0) GUILayout.Label("  " + L.NoScores);
+            for (int i = 0; i < _sbNames.Length; i++)
+                GUILayout.Label($"  {i + 1}. {_sbNames[i]}: {(i < _sbTotal.Length ? _sbTotal[i] : 0)}");
+            if (hostControls && _sbNames.Length > 0 && GUILayout.Button(L.ResetScores)) HostResetScores();
         }
 
         private void DrawChoiceWindow(int id)
@@ -1055,6 +1209,7 @@ namespace HideAndSeekMonster
             {
                 GUILayout.Label(L.HostOnly);
                 if (RoundActive) GUILayout.Label(L.RoundRunning);
+                DrawScoreList(false);
                 if (GUILayout.Button(L.Close)) _menuOpen = false;
                 GUI.DragWindow();
                 return;
@@ -1119,6 +1274,8 @@ namespace HideAndSeekMonster
             if (Plugin.TestMode.Value) GUILayout.Label(L.TestModeHint);
 
             GUILayout.Space(8);
+            DrawScoreList(true);
+
             bool enough = alive.Count >= 2 || !SemiFunc.IsMultiplayer() || Plugin.TestMode.Value;
             if (!enough) GUILayout.Label(L.NotEnoughPlayers);
             GUI.enabled = enough;

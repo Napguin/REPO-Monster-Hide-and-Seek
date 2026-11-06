@@ -40,6 +40,13 @@ You become the monster, training dummies stand around you as hiders, hiding time
 The overlay shows the monster's model info and whether your last attack hit (distance and angle).
 Details are also written to `BepInEx/LogOutput.log`. Dummies only exist on the host's screen.
 
+### Scores
+Points add up over all rounds. They are shown after each round and in the F8 menu (the host can reset them).
+- **Monster:** 1 point per hider eaten.
+- **Hiders:** the hider who lasts longest gets as many points as there were hiders, the next one 1 less, and so on –
+  the first hider eliminated gets 0. Everyone still alive at the end gets the full points.
+  Example with 3 hiders: Anna eaten first (0), Ben second (2), Carl survives (3).
+
 ### Phases
 | Phase | What happens |
 |---|---|

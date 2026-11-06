@@ -1,6 +1,10 @@
 # Changelog
 
 ## 1.3.0
+- **Score system** (totals over all rounds, shown after every round and in the F8 menu; host can reset):
+  - Monster: 1 point per hider eaten.
+  - Hiders: whoever lasts longest gets as many points as there were hiders, the next one 1 less, …,
+    the first one eliminated gets 0. Everyone alive at the end gets the full points. Aborted rounds don't count.
 - **Seeker picks their own monster** during the hiding phase (can be switched off in the F8 menu).
 - **Clown laser:** laser monsters fire the game's real laser with the middle mouse button or **F**
   (3 s, 12 s cooldown). Everything the beam touches dies; walls and objects block it.

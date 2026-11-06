@@ -40,6 +40,10 @@ namespace HideAndSeekMonster
         public static string ChoiceHint(int s) => De ? $"Die anderen verstecken sich noch {s}s – such dir aus, was du sein willst:" : $"The others are hiding for {s}s – pick what you want to be:";
         public static string Current(string name) => De ? $"Aktuell: {name}" : $"Current: {name}";
         public static string Done => De ? "Fertig" : "Done";
+        public static string ScoreTitle => De ? "Punkte" : "Scores";
+        public static string NoScores => De ? "(noch keine Runde gewertet)" : "(no scored round yet)";
+        public static string ResetScores => De ? "Punkte zurücksetzen" : "Reset scores";
+        public static string SeekerWord => De ? "Monster" : "monster";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string Close => De ? "Schließen" : "Close";
