@@ -109,7 +109,12 @@ namespace HideAndSeekMonster
             holder.SetActive(false); // nothing on the clone will Awake while we strip it
             var clone = Instantiate(prefab, holder.transform);
 
-            StripComponents(clone);
+            // The Clown (Beamer) carries the game's laser: keep that part fully working.
+            SemiLaser laser = null;
+            try { laser = clone.GetComponentInChildren<SemiLaser>(true); } catch { /* type changed */ }
+            Transform laserRoot = laser != null ? laser.transform : null;
+
+            StripComponents(clone, laserRoot);
 
             // Pick the subtree that actually looks like the monster: the animator with the most renderers.
             Transform best = null;
@@ -128,6 +133,9 @@ namespace HideAndSeekMonster
                 return null;
             }
 
+            // Keep the laser even if it isn't part of the visual subtree (relative pose preserved).
+            if (laserRoot != null && !laserRoot.IsChildOf(best)) laserRoot.SetParent(best, true);
+
             var body = new GameObject("Body").transform;
             body.SetParent(transform, false);
             best.SetParent(body, false);
@@ -143,6 +151,15 @@ namespace HideAndSeekMonster
                 _animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 _animator.enabled = true;
             }
+            if (laser != null)
+            {
+                // Hang the laser on the monster root, so hiding the own body (first person) keeps the beam visible.
+                laserRoot.SetParent(transform, true);
+                laserRoot.gameObject.SetActive(true);
+                _gameLaser = laser;
+                Plugin.Log.LogInfo($"[Monster] game laser kept ('{laserRoot.name}')");
+            }
+
             var rends = body.GetComponentsInChildren<Renderer>(true);
             bool anyOn = rends.Any(r => r.enabled && r.gameObject.activeInHierarchy && !(r is ParticleSystemRenderer));
             foreach (var r in rends)
@@ -157,9 +174,11 @@ namespace HideAndSeekMonster
         /// Removes every non-visual component. Only removes a component once nothing left on its
         /// GameObject still requires it ([RequireComponent]), so Unity never complains.
         /// </summary>
-        private void StripComponents(GameObject clone)
+        private void StripComponents(GameObject clone, Transform keepSubtree)
         {
-            var remaining = clone.GetComponentsInChildren<Component>(true).Where(c => c != null && !Keep(c)).ToList();
+            var remaining = clone.GetComponentsInChildren<Component>(true)
+                .Where(c => c != null && !Keep(c) && (keepSubtree == null || !c.transform.IsChildOf(keepSubtree)))
+                .ToList();
             for (int pass = 0; pass < 12 && remaining.Count > 0; pass++)
             {
                 bool progress = false;
@@ -463,6 +482,85 @@ namespace HideAndSeekMonster
             _growl = AudioClip.Create("HNS_Growl", n, 1, rate, false);
             _growl.SetData(data, 0);
             return _growl;
+        }
+
+        // ------------------------------------------------------------------
+        // Laser (special ability of laser monsters, e.g. Clown)
+        // ------------------------------------------------------------------
+        private SemiLaser _gameLaser;
+        private LineRenderer _line;
+        private Light _lineLight;
+        private bool _gameLaserBroken;
+
+        public bool HasLaser => _gameLaser != null || (_entry != null && _entry.HasLaser);
+
+        public Vector3 MuzzlePosition
+        {
+            get
+            {
+                if (_gameLaser != null)
+                {
+                    var t = Compat.Get<Transform>(_gameLaser, "shootTransform");
+                    if (t != null) return t.position;
+                    return _gameLaser.transform.position;
+                }
+                return transform.position + Vector3.up * Mathf.Clamp(BodyHeight * 0.8f, 0.8f, 3f) + transform.forward * 0.3f;
+            }
+        }
+
+        /// <summary>Call every frame while the laser fires.</summary>
+        public void LaserFrame(Vector3 start, Vector3 end, bool hitting)
+        {
+            if (_gameLaser != null && !_gameLaserBroken)
+            {
+                try
+                {
+                    if (Compat.Call(_gameLaser, "LaserActive", start, end, hitting)) { HideLine(); return; }
+                }
+                catch (System.Exception ex) { Plugin.Log.LogWarning("[Monster] game laser failed: " + ex.Message); }
+                _gameLaserBroken = true;
+            }
+            DrawLine(start, end, hitting);
+        }
+
+        public void LaserStop() => HideLine();
+
+        private void DrawLine(Vector3 start, Vector3 end, bool hitting)
+        {
+            if (_line == null)
+            {
+                var go = new GameObject("HNS_Laser");
+                go.transform.SetParent(transform, false);
+                _line = go.AddComponent<LineRenderer>();
+                _line.positionCount = 2;
+                _line.useWorldSpace = true;
+                var sh = Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Color") ?? Shader.Find("Hidden/Internal-Colored");
+                if (sh != null) _line.material = new Material(sh);
+                _line.startColor = new Color(1f, 0.95f, 0.9f);
+                _line.endColor = new Color(1f, 0.1f, 0.05f);
+                _line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                var lgo = new GameObject("HNS_LaserHit");
+                lgo.transform.SetParent(go.transform, false);
+                _lineLight = lgo.AddComponent<Light>();
+                _lineLight.type = LightType.Point;
+                _lineLight.color = new Color(1f, 0.2f, 0.1f);
+                _lineLight.range = 4f;
+                _lineLight.intensity = 4f;
+            }
+            _line.enabled = true;
+            float w = 0.18f + Mathf.Sin(Time.time * 40f) * 0.04f;
+            _line.startWidth = w;
+            _line.endWidth = w * 1.4f;
+            _line.SetPosition(0, start);
+            _line.SetPosition(1, end);
+            _lineLight.enabled = hitting;
+            _lineLight.transform.position = end;
+        }
+
+        private void HideLine()
+        {
+            if (_line != null) _line.enabled = false;
+            if (_lineLight != null) _lineLight.enabled = false;
         }
 
         public void SetBodyVisible(bool visible)

@@ -20,9 +20,11 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 |---|---|
 | **Left mouse** | Attack – lunge forward and kill hiders in front of you |
 | **Right mouse** / **R** | Roar – plays the monster's sound, nearby hiders see a red flash |
+| **Middle mouse** / **F** | Special ability – the Clown fires its laser |
 | **V** | Switch between third person (see your monster) and first person |
 
-The monster is faster, has infinite stamina, is invincible and cannot pick up objects.
+During the hiding phase the seeker can pick which monster they want to be.
+The monster is faster, has infinite stamina and is invincible. It can grab things, so doors and buttons work.
 Simply touching a hider also kills it.
 
 ### Test mode (solo)
@@ -69,6 +71,10 @@ The round settings of the **host** are used for everyone.
 | Seeker / Invincible | true | Monster can't be damaged |
 | Seeker / BlindWhileHiding | true | Black screen for the monster while the others hide |
 | Seeker / MonsterScale | 1.0 | Size of the monster model |
+| Round / SeekerChoosesMonster | true | Seeker picks their monster while the others hide |
+| Seeker / CanGrab | true | Monster can grab (needed for doors) |
+| Seeker / LaserDuration | 3 | Seconds the laser fires |
+| Seeker / LaserCooldown | 12 | Seconds between lasers |
 | Test / TestMode | false | Solo test mode with training dummies |
 | Test / DummyCount | 4 | Dummies spawned around you in test mode |
 | Controls / Attack, Roar, ToggleView | mouse L / mouse R / V | Input System paths, e.g. `<Keyboard>/f` |

@@ -21,6 +21,7 @@ namespace HideAndSeekMonster
             // The game's own sound objects (play through R.E.P.O.'s audio system / mixer)
             public List<Sound> RoarSounds = new List<Sound>();
             public List<Sound> AttackSounds = new List<Sound>();
+            public bool HasLaser;
         }
 
         private static List<Entry> _entries;
@@ -83,6 +84,7 @@ namespace HideAndSeekMonster
                     if (_entries.Any(e => e.Name == name)) continue;
 
                     var entry = new Entry { Name = name, Prefab = prefab };
+                    try { entry.HasLaser = prefab.GetComponentInChildren<SemiLaser>(true) != null; } catch { /* type changed */ }
                     CollectSounds(prefab, entry);
                     _entries.Add(entry);
                 }
@@ -90,7 +92,7 @@ namespace HideAndSeekMonster
             _entries.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
             Plugin.Log.LogInfo($"Monster catalog: {_entries.Count} monsters");
             foreach (var e in _entries)
-                Plugin.Log.LogInfo($"  - {e.Name} (prefab '{e.Prefab.name}', roar sounds {e.RoarClips.Count}, attack sounds {e.AttackClips.Count})");
+                Plugin.Log.LogInfo($"  - {e.Name} (prefab '{e.Prefab.name}', roar sounds {e.RoarClips.Count}, attack sounds {e.AttackClips.Count}{(e.HasLaser ? ", LASER" : "")})");
         }
 
         private static void CollectSounds(GameObject prefab, Entry entry)

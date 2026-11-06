@@ -32,6 +32,14 @@ namespace HideAndSeekMonster
             : $"missed – nearest {name}: {dist:0.0}m (range {range:0.0}m), angle {angle:0}° (max ~70°)";
         public static string AttackMissNoTarget => De ? "verfehlt – keine Puppen mehr" : "missed – no dummies left";
         public static string RoarBanner => De ? "BRÜLLEN!" : "ROAR!";
+        public static string NoSpecial => De ? "Dieses Monster hat keine Spezialfähigkeit." : "This monster has no special ability.";
+        public static string LaserControl(string key, string cd) => De ? $"   [{key}] Laser{cd}" : $"   [{key}] Laser{cd}";
+        public static string LaserHit(string name) => De ? $"LASER traf {name}" : $"LASER hit {name}";
+        public static string SeekerChooses => De ? "Seeker wählt sein Monster selbst" : "Seeker picks their own monster";
+        public static string ChooseYourMonster => De ? "Wähle dein Monster" : "Choose your monster";
+        public static string ChoiceHint(int s) => De ? $"Die anderen verstecken sich noch {s}s – such dir aus, was du sein willst:" : $"The others are hiding for {s}s – pick what you want to be:";
+        public static string Current(string name) => De ? $"Aktuell: {name}" : $"Current: {name}";
+        public static string Done => De ? "Fertig" : "Done";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string Close => De ? "Schließen" : "Close";

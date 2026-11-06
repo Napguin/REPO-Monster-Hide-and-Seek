@@ -32,7 +32,7 @@ namespace HideAndSeekMonster
 
         private const byte EventCode = 147;
         private const string Magic = "HNSM";
-        private const int MsgStart = 1, MsgKill = 2, MsgEnd = 3, MsgAttack = 4, MsgRoar = 5;
+        private const int MsgStart = 1, MsgKill = 2, MsgEnd = 3, MsgAttack = 4, MsgRoar = 5, MsgLaser = 6, MsgAim = 7, MsgChoose = 8;
         private const string RandomMonster = "<random>";
 
         // ---- round state (all clients) ----
@@ -54,7 +54,21 @@ namespace HideAndSeekMonster
         // ---- local seeker ----
         private bool _thirdPerson = true;
         private float _attackReadyAt, _roarReadyAt, _lungeUntil;
-        private InputAction _attackAction, _roarAction, _viewAction;
+        private InputAction _attackAction, _roarAction, _viewAction, _specialAction;
+        private float _specialReadyAt;
+
+        // ---- seeker picks own monster ----
+        private bool _roundSeekerChooses;
+        private bool _choiceOpen;
+        private float _roundScale = 1f;
+        private Vector2 _choiceScroll;
+        private Rect _choiceWindow = new Rect(0, 0, 420, 560);
+
+        // ---- laser (all clients) ----
+        private float _laserChargeUntil = -1f, _laserEndTime = -1f;
+        private Vector3 _laserAim = Vector3.forward;
+        private float _aimSendTimer;
+        private const float LaserCharge = 0.6f;
 
         // ---- test mode (host-local) ----
         private bool _roundTest;
@@ -95,6 +109,8 @@ namespace HideAndSeekMonster
             _roarAction = MakeAction(Plugin.RoarBinding.Value, "<Mouse>/rightButton");
             try { _roarAction.Disable(); _roarAction.AddBinding("<Keyboard>/r"); _roarAction.Enable(); } catch { /* optional */ }
             _viewAction = MakeAction(Plugin.ToggleViewBinding.Value, "<Keyboard>/v");
+            _specialAction = MakeAction(Plugin.SpecialBinding.Value, "<Mouse>/middleButton");
+            try { _specialAction.Disable(); _specialAction.AddBinding("<Keyboard>/f"); _specialAction.Enable(); } catch { /* optional */ }
         }
 
         private static InputAction MakeAction(string binding, string fallback)
@@ -118,7 +134,8 @@ namespace HideAndSeekMonster
             if (kb != null && kb[Plugin.MenuKey.Value].wasPressedThisFrame)
                 _menuOpen = !_menuOpen;
 
-            if (_menuOpen)
+            bool choiceVisible = _choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker);
+            if (_menuOpen || choiceVisible)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
@@ -154,6 +171,7 @@ namespace HideAndSeekMonster
             });
             if (_roundTest && !_menuOpen) Safe("test keys", TestKeys);
             Safe("seeker", LocalSeekerTick);
+            Safe("laser", LaserTick);
             if (IsHost) Safe("host", HostTick);
         }
 
@@ -170,7 +188,9 @@ namespace HideAndSeekMonster
             if (_monster != null) _monster.SetBodyVisible(ThirdPersonCamera.Working);
 
             // Each part separately, so a changed game method can't take the others down.
-            Safe("grab", () => Compat.Set(Compat.Static("PhysGrabber", "instance"), "grabDisableTimer", 0.25f));
+            // Doors, buttons, carts ... are all "grabbed" in R.E.P.O., so grabbing stays on unless disabled in the config.
+            if (!Plugin.MonsterCanGrab.Value)
+                Safe("grab", () => Compat.Set(Compat.Static("PhysGrabber", "instance"), "grabDisableTimer", 0.25f));
 
             var pc = PlayerController.instance;
             if (Phase == Phase.Hiding)
@@ -214,6 +234,98 @@ namespace HideAndSeekMonster
                 Banner(L.RoarBanner, new Color(1f, 0.3f, 0.2f), 1f);
                 Send(MsgRoar, SeekerPosition());
             });
+
+            Safe("special key", () =>
+            {
+                if (!_specialAction.WasPressedThisFrame()) return;
+                if (_monster == null || !_monster.HasLaser) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
+                if (Time.time < _specialReadyAt) return;
+                _specialReadyAt = Time.time + Plugin.LaserCooldown.Value + Plugin.LaserDuration.Value;
+                Plugin.Log.LogInfo("[Monster] laser pressed");
+                Send(MsgLaser, LocalAimDirection());
+            });
+
+            // Keep everybody updated where the laser points while it fires.
+            if (LaserActive())
+            {
+                _laserAim = LocalAimDirection();
+                _aimSendTimer -= Time.deltaTime;
+                if (_aimSendTimer <= 0f)
+                {
+                    _aimSendTimer = 0.1f;
+                    Safe("aim", () => SendUnreliable(MsgAim, _laserAim));
+                }
+            }
+        }
+
+        // =====================================================================
+        // Laser
+        // =====================================================================
+        private bool LaserActive() => Time.time < _laserEndTime;
+
+        /// <summary>Direction from the monster's muzzle to what the player's camera looks at.</summary>
+        private Vector3 LocalAimDirection()
+        {
+            var view = GameRefs.ViewTransform(Seeker);
+            if (view == null) return Seeker != null ? Seeker.transform.forward : Vector3.forward;
+            Vector3 muzzle = _monster != null ? _monster.MuzzlePosition : view.position;
+            Vector3 target = view.position + view.forward * 40f;
+            if (Physics.Raycast(view.position, view.forward, out var hit, 40f, ~0, QueryTriggerInteraction.Ignore)
+                && !IsPlayerCollider(hit.collider))
+                target = hit.point;
+            var dir = target - muzzle;
+            return dir.sqrMagnitude > 0.01f ? dir.normalized : view.forward;
+        }
+
+        private static bool IsPlayerCollider(Collider c) =>
+            c != null && (c.GetComponentInParent<PlayerAvatar>() != null || c.GetComponentInParent<PlayerController>() != null
+                          || c.GetComponentInParent<MonsterVisual>() != null);
+
+        private void LaserTick()
+        {
+            if (_monster == null) return;
+            if (!LaserActive())
+            {
+                if (_laserEndTime > 0f) { _monster.LaserStop(); _laserEndTime = -1f; }
+                return;
+            }
+            if (Time.time < _laserChargeUntil) return; // charging
+
+            Vector3 start = _monster.MuzzlePosition;
+            Vector3 dir = _laserAim.sqrMagnitude > 0.01f ? _laserAim.normalized : _monster.transform.forward;
+            float range = 30f;
+            Vector3 end = start + dir * range;
+            bool hitting = false;
+            var hits = Physics.RaycastAll(start, dir, range, ~0, QueryTriggerInteraction.Ignore);
+            float best = range;
+            foreach (var h in hits)
+            {
+                if (IsPlayerCollider(h.collider)) continue; // the beam goes through players (and kills them)
+                if (h.distance < best) { best = h.distance; end = h.point; hitting = true; }
+            }
+            _monster.LaserFrame(start, end, hitting);
+
+            if (IsHost) HostLaserHits(start, end);
+        }
+
+        private void HostLaserHits(Vector3 a, Vector3 b)
+        {
+            const float radius = 0.8f;
+            foreach (var h in AliveHiders())
+                if (DistanceToSegment(h.transform.position + Vector3.up * 0.8f, a, b) < radius) HostKill(h);
+            foreach (var d in AliveDummies())
+                if (DistanceToSegment(d.transform.position + Vector3.up * 0.9f, a, b) < radius)
+                {
+                    KillDummy(d, a, "laser");
+                    _lastAttackInfo = L.LaserHit(d.DummyName);
+                }
+        }
+
+        private static float DistanceToSegment(Vector3 p, Vector3 a, Vector3 b)
+        {
+            Vector3 ab = b - a;
+            float t = ab.sqrMagnitude > 0.0001f ? Mathf.Clamp01(Vector3.Dot(p - a, ab) / ab.sqrMagnitude) : 0f;
+            return Vector3.Distance(p, a + ab * t);
         }
 
         private void HostTick()
@@ -376,9 +488,17 @@ namespace HideAndSeekMonster
             for (int i = 0; i < list.Count; i++) if (list[i].Name == _monsterName) idx = i;
             idx = ((idx + dir) % list.Count + list.Count) % list.Count;
 
+            SwitchMonster(list[idx].Name);
+        }
+
+        /// <summary>Rebuilds the seeker's monster body (local).</summary>
+        private void SwitchMonster(string name)
+        {
+            if (Seeker == null) return;
+            _laserEndTime = -1f;
             if (_monster != null) _monster.Remove();
-            _monster = MonsterVisual.Create(Seeker, list[idx].Name, Plugin.MonsterScale.Value);
-            _monsterName = _monster != null ? _monster.MonsterName : list[idx].Name;
+            _monster = MonsterVisual.Create(Seeker, name, _roundScale);
+            _monsterName = _monster != null ? _monster.MonsterName : name;
             Banner(_monsterName, new Color(1f, 0.6f, 0.4f), 1.5f);
             if (_monster != null) _monster.PlayRoar();
         }
@@ -505,6 +625,18 @@ namespace HideAndSeekMonster
             }
         }
 
+        private void SendUnreliable(int type, params object[] args)
+        {
+            if (!(SemiFunc.IsMultiplayer() && PhotonNetwork.InRoom)) return; // local client already knows
+            var payload = new object[args.Length + 2];
+            payload[0] = Magic;
+            payload[1] = type;
+            args.CopyTo(payload, 2);
+            PhotonNetwork.RaiseEvent(EventCode, payload,
+                new RaiseEventOptions { Receivers = ReceiverGroup.Others },
+                SendOptions.SendUnreliable);
+        }
+
         public void OnEvent(EventData photonEvent)
         {
             if (photonEvent.Code != EventCode) return;
@@ -537,7 +669,7 @@ namespace HideAndSeekMonster
                         if (!SenderIsMaster(sender)) return;
                         OnStart((int)data[2], (float)data[3], (float)data[4], (float)data[5],
                             (bool)data[6], (bool)data[7], (bool)data[8], (float)data[9], (int[])data[10],
-                            (string)data[11], (float)data[12]);
+                            (string)data[11], (float)data[12], data.Length > 13 && (bool)data[13]);
                         break;
                     case MsgKill:
                         if (!SenderIsMaster(sender)) return;
@@ -555,6 +687,25 @@ namespace HideAndSeekMonster
                         }
                         if (_monster != null) _monster.PlayAttack();
                         if (IsHost) HostHandleAttack((Vector3)data[2], (Vector3)data[3]);
+                        break;
+                    case MsgLaser:
+                        if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
+                        _laserAim = (Vector3)data[2];
+                        _laserChargeUntil = Time.time + LaserCharge;
+                        _laserEndTime = _laserChargeUntil + Plugin.LaserDuration.Value;
+                        if (_monster != null) _monster.PlayRoar();
+                        Plugin.Log.LogInfo("[Monster] laser fired");
+                        break;
+                    case MsgChoose:
+                        if (!SenderIsSeeker(sender) || Phase != Phase.Hiding || !_roundSeekerChooses) return;
+                        var chosen = (string)data[2];
+                        if (MonsterCatalog.Find(chosen) == null) return;
+                        SwitchMonster(chosen);
+                        Plugin.Log.LogInfo($"[Monster] seeker chose '{chosen}'");
+                        break;
+                    case MsgAim:
+                        if (!SenderIsSeeker(sender)) return;
+                        if (Seeker != null && !GameRefs.IsLocal(Seeker)) _laserAim = (Vector3)data[2];
                         break;
                     case MsgRoar:
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
@@ -612,7 +763,7 @@ namespace HideAndSeekMonster
 
             Send(MsgStart,
                 seeker.photonView.ViewID,
-                test ? Mathf.Min(Plugin.HideTime.Value, 3f) : Plugin.HideTime.Value,
+                test ? Mathf.Min(Plugin.HideTime.Value, Plugin.SeekerChoosesMonster.Value ? 15f : 3f) : Plugin.HideTime.Value,
                 Plugin.RoundTime.Value,
                 Plugin.SeekerSpeed.Value,
                 Plugin.SeekerInfiniteStamina.Value,
@@ -621,12 +772,13 @@ namespace HideAndSeekMonster
                 Plugin.MonsterScale.Value,
                 hiders,
                 monster,
-                Plugin.AttackRange.Value);
+                Plugin.AttackRange.Value,
+                Plugin.SeekerChoosesMonster.Value);
             _menuOpen = false;
         }
 
         private void OnStart(int seekerId, float hide, float hunt, float speed, bool infStamina,
-            bool invincible, bool blind, float scale, int[] hiders, string monster, float attackRange)
+            bool invincible, bool blind, float scale, int[] hiders, string monster, float attackRange, bool seekerChooses)
         {
             if (RoundActive) EndRoundLocal(Winner.Aborted, false);
 
@@ -644,6 +796,11 @@ namespace HideAndSeekMonster
             SeekerInvincibleThisRound = invincible;
             _roundBlind = blind;
             _roundAttackRange = attackRange;
+            _roundScale = scale;
+            _roundSeekerChooses = seekerChooses;
+            _choiceOpen = seekerChooses && GameRefs.IsLocal(seeker);
+            _specialReadyAt = 0f;
+            _laserEndTime = -1f;
             _hiderViewIds.Clear();
             foreach (var h in hiders) _hiderViewIds.Add(h);
             _thirdPerson = Plugin.ThirdPerson.Value;
@@ -700,6 +857,7 @@ namespace HideAndSeekMonster
             if (!RoundActive) return;
             string seekerName = NameOf(Seeker);
 
+            _laserEndTime = -1f;
             if (_monster != null) _monster.Remove();
             _monster = null;
             ThirdPersonCamera.Active = false;
@@ -769,7 +927,8 @@ namespace HideAndSeekMonster
                     GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
                     GUI.color = new Color(1f, 0.85f, 0.85f);
                     ShadowLabel(new Rect(0, sh - 60 * u, sw, 40 * u),
-                        L.SeekerControls(BindName(_attackAction), Cooldown(_attackReadyAt), BindName(_roarAction), Cooldown(_roarReadyAt), BindName(_viewAction)),
+                        L.SeekerControls(BindName(_attackAction), Cooldown(_attackReadyAt), BindName(_roarAction), Cooldown(_roarReadyAt), BindName(_viewAction))
+                        + (_monster != null && _monster.HasLaser ? L.LaserControl(BindName(_specialAction), Cooldown(_specialReadyAt)) : ""),
                         _smallStyle);
                 }
                 else if (Phase == Phase.Hiding)
@@ -800,6 +959,16 @@ namespace HideAndSeekMonster
             {
                 try { DrawDebugOverlay(u); }
                 catch (System.Exception ex) { _lastError = "overlay: " + ex.Message; }
+            }
+
+            if (_choiceOpen && RoundActive && Phase == Phase.Hiding && localIsSeeker)
+            {
+                GUI.color = Color.white;
+                _choiceWindow.width = 420 * Mathf.Max(1f, u);
+                _choiceWindow.height = 560 * Mathf.Max(1f, u);
+                _choiceWindow.x = (sw - _choiceWindow.width) / 2f;
+                _choiceWindow.y = (sh - _choiceWindow.height) / 2f;
+                GUILayout.Window(0x48A6, _choiceWindow, DrawChoiceWindow, L.ChooseYourMonster);
             }
 
             if (_menuOpen)
@@ -836,6 +1005,23 @@ namespace HideAndSeekMonster
             GUI.DrawTexture(rect, _white);
             GUI.color = Color.white;
             GUI.Label(new Rect(rect.x + 8, rect.y + 6, rect.width - 16, rect.height - 12), text, _debugStyle);
+        }
+
+        private void DrawChoiceWindow(int id)
+        {
+            int secs = Mathf.Max(0, Mathf.CeilToInt(_phaseEndTime - Time.time));
+            GUILayout.Label(L.ChoiceHint(secs));
+            GUILayout.Label(L.Current(_monsterName));
+            _choiceScroll = GUILayout.BeginScrollView(_choiceScroll);
+            foreach (var e in MonsterCatalog.Entries)
+            {
+                bool sel = e.Name == _monsterName;
+                string label = (sel ? "> " : "   ") + e.Name + (e.HasLaser ? "  (Laser)" : "");
+                if (GUILayout.Button(label, GUILayout.Height(28)) && !sel)
+                    Send(MsgChoose, e.Name);
+            }
+            GUILayout.EndScrollView();
+            if (GUILayout.Button(L.Done, GUILayout.Height(34))) _choiceOpen = false;
         }
 
         private static string BindName(InputAction a)
@@ -913,7 +1099,7 @@ namespace HideAndSeekMonster
             foreach (var e in MonsterCatalog.Entries)
             {
                 bool sel = _selectedMonster == e.Name;
-                if (GUILayout.Toggle(sel, "  " + e.Name) && !sel) _selectedMonster = e.Name;
+                if (GUILayout.Toggle(sel, "  " + e.Name + (e.HasLaser ? "  (Laser)" : "")) && !sel) _selectedMonster = e.Name;
             }
             if (MonsterCatalog.Entries.Count == 0) GUILayout.Label(L.NoMonsters);
             GUILayout.EndScrollView();
@@ -928,6 +1114,7 @@ namespace HideAndSeekMonster
             Plugin.SeekerInvincible.Value = GUILayout.Toggle(Plugin.SeekerInvincible.Value, " " + L.Invincible);
             Plugin.BlindSeekerWhileHiding.Value = GUILayout.Toggle(Plugin.BlindSeekerWhileHiding.Value, " " + L.Blind);
             GUILayout.Space(4);
+            Plugin.SeekerChoosesMonster.Value = GUILayout.Toggle(Plugin.SeekerChoosesMonster.Value, " " + L.SeekerChooses);
             Plugin.TestMode.Value = GUILayout.Toggle(Plugin.TestMode.Value, " " + L.TestMode);
             if (Plugin.TestMode.Value) GUILayout.Label(L.TestModeHint);
 

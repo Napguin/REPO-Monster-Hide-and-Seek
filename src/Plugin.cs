@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.2.3";
+        public const string Version = "1.3.0";
 
         internal static ManualLogSource Log;
 
@@ -43,6 +43,11 @@ namespace HideAndSeekMonster
         internal static ConfigEntry<string> RoarBinding;
         internal static ConfigEntry<string> ToggleViewBinding;
         internal static ConfigEntry<bool> TestMode;
+        internal static ConfigEntry<string> SpecialBinding;
+        internal static ConfigEntry<float> LaserDuration;
+        internal static ConfigEntry<float> LaserCooldown;
+        internal static ConfigEntry<bool> MonsterCanGrab;
+        internal static ConfigEntry<bool> SeekerChoosesMonster;
         internal static ConfigEntry<int> TestDummyCount;
 
         private Harmony _harmony;
@@ -98,6 +103,17 @@ namespace HideAndSeekMonster
                 "Monster roar (Unity Input System path). R always works as well.");
             ToggleViewBinding = Config.Bind("Controls", "ToggleView", "<Keyboard>/v",
                 "Switch the monster between third and first person (Unity Input System path).");
+
+            SpecialBinding = Config.Bind("Controls", "Special", "<Mouse>/middleButton",
+                "Special ability, e.g. the Clown's laser (Unity Input System path). F always works as well.");
+            LaserDuration = Config.Bind("Seeker", "LaserDuration", 3f,
+                new ConfigDescription("Seconds the laser fires.", new AcceptableValueRange<float>(0.5f, 10f)));
+            LaserCooldown = Config.Bind("Seeker", "LaserCooldown", 12f,
+                new ConfigDescription("Seconds between lasers.", new AcceptableValueRange<float>(1f, 60f)));
+            MonsterCanGrab = Config.Bind("Seeker", "CanGrab", true,
+                "Monster can grab things. Needed to open doors, press buttons etc. in R.E.P.O.");
+            SeekerChoosesMonster = Config.Bind("Round", "SeekerChoosesMonster", true,
+                "The seeker picks their own monster during the hiding phase (host setting).");
 
             TestMode = Config.Bind("Test", "TestMode", false,
                 "Solo test mode: start a round alone, training dummies act as hiders, debug overlay, F9 = next monster, F10 = spawn dummy, F11 = overlay.");

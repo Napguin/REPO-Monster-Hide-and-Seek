@@ -27,3 +27,6 @@ eine neue Version gepusht wird (`thunderstore/manifest.json` + passende `release
 Ist die Version schon auf Thunderstore, passiert nichts. Manuell starten: GitHub → Actions → "Publish to Thunderstore" → Run workflow.
 
 Benötigt das Repository-Secret `TSTORE_TOKEN` (Service-Account-Token des Thunderstore-Teams).
+
+### Testversionen
+Neue Versionen landen zuerst in `test-builds/`. Erst wenn die ZIP nach `release/` kopiert wird, veröffentlicht die Action sie.

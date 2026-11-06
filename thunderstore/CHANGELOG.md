@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+- **Seeker picks their own monster** during the hiding phase (can be switched off in the F8 menu).
+- **Clown laser:** laser monsters fire the game's real laser with the middle mouse button or **F**
+  (3 s, 12 s cooldown). Everything the beam touches dies; walls and objects block it.
+- **Monster can open doors again:** grabbing is allowed (doors, buttons, carts are grabbed in R.E.P.O.).
+  Can be switched off with `Seeker / CanGrab`.
+
 ## 1.2.3
 - Fix for R.E.P.O. v0.5.0: `PlayerController.OverrideSpeed` changed, which crashed the whole monster control
   every frame (no camera, attack, roar, speed or stamina). Game methods that can change between versions are
