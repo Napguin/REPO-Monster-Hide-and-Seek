@@ -45,7 +45,9 @@ namespace HideAndSeekMonster
             GUI.color = Color.white;
 
             float pw = full ? Mathf.Min(sw - 40 * u, 1400 * u) : Mathf.Min(sw - 40 * u, 640 * u);
-            float ph = full ? Mathf.Min(sh - 40 * u, 860 * u) : Mathf.Min(sh - 40 * u, 560 * u);
+            int scoreLines = Mathf.Max(1, _sbNames.Length) + (IsHost && _sbNames.Length > 0 ? 2 : 0);
+            float simpleH = 74 * u + 40 * u + (RoundActive ? (IsHost ? 130 * u : 70 * u) : 40 * u) + 50 * u + scoreLines * 26 * u + 30 * u;
+            float ph = full ? Mathf.Min(sh - 40 * u, 860 * u) : Mathf.Min(sh - 40 * u, simpleH);
             var panel = new Rect((sw - pw) / 2f, (sh - ph) / 2f, pw, ph);
             GUI.DrawTexture(panel, Tex(new Color(0.06f, 0.045f, 0.05f, 1f)));
             GUI.DrawTexture(new Rect(panel.x, panel.y, panel.width, 4 * u), Tex(new Color(0.8f, 0.1f, 0.08f, 1f)));
@@ -108,11 +110,11 @@ namespace HideAndSeekMonster
             if (GUI.Button(pill, (chooses ? $"<color=#7dff8a>[{L.On}]</color>  " : $"<color=#a89a9c>[{L.Off}]</color>  ") + L.SeekerChooses, chooses ? _pillOn : _pillOff))
                 Plugin.SeekerChoosesMonster.Value = !chooses;
             GUI.color = new Color(1, 1, 1, 0.7f);
-            GUI.Label(new Rect(r.x + p, pill.yMax + 4 * u, r.width - 2 * p, 24 * u), chooses ? L.StartMonsterHint : L.FixedMonsterHint, _mSmall);
+            GUI.Label(new Rect(r.x + p, pill.yMax + 4 * u, r.width - 2 * p, 44 * u), chooses ? L.StartMonsterHint : L.FixedMonsterHint, _mSmall);
             GUI.color = Color.white;
 
             var list = MonsterCatalog.Entries;
-            var area = new Rect(r.x + p, pill.yMax + 34 * u, r.width - 2 * p, r.yMax - pill.yMax - 42 * u);
+            var area = new Rect(r.x + p, pill.yMax + 54 * u, r.width - 2 * p, r.yMax - pill.yMax - 62 * u);
             int cols = 2;
             float gap = 8 * u, cardH = 58 * u;
             float cardW = (area.width - 18 * u - gap) / cols;

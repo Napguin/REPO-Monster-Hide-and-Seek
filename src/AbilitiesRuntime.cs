@@ -256,9 +256,9 @@ namespace HideAndSeekMonster
                 // colour strip + cooldown fill
                 GUI.color = ready ? s.color : new Color(s.color.r, s.color.g, s.color.b, 0.35f);
                 GUI.DrawTexture(new Rect(r.x, r.yMax - 5 * u, r.width * (ready ? 1f : 1f - Mathf.Clamp01(left / Mathf.Max(0.01f, s.total))), 5 * u), _white);
-                GUI.color = ready ? Color.white : new Color(1, 1, 1, 0.45f);
+                GUI.color = ready ? new Color(s.color.r, s.color.g, s.color.b, 0.9f) : new Color(1, 1, 1, 0.4f);
                 GUI.Label(new Rect(r.x + 8 * u, r.y + 4 * u, r.width, 20 * u), s.key, keyStyle);
-                GUI.color = ready ? s.color : new Color(0.7f, 0.7f, 0.7f, 0.7f);
+                GUI.color = ready ? Color.white : new Color(0.75f, 0.75f, 0.75f, 0.6f);
                 GUI.Label(new Rect(r.x + 4 * u, r.y + 10 * u, r.width - 8 * u, r.height - 14 * u), s.name, nameStyle);
                 GUI.color = Color.white;
                 if (!ready) GUI.Label(new Rect(r.x, r.y, r.width - 8 * u, r.height - 8 * u), $"{left:0.0}s", cdStyle);
