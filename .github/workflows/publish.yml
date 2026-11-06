@@ -20,7 +20,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Read version
         id: v
@@ -71,7 +71,7 @@ jobs:
           sed -i "s/^repo = \[ \]$/repo = [ $LIST ]/" thunderstore.toml
           grep -A1 "publish.categories" thunderstore.toml
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         if: steps.exists.outputs.skip == 'false'
         with:
           dotnet-version: "8.0.x"
