@@ -19,7 +19,7 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 | Control | Action |
 |---|---|
 | **Left mouse** | Attack – lunge forward and kill hiders in front of you |
-| **Right mouse** / **R** | Roar – plays the monster's sound, nearby hiders see a red flash |
+| **Right mouse** / **R** | Echo roar – for 1.5 s arrows show the direction of every hider within 15 m (no distance); those hiders get warned |
 | **Middle mouse** / **F** | Special ability (see below) |
 | **V** | Switch between third person (see your monster) and first person |
 

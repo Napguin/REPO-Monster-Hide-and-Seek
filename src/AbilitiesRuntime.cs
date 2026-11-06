@@ -16,6 +16,60 @@ namespace HideAndSeekMonster
         private float _stunUntil;
         private readonly List<Projectile> _projectiles = new List<Projectile>();
 
+        // echo roar: hiders within range at the moment of the roar (local seeker shows direction arrows)
+        private const float EchoRange = 15f, EchoTime = 1.5f;
+        private readonly List<Vector3> _echoTargets = new List<Vector3>();
+        private float _echoUntil;
+
+        private void OnRoarEcho(Vector3 roarPos)
+        {
+            bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
+            if (localSeeker)
+            {
+                _echoTargets.Clear();
+                foreach (var h in AliveHiders())
+                    if (FlatDistance(PlayerPos(h), roarPos) <= EchoRange) _echoTargets.Add(PlayerPos(h));
+                foreach (var d in AliveDummies())
+                    if (FlatDistance(d.transform.position, roarPos) <= EchoRange) _echoTargets.Add(d.transform.position);
+                _echoUntil = Time.time + EchoTime;
+                Banner(_echoTargets.Count > 0 ? L.EchoFound(_echoTargets.Count) : L.EchoNothing, new Color(1f, 0.6f, 0.3f), 1.5f);
+                Plugin.Log.LogInfo($"[Monster] echo: {_echoTargets.Count} hider(s) within {EchoRange}m");
+                return;
+            }
+            var local = GameRefs.LocalAvatar;
+            if (local != null && IsAlive(local) && FlatDistance(PlayerPos(local), roarPos) <= EchoRange)
+            {
+                _flashUntil = Time.time + 0.6f;
+                Banner(L.Echoed, new Color(1f, 0.5f, 0.3f), 2f);
+            }
+        }
+
+        /// <summary>Arrows at the screen edge pointing towards the hiders found by the echo (no distance).</summary>
+        private void DrawEchoArrows(float sw, float sh, float u)
+        {
+            if (Time.time >= _echoUntil || _echoTargets.Count == 0) return;
+            var view = GameRefs.ViewTransform(Seeker);
+            if (view == null) return;
+            Vector3 me = SeekerPosition();
+            float yaw = view.eulerAngles.y;
+            float k = (_echoUntil - Time.time) / EchoTime;
+            var style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = Mathf.RoundToInt(54 * u), fontStyle = FontStyle.Bold };
+            Vector2 c = new Vector2(sw / 2f, sh / 2f);
+            float rx = sw * 0.40f, ry = sh * 0.38f;
+            foreach (var t in _echoTargets)
+            {
+                Vector3 local = Quaternion.Euler(0, -yaw, 0) * (t - me);
+                float ang = Mathf.Atan2(local.x, local.z); // 0 = straight ahead, clockwise
+                Vector2 pos = c + new Vector2(Mathf.Sin(ang) * rx, -Mathf.Cos(ang) * ry);
+                var m = GUI.matrix;
+                GUIUtility.RotateAroundPivot(ang * Mathf.Rad2Deg, pos);
+                GUI.color = new Color(1f, 0.55f, 0.2f, Mathf.Clamp01(k * 1.5f) * (0.75f + 0.25f * Mathf.Sin(Time.time * 14f)));
+                GUI.Label(new Rect(pos.x - 40 * u, pos.y - 40 * u, 80 * u, 80 * u), "▲", style);
+                GUI.matrix = m;
+            }
+            GUI.color = Color.white;
+        }
+
         private AbilityType CurrentAbility => _monster != null ? _monster.Ability : AbilityType.None;
 
         // ------------------------------------------------------------------
@@ -139,7 +193,8 @@ namespace HideAndSeekMonster
         {
             foreach (var p in _projectiles) p.Destroy();
             _projectiles.Clear();
-            _sprintUntil = _revealUntil = _leapUntil = _stunUntil = 0f;
+            _sprintUntil = _revealUntil = _leapUntil = _stunUntil = _echoUntil = 0f;
+            _echoTargets.Clear();
         }
 
         // ------------------------------------------------------------------

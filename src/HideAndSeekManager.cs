@@ -862,9 +862,7 @@ namespace HideAndSeekMonster
                             _monster.PlayRoar();
                             Plugin.Log.LogInfo("[Monster] roar -> " + _monster.LastSoundInfo);
                         }
-                        var local = GameRefs.LocalAvatar;
-                        if (local != null && local != Seeker && Vector3.Distance(local.transform.position, (Vector3)data[2]) < 18f)
-                            _flashUntil = Time.time + 0.6f;
+                        OnRoarEcho((Vector3)data[2]);
                         break;
                 }
             }
@@ -1085,6 +1083,7 @@ namespace HideAndSeekMonster
                     GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
                     GUI.color = Color.white;
                     DrawRevealMarkers(u);
+                    DrawEchoArrows(sw, sh, u);
                     DrawAbilityBar(sw, sh, u);
                 }
                 else if (Phase == Phase.Hiding)

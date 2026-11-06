@@ -5,6 +5,8 @@
   Laser, Shot, Sprint, Leap attack, X-ray vision, Throw, Shockwave – see the README for who has what.
 - Specials are visible everywhere: monster cards in both menus, ability bar with cooldowns for the monster,
   hiders see the monster's special while hiding and get a warning when it is used.
+- **Echo roar:** roaring now shows the monster arrows towards every hider within 15 m for 1.5 s
+  (direction only, no distance). Hiders it finds get an "Echoed!" warning.
 - New full-screen **start menu (F8)**: seeker, monster and rules side by side, scores, big start button.
 
 ## 1.3.1

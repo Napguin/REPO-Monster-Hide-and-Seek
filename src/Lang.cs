@@ -51,7 +51,7 @@ namespace HideAndSeekMonster
         public static string YouAre => De ? "DU BIST" : "YOU ARE";
         public static string Abilities => De ? "Fähigkeiten" : "Abilities";
         public static string AbilityAttack => De ? "Angreifen (Sprung nach vorn, tötet Hider vor dir)" : "Attack (lunge, kills hiders in front of you)";
-        public static string AbilityRoar => De ? "Brüllen" : "Roar";
+        public static string AbilityRoar => De ? "Echo-Brüllen (zeigt die Richtung von Hidern in 15 m)" : "Echo roar (shows the direction of hiders within 15 m)";
         public static string AbilityLaser => De ? "Laser (tötet alles im Strahl)" : "Laser (kills everything in the beam)";
         public static string AbilityView => De ? "Kamera wechseln" : "Switch camera";
         public static string NoSpecialShort => De ? "keine Spezialfähigkeit" : "no special ability";
@@ -103,7 +103,10 @@ namespace HideAndSeekMonster
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";
         public static string Attack => De ? "Angriff" : "Attack";
-        public static string Roar => De ? "Brüllen" : "Roar";
+        public static string Roar => De ? "Echo" : "Echo";
+        public static string EchoFound(int n) => De ? $"ECHO: {n} Hider in der Nähe" : $"ECHO: {n} hider(s) nearby";
+        public static string EchoNothing => De ? "ECHO: niemand in der Nähe" : "ECHO: nobody nearby";
+        public static string Echoed => De ? "GEORTET! Das Monster weiß, in welcher Richtung du bist." : "ECHOED! The monster knows which direction you're in.";
         public static string Camera => De ? "Kamera" : "Camera";
         public static string MonsterSpecialInfo(string monster, string special) => De ? $"{monster} – Spezial: {special}" : $"{monster} – special: {special}";
 
