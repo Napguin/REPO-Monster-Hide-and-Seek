@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1
+- If the monster dies, the round now ends and the hiders win (scores are counted).
+- "Monster invincible" now blocks every way the game can hurt or kill a player, not just one.
+- Multiplayer: kills (touch, attack, laser) use the real network position of other players and
+  horizontal distance – abilities should now hit other players, not only test dummies.
+- More robust check that monster actions really come from the monster's player.
+- Log shows distances for every attack (helps with tuning).
+
 ## 1.3.0
 - **Score system** (totals over all rounds, shown after every round and in the F8 menu; host can reset):
   - Monster: 1 point per hider eaten.

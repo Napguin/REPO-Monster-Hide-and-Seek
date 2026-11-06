@@ -44,6 +44,7 @@ namespace HideAndSeekMonster
         public static string NoScores => De ? "(noch keine Runde gewertet)" : "(no scored round yet)";
         public static string ResetScores => De ? "Punkte zurücksetzen" : "Reset scores";
         public static string SeekerWord => De ? "Monster" : "monster";
+        public static string MonsterDied(string name) => De ? $"Das Monster ({name}) ist tot – die Hider gewinnen!" : $"The monster ({name}) is dead – the hiders win!";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string Close => De ? "Schließen" : "Close";

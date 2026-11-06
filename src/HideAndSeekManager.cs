@@ -19,7 +19,8 @@ namespace HideAndSeekMonster
     {
         Seeker = 0,
         Hiders = 1,
-        Aborted = 2
+        Aborted = 2,
+        MonsterDied = 3
     }
 
     /// <summary>
@@ -328,7 +329,7 @@ namespace HideAndSeekMonster
         {
             const float radius = 0.8f;
             foreach (var h in AliveHiders())
-                if (DistanceToSegment(h.transform.position + Vector3.up * 0.8f, a, b) < radius) HostKill(h);
+                if (DistanceToSegment(PlayerPos(h) + Vector3.up * 0.8f, a, b) < radius) HostKill(h);
             foreach (var d in AliveDummies())
                 if (DistanceToSegment(d.transform.position + Vector3.up * 0.9f, a, b) < radius)
                 {
@@ -359,12 +360,21 @@ namespace HideAndSeekMonster
             var hiders = AliveHiders();
             if (!_roundTest) RecordEliminations(hiders);
 
+            // The monster died (invincibility off, or a death path we couldn't block): the hiders win.
+            if (!IsAlive(Seeker))
+            {
+                Plugin.Log.LogInfo("[Round] monster died – hiders win");
+                HostSendScores();
+                Send(MsgEnd, (int)Winner.MonsterDied);
+                return;
+            }
+
             if (Phase == Phase.Hunting)
             {
                 // Touching a hider also kills.
                 Vector3 sp = SeekerPosition();
                 foreach (var h in hiders)
-                    if (Vector3.Distance(sp, h.transform.position) <= Plugin.KillRange.Value)
+                    if (FlatDistance(sp, PlayerPos(h)) <= Plugin.KillRange.Value && Mathf.Abs(PlayerPos(h).y - sp.y) < 2f)
                         HostKill(h);
                 foreach (var d in AliveDummies())
                     if (FlatDistance(sp, d.transform.position) <= Plugin.KillRange.Value)
@@ -488,12 +498,14 @@ namespace HideAndSeekMonster
             if (Phase != Phase.Hunting || Seeker == null) return;
             forward.y = 0;
             forward = forward.sqrMagnitude > 0.001f ? forward.normalized : Seeker.transform.forward;
+            foreach (var hd in AliveHiders())
+                Plugin.Log.LogInfo($"[Monster] attack check: {NameOf(hd)} at {FlatDistance(PlayerPos(hd), pos):0.0}m, height diff {PlayerPos(hd).y - pos.y:0.0}m (range {_roundAttackRange:0.0}m)");
             foreach (var h in AliveHiders())
             {
-                Vector3 to = h.transform.position - pos;
-                float dist = to.magnitude;
-                if (dist > _roundAttackRange) continue;
+                Vector3 to = PlayerPos(h) - pos;
                 Vector3 flat = new Vector3(to.x, 0, to.z);
+                float dist = flat.magnitude;
+                if (dist > _roundAttackRange || Mathf.Abs(to.y) > 2.5f) continue;
                 if (dist > 1.2f && flat.sqrMagnitude > 0.001f && Vector3.Dot(flat.normalized, forward) < 0.35f) continue;
                 HostKill(h);
             }
@@ -668,7 +680,22 @@ namespace HideAndSeekMonster
                     return hit.point;
                 return p;
             }
-            return Seeker.transform.position;
+            return PlayerPos(Seeker);
+        }
+
+        /// <summary>
+        /// Real position of a player. For other players R.E.P.O. moves the networked client position,
+        /// the avatar's root transform can lag behind or stay put.
+        /// </summary>
+        private static Vector3 PlayerPos(PlayerAvatar p)
+        {
+            if (p == null) return Vector3.zero;
+            if (GameRefs.IsLocal(p) && PlayerController.instance != null) return PlayerController.instance.transform.position;
+            var v = Compat.Get(p, "clientPositionCurrent", Vector3.zero);
+            if (v == Vector3.zero) v = Compat.Get(p, "clientPosition", Vector3.zero);
+            if (v != Vector3.zero) return v;
+            if (p.playerAvatarVisuals != null) return p.playerAvatarVisuals.transform.position;
+            return p.transform.position;
         }
 
         private static bool InLevel()
@@ -762,7 +789,10 @@ namespace HideAndSeekMonster
         {
             if (Seeker == null) return false;
             if (actor < 0 || PhotonNetwork.CurrentRoom == null) return true;
-            return Seeker.photonView.OwnerActorNr == actor;
+            var pv = Seeker.photonView;
+            if (pv.OwnerActorNr == actor || pv.CreatorActorNr == actor) return true;
+            if (pv.Owner != null && pv.Owner.ActorNumber == actor) return true;
+            return pv.ViewID / PhotonNetwork.MAX_VIEW_IDS == actor; // ids are actorNr * 1000 + n
         }
 
         private void Handle(object[] data, int sender)
@@ -992,6 +1022,7 @@ namespace HideAndSeekMonster
             {
                 case Winner.Seeker: Banner(L.SeekerWins(seekerName), new Color(1f, 0.2f, 0.2f), 8f); break;
                 case Winner.Hiders: Banner(L.HidersWin, new Color(0.3f, 1f, 0.4f), 8f); break;
+                case Winner.MonsterDied: Banner(L.MonsterDied(seekerName), new Color(0.3f, 1f, 0.4f), 8f); break;
                 default: Banner(L.Aborted, Color.white, 4f); break;
             }
         }
