@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.4 (beta)
+## 1.5.5 (beta)
+- Flying monsters stop below the ceiling, and the third-person camera no longer looks through ceilings/walls
+  when you're pressed against them.
 - **Flying Grab / Zero-G Grab:** caught hiders now tumble (ragdoll) and can't get up while the ability lasts,
   so the monster can grab and carry them. Flying Grab lasts 8 s (cooldown 20 s).
 - **Heart Hugger: Noxious Gas** – spews 5 gas clouds (1.8 m radius) that drift out and linger for 10 s.

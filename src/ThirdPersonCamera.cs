@@ -146,17 +146,36 @@ namespace HideAndSeekMonster
             float want = Distance;
 
             float hitDist = NearestHit(pivot, dir, want);
-            float target = Mathf.Max(0.3f, hitDist - 0.1f);
+            float target = hitDist <= 0.01f ? 0f : Mathf.Max(0.3f, hitDist - 0.1f); // pressed against geometry: stay at the head
             _smoothedDist = target < _smoothedDist ? target : Mathf.Lerp(_smoothedDist, target, 1f - Mathf.Exp(-6f * Time.deltaTime));
 
             // If a wall forces the camera very close, lift it less so we don't end up inside the head.
             return Vector3.up * height * Mathf.Clamp01(_smoothedDist / Mathf.Max(0.01f, want)) + dir * _smoothedDist;
         }
 
+        private static bool IsLevel(Collider c)
+        {
+            if (c == null) return false;
+            if (c.attachedRigidbody != null && !c.attachedRigidbody.isKinematic) return false; // props
+            var local = GameRefs.LocalAvatar;
+            if (local != null && c.transform.root == local.transform.root) return false;
+            if (PlayerController.instance != null && c.transform.root == PlayerController.instance.transform.root) return false;
+            if (c.GetComponentInParent<PlayerAvatar>() != null) return false;
+            if (c.GetComponentInParent<PlayerController>() != null) return false;
+            if (c.GetComponentInParent<MonsterVisual>() != null) return false;
+            return true;
+        }
+
         /// <summary>Distance to the nearest level geometry (players, props and the monster ignored).</summary>
         private static float NearestHit(Vector3 from, Vector3 dir, float max)
         {
+            // Starting inside / touching a wall or ceiling: casts don't see that collider at all → treat as blocked.
+            foreach (var c in Physics.OverlapSphere(from, 0.25f, ~0, QueryTriggerInteraction.Ignore))
+                if (IsLevel(c)) return 0f;
             float best = max;
+            // A thin ray as well: sphere casts can slip past thin ceilings at grazing angles.
+            foreach (var h in Physics.RaycastAll(from, dir, max, ~0, QueryTriggerInteraction.Ignore))
+                if (h.distance > 0f && IsLevel(h.collider)) best = Mathf.Min(best, h.distance);
             var local = GameRefs.LocalAvatar;
             foreach (var h in Physics.SphereCastAll(from, 0.25f, dir, max, ~0, QueryTriggerInteraction.Ignore))
             {

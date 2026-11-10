@@ -697,6 +697,11 @@ namespace HideAndSeekMonster
             float up = 0f;
             if (kb != null && kb.spaceKey.isPressed) up += 1f;
             if (kb != null && (kb.leftCtrlKey.isPressed || kb.cKey.isPressed)) up -= 1f;
+            // Don't fly into the ceiling (the camera would end up inside it).
+            var head = GameRefs.MainCamera != null ? GameRefs.MainCamera.transform.position : pc.transform.position + Vector3.up * 1.6f;
+            if (up > 0f && Physics.SphereCast(head, 0.3f, Vector3.up, out var ceil, 1.2f, ~0, QueryTriggerInteraction.Ignore)
+                && !IsPlayerCollider(ceil.collider))
+                up = ceil.distance < 0.6f ? -0.3f : 0f;
             var rb = Compat.Get<Rigidbody>(pc, "rb");
             if (rb == null) return;
             var v = rb.velocity;
