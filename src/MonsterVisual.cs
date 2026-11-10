@@ -369,21 +369,46 @@ namespace HideAndSeekMonster
         /// The duck's monster form is a second set of meshes ("Mon Head", "Mon Mouth Top" ...) that the game's
         /// script switches on. Show those and hide the normal duck parts while in attack form.
         /// </summary>
+        private Renderer[] _formMon, _formNormal;
+        private float _formEnforceUntil;
+
         private void SwapFormRenderers(bool on)
         {
             if (_body == null) return;
-            var rends = _body.GetComponentsInChildren<Renderer>(true).Where(r => !(r is ParticleSystemRenderer)).ToArray();
-            var monster = rends.Where(r => r.gameObject.name.StartsWith("Mon ") && !r.gameObject.name.Contains("Substitute")).ToArray();
-            if (monster.Length == 0) return;
-            foreach (var r in rends)
+            if (_formMon == null)
             {
-                if (r.gameObject.name.Contains("Substitute")) continue;
-                bool isMon = monster.Contains(r);
-                r.enabled = on ? isMon : !isMon;
-                if (r.enabled && !r.gameObject.activeSelf) r.gameObject.SetActive(true);
+                var rends = _body.GetComponentsInChildren<Renderer>(true)
+                    .Where(r => !(r is ParticleSystemRenderer) && !r.gameObject.name.Contains("Substitute")).ToArray();
+                _formMon = rends.Where(r => r.gameObject.name.StartsWith("Mon ")).ToArray();
+                _formNormal = rends.Where(r => !r.gameObject.name.StartsWith("Mon ")).ToArray();
             }
+            if (_formMon.Length == 0) return;
             _body.localScale = _baseScale * (on ? 1.6f : 1f); // the attack form is a lot scarier when bigger
-            Plugin.Log.LogInfo($"[Monster] form swap: {(on ? "monster" : "normal")} parts ({monster.Length} monster renderers)");
+            _formEnforceUntil = on ? float.MaxValue : Time.time + 1f;
+            EnforceForm();
+            Plugin.Log.LogInfo($"[Monster] form swap: {(on ? "monster" : "normal")} ({_formMon.Length} monster / {_formNormal.Length} normal renderers)");
+        }
+
+        /// <summary>
+        /// The duck's animator keys the renderers' on/off state itself, so it has to be enforced every frame
+        /// after the animation ran (LateUpdate).
+        /// </summary>
+        private void EnforceForm()
+        {
+            if (_formMon == null || _formMon.Length == 0 || Time.time > _formEnforceUntil) return;
+            foreach (var r in _formMon) Show(r, _attackForm);
+            foreach (var r in _formNormal) Show(r, !_attackForm);
+        }
+
+        private static void Show(Renderer r, bool on)
+        {
+            if (r == null) return;
+            r.enabled = on;
+            if (!on) return;
+            for (var p = r.transform; p != null && !p.gameObject.activeSelf; p = p.parent) p.gameObject.SetActive(true);
+            // Some parts are scaled to 0 by the animation while hidden.
+            var t = r.transform;
+            if (t.localScale.sqrMagnitude < 0.0001f) t.localScale = Vector3.one;
         }
 
         private static bool Keep(Component c) =>
@@ -540,6 +565,7 @@ namespace HideAndSeekMonster
             float speed = (transform.position - _lastPos).magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
             _lastPos = transform.position;
             Animate(speed);
+            EnforceForm();
         }
 
         private void Animate(float speed)
