@@ -303,6 +303,8 @@ namespace HideAndSeekMonster
         // Attack form (Apex Predator during Flying Charge)
         // ------------------------------------------------------------------
         private bool _attackForm;
+        private bool? _onlyChaseWhenBig;
+        private float _smoothSpeed;
         private Vector3 _baseScale = Vector3.one;
         public void SetAttackForm(bool on)
         {
@@ -614,6 +616,19 @@ namespace HideAndSeekMonster
 
             if (_animator != null && _animator.runtimeAnimatorController != null)
             {
+                // Big forms without an idle animation (Elsa: only "BIG Chase"): run the animation only as fast as
+                // the monster really moves, so standing still doesn't look like sprinting.
+                if (_onlyChaseWhenBig == null)
+                {
+                    var clips = _animator.runtimeAnimatorController.animationClips.Select(c => c.name.ToUpperInvariant()).ToArray();
+                    bool big = _animator.parameters.Any(p => p.name.ToLowerInvariant() == "isbig");
+                    _onlyChaseWhenBig = big && clips.Any(c => c.StartsWith("BIG")) && !clips.Any(c => c.StartsWith("BIG") && (c.Contains("IDLE") || c.Contains("WALK")));
+                }
+                if (_onlyChaseWhenBig == true && _age > 3f)
+                {
+                    _smoothSpeed = Mathf.Lerp(_smoothSpeed, speed, 1f - Mathf.Exp(-8f * Time.deltaTime));
+                    _animator.speed = _smoothSpeed < 0.4f ? 0f : Mathf.Clamp(_smoothSpeed / 5f, 0.35f, 1.4f);
+                }
                 foreach (var p in _animator.parameters)
                 {
                     string n = p.name.ToLowerInvariant();
