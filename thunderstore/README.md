@@ -18,14 +18,14 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 ### As the monster
 | Control | Action |
 |---|---|
-| **Left mouse** | Attack – lunge forward and kill hiders in front of you |
-| **Right mouse** / **R** | Echo roar – for 1.5 s arrows show the direction of every hider within 15 m (no distance); those hiders get warned |
+| **Left mouse** | Attack – lunge forward, 40 damage to hiders in front of you (players have 100 HP) |
+| **Right mouse** / **R** | Player scan – shows how many players are within 15 m (not where); those hiders get warned |
 | **Middle mouse** / **F** | Special ability (see below) |
 | **V** | Switch between third person (see your monster) and first person |
 
 During the hiding phase the seeker can pick which monster they want to be.
 The monster is faster, has infinite stamina and is invincible. It can grab things, so doors and buttons work.
-Simply touching a hider also kills it.
+Running into hiders does nothing – the monster has to hurt them with its attack or special.
 
 ### Test mode (solo)
 Enable **Test mode** in the F8 menu (or `Test / TestMode` in the config) and start a round alone.
@@ -45,19 +45,20 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 
 | Special | What it does | Monsters |
 |---|---|---|
-| Laser | 3 s beam, kills everything in it, walls block it | Clown |
-| Shot | one long-range shot, kills the first hider in the line of fire | Huntsman |
-| Sprint | extremely fast for 3 s | Robe, Reaper, Animal |
-| Leap attack | big jump forward, anyone touched dies | Headman, Headgrab, Upscream, Snatcher, Chef, Tick, Apex Predator |
-| X-ray vision | see all hiders through walls for 5 s | Peeper, Mentalist, Loom, Oogly, Elsa |
-| Throw | projectile in an arc, kills on hit | Rugrat, Cleanup Crew, Spewer, Birthday Boy |
+| Laser | 3 s beam, 25 damage every 0.5 s, walls block it | Clown |
+| Shot | one long-range shot, 60 damage to the first hider in the line of fire | Huntsman |
+| Rapid Charge | double speed for 5 s, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Robe, Reaper, Animal |
+| Leap attack | big jump forward, 40 damage to anyone hit | Headman, Headgrab, Upscream, Snatcher, Chef, Tick |
+| Flying Charge | fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by, no main attack meanwhile | Apex Predator |
+| Radar Ping | shows where every hider within 30 m was, through walls, for 5 s. Every hider is told whether they were detected | Peeper, Mentalist, Loom, Oogly, Elsa |
+| Throw | projectile in an arc, 40 damage on hit | Rugrat, Cleanup Crew, Spewer, Birthday Boy |
 | Shockwave | hiders within 10 m are heavily slowed for 2.5 s | Bowtie, Trudge, Heart Hugger, Gambit, Bella |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.
 
 ### Scores
 Points add up over all rounds. They are shown after each round and in the F8 menu (the host can reset them).
-- **Monster:** 1 point per hider eaten.
+- **Monster:** 1 point per hider killed.
 - **Hiders:** the hider who lasts longest gets as many points as there were hiders, the next one 1 less, and so on –
   the first hider eliminated gets 0. Everyone still alive at the end gets the full points.
   Example with 3 hiders: Anna eaten first (0), Ben second (2), Carl survives (3).
@@ -81,11 +82,11 @@ The round settings of the **host** are used for everyone.
 | General / Language | English | English or Deutsch |
 | Round / HideTime | 30 | Seconds to hide |
 | Round / RoundTime | 300 | Seconds the monster has to hunt |
-| Round / TouchKillRange | 1.2 | Touching a hider within this distance kills it |
 | Round / DisableEnemies | true | Despawn normal enemies during a round |
 | Seeker / AttackRange | 2.8 | Reach of the attack in metres |
 | Seeker / AttackCooldown | 1.2 | Seconds between attacks |
-| Seeker / RoarCooldown | 8 | Seconds between roars |
+| Seeker / AttackDamage | 40 | Damage of the main attack |
+| Seeker / ScanCooldown | 20 | Seconds between player scans (roar) |
 | Seeker / ThirdPerson | true | Start in third person |
 | Seeker / CameraDistance | 3.2 | Third-person camera distance |
 | Seeker / SpeedMultiplier | 1.35 | Monster movement speed |

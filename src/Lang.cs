@@ -11,7 +11,6 @@ namespace HideAndSeekMonster
         public static string Random => De ? "Zufällig" : "Random";
         public static string HideTime => De ? "Versteckzeit" : "Hide time";
         public static string RoundTime => De ? "Suchzeit" : "Hunt time";
-        public static string KillRange => De ? "Fangreichweite" : "Kill range";
         public static string SeekerSpeed => De ? "Monster-Tempo" : "Monster speed";
         public static string DisableEnemies => De ? "Normale Gegner deaktivieren" : "Disable normal enemies";
         public static string Invincible => De ? "Monster unverwundbar" : "Monster invincible";
@@ -50,12 +49,12 @@ namespace HideAndSeekMonster
         public static string BasicAbilities => De ? "Angriff · Brüllen" : "Attack · roar";
         public static string YouAre => De ? "DU BIST" : "YOU ARE";
         public static string Abilities => De ? "Fähigkeiten" : "Abilities";
-        public static string AbilityAttack => De ? "Angreifen (Sprung nach vorn, tötet Hider vor dir)" : "Attack (lunge, kills hiders in front of you)";
-        public static string AbilityRoar => De ? "Echo-Brüllen (zeigt die Richtung von Hidern in 15 m)" : "Echo roar (shows the direction of hiders within 15 m)";
+        public static string AbilityAttack => De ? $"Angreifen (Sprung nach vorn, {Plugin.AttackDamage.Value} Schaden)" : $"Attack (lunge, {Plugin.AttackDamage.Value} damage)";
+        public static string AbilityRoar => De ? "Player Scan (zeigt, wie viele Spieler in 15 m sind)" : "Player scan (shows how many players are within 15 m)";
         public static string AbilityLaser => De ? "Laser (tötet alles im Strahl)" : "Laser (kills everything in the beam)";
         public static string AbilityView => De ? "Kamera wechseln" : "Switch camera";
         public static string NoSpecialShort => De ? "keine Spezialfähigkeit" : "no special ability";
-        public static string ChoiceInfo => De ? "Die anderen sehen dich sofort als dieses Monster. Du kannst wechseln, bis die Jagd beginnt. Berühren tötet ebenfalls." : "The others see you as this monster right away. You can switch until the hunt starts. Touching kills as well.";
+        public static string ChoiceInfo => De ? "Die anderen sehen dich sofort als dieses Monster. Du kannst wechseln, bis die Jagd beginnt. Reinlaufen tötet nicht – du musst angreifen." : "The others see you as this monster right away. You can switch until the hunt starts. Running into hiders does nothing – you have to attack.";
         public static string RandomMonster => De ? "Zufälliges Monster" : "Random monster";
         public static string AbilityName(AbilityType a)
         {
@@ -63,9 +62,10 @@ namespace HideAndSeekMonster
             {
                 case AbilityType.Laser: return "Laser";
                 case AbilityType.Shot: return De ? "Schuss" : "Shot";
-                case AbilityType.Sprint: return "Sprint";
+                case AbilityType.Sprint: return "Rapid Charge";
+                case AbilityType.FlyingCharge: return "Flying Charge";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
-                case AbilityType.Reveal: return De ? "Röntgenblick" : "X-ray vision";
+                case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
                 case AbilityType.Shockwave: return De ? "Schockwelle" : "Shockwave";
                 default: return "-";
@@ -76,12 +76,13 @@ namespace HideAndSeekMonster
         {
             switch (a)
             {
-                case AbilityType.Laser: return De ? "Feuert 3 s einen Laser. Alles im Strahl stirbt, Wände blocken ihn." : "Fires a laser for 3 s. Everything in the beam dies, walls block it.";
-                case AbilityType.Shot: return De ? "Ein Schuss auf große Entfernung. Tötet den ersten Hider in der Schusslinie." : "One long-range shot. Kills the first hider in the line of fire.";
-                case AbilityType.Sprint: return De ? "3 s extrem schnell." : "Extremely fast for 3 s.";
-                case AbilityType.Leap: return De ? "Weiter Sprung nach vorn. Wer dabei berührt wird, stirbt." : "Big jump forward. Anyone touched during the jump dies.";
-                case AbilityType.Reveal: return De ? "5 s lang siehst du alle Hider durch Wände." : "See all hiders through walls for 5 s.";
-                case AbilityType.Throw: return De ? "Wirft ein Geschoss im Bogen. Tötet beim Treffer." : "Throws a projectile in an arc. Kills on hit.";
+                case AbilityType.Laser: return De ? $"Feuert 3 s einen Laser: {HideAndSeekMonster.Abilities.LaserDamage} Schaden alle 0,5 s im Strahl. Wände blocken ihn." : $"Fires a laser for 3 s: {HideAndSeekMonster.Abilities.LaserDamage} damage every 0.5 s in the beam. Walls block it.";
+                case AbilityType.Shot: return De ? $"Ein Schuss auf große Entfernung: {HideAndSeekMonster.Abilities.ShotDamage} Schaden beim ersten Hider in der Schusslinie." : $"One long-range shot: {HideAndSeekMonster.Abilities.ShotDamage} damage to the first hider in the line of fire.";
+                case AbilityType.Sprint: return De ? $"5 s doppelt so schnell, {HideAndSeekMonster.Abilities.RapidChargeDamage} Schaden alle 0,5 s an Hidern in der Nähe. Kein normaler Angriff währenddessen." : $"Double speed for 5 s, {HideAndSeekMonster.Abilities.RapidChargeDamage} damage every 0.5 s to hiders close to you. No main attack meanwhile.";
+                case AbilityType.FlyingCharge: return De ? $"6 s fliegen (Leertaste hoch, Strg runter), {HideAndSeekMonster.Abilities.FlyingChargeDamage} Schaden alle 0,5 s an Hidern in der Nähe. Kein normaler Angriff währenddessen." : $"Fly for 6 s (space up, ctrl down), {HideAndSeekMonster.Abilities.FlyingChargeDamage} damage every 0.5 s to hiders close to you. No main attack meanwhile.";
+                case AbilityType.Leap: return De ? $"Weiter Sprung nach vorn: {HideAndSeekMonster.Abilities.LeapDamage} Schaden an jedem, den du dabei triffst." : $"Big jump forward: {HideAndSeekMonster.Abilities.LeapDamage} damage to anyone you hit.";
+                case AbilityType.Reveal: return De ? "Radar-Ping: zeigt 5 s lang die Position aller Hider in 30 m durch Wände. Die Hider werden gewarnt." : "Radar ping: shows where all hiders within 30 m were, through walls, for 5 s. Hiders get warned.";
+                case AbilityType.Throw: return De ? $"Wirft ein Geschoss im Bogen: {HideAndSeekMonster.Abilities.ThrowDamage} Schaden beim Treffer." : $"Throws a projectile in an arc: {HideAndSeekMonster.Abilities.ThrowDamage} damage on hit.";
                 case AbilityType.Shockwave: return De ? "Hider in 10 m Umkreis werden 2,5 s stark verlangsamt." : "Hiders within 10 m are heavily slowed for 2.5 s.";
                 default: return "";
             }
@@ -91,8 +92,8 @@ namespace HideAndSeekMonster
         {
             switch (a)
             {
-                case AbilityType.Sprint: return De ? "Das Monster sprintet!" : "The monster is sprinting!";
-                case AbilityType.Reveal: return De ? "Das Monster sieht dich durch Wände!" : "The monster sees you through walls!";
+                case AbilityType.Sprint: return De ? "RAPID CHARGE! Das Monster stürmt los!" : "RAPID CHARGE! The monster is charging!";
+                case AbilityType.FlyingCharge: return De ? "FLYING CHARGE! Das Monster fliegt!" : "FLYING CHARGE! The monster is flying!";
                 case AbilityType.Shockwave: return De ? "SCHOCKWELLE!" : "SHOCKWAVE!";
                 case AbilityType.Leap: return De ? "Das Monster springt!" : "The monster leaps!";
                 default: return "";
@@ -103,10 +104,15 @@ namespace HideAndSeekMonster
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";
         public static string Attack => De ? "Angriff" : "Attack";
-        public static string Roar => De ? "Echo" : "Echo";
-        public static string EchoFound(int n) => De ? $"ECHO: {n} Hider in der Nähe" : $"ECHO: {n} hider(s) nearby";
-        public static string EchoNothing => De ? "ECHO: niemand in der Nähe" : "ECHO: nobody nearby";
-        public static string Echoed => De ? "GEORTET! Das Monster weiß, in welcher Richtung du bist." : "ECHOED! The monster knows which direction you're in.";
+        public static string Roar => "Scan";
+        public static string ScanFound(int n) => De ? $"SCAN: {n} Spieler in der Nähe" : $"SCAN: {n} player(s) nearby";
+        public static string ScanNothing => De ? "SCAN: niemand in der Nähe" : "SCAN: nobody nearby";
+        public static string Scanned => De ? "GESCANNT! Das Monster weiß, dass jemand in der Nähe ist." : "SCANNED! The monster knows someone is nearby.";
+        public static string RadarDetected => De ? "RADAR-PING – DU WURDEST ENTDECKT!" : "RADAR PING – YOU WERE DETECTED!";
+        public static string RadarSafe => De ? "Radar-Ping – du wurdest nicht entdeckt." : "Radar ping – you were not detected.";
+        public static string RadarFound(int n) => De ? $"RADAR: {n} Hider entdeckt" : $"RADAR: {n} hider(s) detected";
+        public static string Damage(string name, int dmg, int hp) => hp > 0 ? (De ? $"{name}  -{dmg}  ({hp} HP übrig)" : $"{name}  -{dmg}  ({hp} HP left)") : (De ? $"{name}  -{dmg}  TOT" : $"{name}  -{dmg}  DEAD");
+        public static string NoAttackWhileCharging => De ? "Kein Angriff während des Charge!" : "No attack while charging!";
         public static string Camera => De ? "Kamera" : "Camera";
         public static string MonsterSpecialInfo(string monster, string special) => De ? $"{monster} – Spezial: {special}" : $"{monster} – special: {special}";
 

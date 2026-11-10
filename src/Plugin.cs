@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.4.0";
+        public const string Version = "1.5.0";
 
         internal static ManualLogSource Log;
 
@@ -27,7 +27,7 @@ namespace HideAndSeekMonster
         internal static ConfigEntry<UiLanguage> Language;
         internal static ConfigEntry<float> HideTime;
         internal static ConfigEntry<float> RoundTime;
-        internal static ConfigEntry<float> KillRange;
+        internal static ConfigEntry<int> AttackDamage;
         internal static ConfigEntry<float> SeekerSpeed;
         internal static ConfigEntry<bool> SeekerInfiniteStamina;
         internal static ConfigEntry<bool> SeekerInvincible;
@@ -67,9 +67,6 @@ namespace HideAndSeekMonster
             RoundTime = Config.Bind("Round", "RoundTime", 300f,
                 new ConfigDescription("Seconds the seeker has to catch everyone after the hiding phase.",
                     new AcceptableValueRange<float>(30f, 1800f)));
-            KillRange = Config.Bind("Round", "TouchKillRange", 1.2f,
-                new ConfigDescription("Distance in metres at which simply touching a hider kills it.",
-                    new AcceptableValueRange<float>(0.5f, 5f)));
             DisableEnemies = Config.Bind("Round", "DisableEnemies", true,
                 "Despawn the normal enemies while a round is running (host setting).");
 
@@ -90,8 +87,10 @@ namespace HideAndSeekMonster
                 new ConfigDescription("Reach of the monster's attack in metres.", new AcceptableValueRange<float>(1f, 6f)));
             AttackCooldown = Config.Bind("Seeker", "AttackCooldown", 1.2f,
                 new ConfigDescription("Seconds between attacks.", new AcceptableValueRange<float>(0.2f, 10f)));
-            RoarCooldown = Config.Bind("Seeker", "RoarCooldown", 8f,
-                new ConfigDescription("Seconds between roars.", new AcceptableValueRange<float>(1f, 60f)));
+            AttackDamage = Config.Bind("Seeker", "AttackDamage", 40,
+                new ConfigDescription("Damage of the monster's main attack (players have 100 HP).", new AcceptableValueRange<int>(5, 200)));
+            RoarCooldown = Config.Bind("Seeker", "ScanCooldown", 20f,
+                new ConfigDescription("Seconds between player scans (roar).", new AcceptableValueRange<float>(1f, 120f)));
             ThirdPerson = Config.Bind("Seeker", "ThirdPerson", true,
                 "Monster plays in third person so you see your monster body (toggle in-game).");
             CameraDistance = Config.Bind("Seeker", "CameraDistance", 3.2f,
@@ -100,7 +99,7 @@ namespace HideAndSeekMonster
             AttackBinding = Config.Bind("Controls", "Attack", "<Mouse>/leftButton",
                 "Monster attack (Unity Input System path, e.g. <Mouse>/leftButton or <Keyboard>/f).");
             RoarBinding = Config.Bind("Controls", "Roar", "<Mouse>/rightButton",
-                "Monster roar (Unity Input System path). R always works as well.");
+                "Monster roar / player scan (Unity Input System path). R always works as well.");
             ToggleViewBinding = Config.Bind("Controls", "ToggleView", "<Keyboard>/v",
                 "Switch the monster between third and first person (Unity Input System path).");
 

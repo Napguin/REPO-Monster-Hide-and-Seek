@@ -7,11 +7,12 @@ namespace HideAndSeekMonster
         None = 0,
         Laser = 1,     // Clown: the game's laser
         Shot = 2,      // long range single shot
-        Sprint = 3,    // very fast for a few seconds
+        Sprint = 3,    // "Rapid Charge": double speed, damages everyone close
         Leap = 4,      // jump forward, kills on contact with a larger reach
-        Reveal = 5,    // see all hiders through walls
+        Reveal = 5,    // "Radar Ping": shows hiders in range, they get warned
         Throw = 6,     // throw a projectile that kills on hit
-        Shockwave = 7  // stun / slow every hider nearby
+        Shockwave = 7, // stun / slow every hider nearby
+        FlyingCharge = 8 // Apex Predator: fly + damage everyone close
     }
 
     internal static class Abilities
@@ -30,7 +31,7 @@ namespace HideAndSeekMonster
             { "snatcher", AbilityType.Leap },
             { "chef", AbilityType.Leap },
             { "tick", AbilityType.Leap },
-            { "apex predator", AbilityType.Leap },
+            { "apex predator", AbilityType.FlyingCharge },
             { "peeper", AbilityType.Reveal },
             { "mentalist", AbilityType.Reveal },
             { "loom", AbilityType.Reveal },
@@ -61,7 +62,8 @@ namespace HideAndSeekMonster
             {
                 case AbilityType.Laser: return Plugin.LaserCooldown.Value + Plugin.LaserDuration.Value;
                 case AbilityType.Shot: return 15f;
-                case AbilityType.Sprint: return 12f;
+                case AbilityType.Sprint: return 15f;
+                case AbilityType.FlyingCharge: return 18f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 20f;
                 case AbilityType.Throw: return 5f;
@@ -75,13 +77,27 @@ namespace HideAndSeekMonster
             switch (a)
             {
                 case AbilityType.Laser: return Plugin.LaserDuration.Value;
-                case AbilityType.Sprint: return 3f;
+                case AbilityType.Sprint: return 5f;
+                case AbilityType.FlyingCharge: return 6f;
                 case AbilityType.Leap: return 1.2f;
                 case AbilityType.Reveal: return 5f;
                 case AbilityType.Shockwave: return 2.5f; // stun time
                 default: return 0f;
             }
         }
+
+        // ---- damage values (players have 100 HP) ----
+        public const int ShotDamage = 60, ThrowDamage = 40, LeapDamage = 40;
+        public const int LaserDamage = 25;          // per tick
+        public const int RapidChargeDamage = 20;    // per tick
+        public const int FlyingChargeDamage = 10;   // per tick
+        public const float DamageTick = 0.5f;
+        public const float ChargeRadius = 2.2f;
+        public const float RadarRange = 30f;
+
+        public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
+        public static int ChargeDamage(AbilityType a) => a == AbilityType.FlyingCharge ? FlyingChargeDamage : RapidChargeDamage;
+        public static float ChargeSpeed(AbilityType a) => a == AbilityType.FlyingCharge ? 1.5f : 2f;
 
         public static string Name(AbilityType a) => L.AbilityName(a);
         public static string Description(AbilityType a) => L.AbilityDescription(a);
@@ -98,6 +114,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Reveal: return "#d68cff";
                 case AbilityType.Throw: return "#ffb347";
                 case AbilityType.Shockwave: return "#6f8cff";
+                case AbilityType.FlyingCharge: return "#ff6fd0";
                 default: return "#a89a9c";
             }
         }

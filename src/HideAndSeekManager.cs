@@ -221,7 +221,7 @@ namespace HideAndSeekMonster
 
             Safe("speed", () =>
             {
-                float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f) * (Time.time < _sprintUntil ? 2.2f : 1f);
+                float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f) * (Charging ? Abilities.ChargeSpeed(_chargeType) : 1f);
                 if (!Mathf.Approximately(speed, 1f)) Compat.Call(pc, "OverrideSpeed", speed, 0.2f);
             });
             if (_roundInfStamina)
@@ -239,6 +239,7 @@ namespace HideAndSeekMonster
             Safe("attack key", () =>
             {
                 if (!_attackAction.WasPressedThisFrame() || Time.time < _attackReadyAt) return;
+                if (Charging) { Banner(L.NoAttackWhileCharging, Abilities.UnityColor(_chargeType), 1f); return; }
                 _attackReadyAt = Time.time + Plugin.AttackCooldown.Value;
                 _lungeUntil = Time.time + 0.35f;
                 var cam = GameRefs.ViewTransform(Seeker);
@@ -327,14 +328,13 @@ namespace HideAndSeekMonster
         private void HostLaserHits(Vector3 a, Vector3 b)
         {
             const float radius = 0.8f;
+            if (Time.time < _laserTickAt) return;
+            _laserTickAt = Time.time + Abilities.DamageTick;
             foreach (var h in AliveHiders())
-                if (DistanceToSegment(PlayerPos(h) + Vector3.up * 0.8f, a, b) < radius) HostKill(h);
+                if (DistanceToSegment(PlayerPos(h) + Vector3.up * 0.8f, a, b) < radius) HostDamage(h, Abilities.LaserDamage, "laser");
             foreach (var d in AliveDummies())
                 if (DistanceToSegment(d.transform.position + Vector3.up * 0.9f, a, b) < radius)
-                {
-                    KillDummy(d, a, "laser");
-                    _lastAttackInfo = L.LaserHit(d.DummyName);
-                }
+                    HostDamageDummy(d, Abilities.LaserDamage, a, "laser");
         }
 
         private static float DistanceToSegment(Vector3 p, Vector3 a, Vector3 b)
@@ -370,15 +370,7 @@ namespace HideAndSeekMonster
 
             if (Phase == Phase.Hunting)
             {
-                // Touching a hider also kills.
-                Vector3 sp = SeekerPosition();
-                foreach (var h in hiders)
-                    if (FlatDistance(sp, PlayerPos(h)) <= Plugin.KillRange.Value && Mathf.Abs(PlayerPos(h).y - sp.y) < 2f)
-                        HostKill(h);
-                foreach (var d in AliveDummies())
-                    if (FlatDistance(sp, d.transform.position) <= Plugin.KillRange.Value)
-                        KillDummy(d, sp, "touch");
-
+                // No touch kills any more: the monster has to attack (damage system).
                 // Test mode keeps running so you can respawn dummies (F10) and try more monsters.
                 if (hiders.Count == 0 && AliveDummies().Count == 0 && !_roundTest)
                 {
@@ -439,6 +431,7 @@ namespace HideAndSeekMonster
                 if (_hiderOutTime.ContainsKey(id)) continue;
                 if (aliveHiders.Any(p => p.photonView.ViewID == id)) continue;
                 _hiderOutTime[id] = Time.time;
+                if (!_roundTest && RecentlyHitByMonster(id)) _seekerKilled.Add(id); // died from monster damage
             }
         }
 
@@ -494,7 +487,8 @@ namespace HideAndSeekMonster
 
         private void HostHandleAttack(Vector3 pos, Vector3 forward)
         {
-            if (Phase != Phase.Hunting || Seeker == null) return;
+            if (Phase != Phase.Hunting || Seeker == null || Charging) return;
+            int dmg = Plugin.AttackDamage.Value;
             forward.y = 0;
             forward = forward.sqrMagnitude > 0.001f ? forward.normalized : Seeker.transform.forward;
             foreach (var hd in AliveHiders())
@@ -506,7 +500,7 @@ namespace HideAndSeekMonster
                 float dist = flat.magnitude;
                 if (dist > _roundAttackRange || Mathf.Abs(to.y) > 2.5f) continue;
                 if (dist > 1.2f && flat.sqrMagnitude > 0.001f && Vector3.Dot(flat.normalized, forward) < 0.35f) continue;
-                HostKill(h);
+                HostDamage(h, dmg, "attack");
             }
 
             if (!_roundTest) return;
@@ -523,8 +517,7 @@ namespace HideAndSeekMonster
                 if (dist < nearestDist) { nearestDist = dist; nearestAngle = angle; nearest = d; }
                 if (dist > _roundAttackRange) continue;
                 if (dist > 1.2f && Vector3.Dot(flat.normalized, forward) < 0.35f) continue;
-                KillDummy(d, pos, "attack");
-                _lastAttackInfo = L.AttackHit(d.DummyName, dist);
+                HostDamageDummy(d, dmg, pos, "attack");
                 hit = true;
             }
             if (!hit)
@@ -828,11 +821,16 @@ namespace HideAndSeekMonster
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
                         OnSpecial((AbilityType)(int)data[2], (Vector3)data[3], (Vector3)data[4]);
                         break;
+                    case MsgDamage:
+                        if (!SenderIsMaster(sender)) return;
+                        OnDamage((int)data[2], (int)data[3], (int)data[4]);
+                        break;
                     case MsgLaser:
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
                         _laserAim = (Vector3)data[2];
                         _laserChargeUntil = Time.time + LaserCharge;
                         _laserEndTime = _laserChargeUntil + Plugin.LaserDuration.Value;
+                        _laserTickAt = 0f;
                         if (_monster != null) _monster.PlayRoar();
                         Plugin.Log.LogInfo("[Monster] laser fired");
                         break;
@@ -862,7 +860,7 @@ namespace HideAndSeekMonster
                             _monster.PlayRoar();
                             Plugin.Log.LogInfo("[Monster] roar -> " + _monster.LastSoundInfo);
                         }
-                        OnRoarEcho((Vector3)data[2]);
+                        OnRoarScan((Vector3)data[2]);
                         break;
                 }
             }
@@ -1083,7 +1081,6 @@ namespace HideAndSeekMonster
                     GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
                     GUI.color = Color.white;
                     DrawRevealMarkers(u);
-                    DrawEchoArrows(sw, sh, u);
                     DrawAbilityBar(sw, sh, u);
                 }
                 else if (Phase == Phase.Hiding)
@@ -1155,7 +1152,7 @@ namespace HideAndSeekMonster
                 $"Last sound: {(_monster != null ? _monster.LastSoundInfo : "-")}\n" +
                 $"Dummies alive: {AliveDummies().Count}   Attacks: {_attackCount}   Kills: {_killCount}\n" +
                 $"Last attack: {_lastAttackInfo}\n" +
-                $"Attack range: {_roundAttackRange:0.0}m   Touch range: {Plugin.KillRange.Value:0.0}m\n" +
+                $"Attack range: {_roundAttackRange:0.0}m   Damage: {Plugin.AttackDamage.Value}\n" +
                 $"[Diag] local seeker: {(Seeker != null && GameRefs.IsLocal(Seeker))}  isLocal: {Seeker?.isLocal}  " +
                 $"typing: {GameRefs.IsTyping}  camera: {ThirdPersonCamera.MainCameraName} ({ThirdPersonCamera.GameCameraCount} cams) " +
                 $"(moved {ThirdPersonCamera.CamerasMoved}, last frame {Time.frameCount - ThirdPersonCamera.AppliedFrame} ago)\n" +

@@ -10,6 +10,7 @@ namespace HideAndSeekMonster
     {
         public bool Dead { get; private set; }
         public string DummyName;
+        public int Hp = 100;
         private Transform _visual;
         private Renderer[] _renderers;
         private float _fall;
