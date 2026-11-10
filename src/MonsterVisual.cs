@@ -379,10 +379,11 @@ namespace HideAndSeekMonster
             {
                 var rends = _body.GetComponentsInChildren<Renderer>(true)
                     .Where(r => !(r is ParticleSystemRenderer) && !r.gameObject.name.Contains("Substitute")).ToArray();
-                _formMon = rends.Where(r => r.gameObject.name.StartsWith("Mon ")).ToArray();
-                _formNormal = rends.Where(r => !r.gameObject.name.StartsWith("Mon ")).ToArray();
+                // Duck: "mesh Mon Head", "mesh Mon Mouth Top" ... below a "MONSTER" folder.
+                _formMon = rends.Where(IsMonsterFormPart).ToArray();
+                _formNormal = rends.Where(r => !IsMonsterFormPart(r)).ToArray();
             }
-            if (_formMon.Length == 0) return;
+            if (_formMon.Length == 0) { Plugin.Log.LogInfo($"[Monster] form swap: '{MonsterName}' has no separate monster-form parts"); return; }
             _body.localScale = _baseScale * (on ? 1.6f : 1f); // the attack form is a lot scarier when bigger
             _formEnforceUntil = on ? float.MaxValue : Time.time + 1f;
             EnforceForm();
@@ -398,6 +399,14 @@ namespace HideAndSeekMonster
             if (_formMon == null || _formMon.Length == 0 || Time.time > _formEnforceUntil) return;
             foreach (var r in _formMon) Show(r, _attackForm);
             foreach (var r in _formNormal) Show(r, !_attackForm);
+        }
+
+        private bool IsMonsterFormPart(Renderer r)
+        {
+            if (r.gameObject.name.Contains("Mon ")) return true;
+            for (var t = r.transform; t != null && t != _body; t = t.parent)
+                if (t.name == "MONSTER") return true;
+            return false;
         }
 
         private static void Show(Renderer r, bool on)
