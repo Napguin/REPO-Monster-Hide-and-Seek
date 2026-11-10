@@ -4,10 +4,13 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>HideAndSeekMonster</AssemblyName>
     <RootNamespace>HideAndSeekMonster</RootNamespace>
-    <Version>1.4.106</Version>
+    <Version>1.4.107</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <!-- REQUIRED: the game DLLs are publicized (private members made public). Mono only skips its access
+         checks for assemblies marked unverifiable, which this switch does. Without it the mod throws
+         FieldAccessException / MethodAccessException at runtime (e.g. empty start menu). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- File metadata (shown in Windows file properties). A DLL without any of this looks more suspicious
          to heuristic virus scanners. -->
     <Product>Hide And Seek Monster</Product>
