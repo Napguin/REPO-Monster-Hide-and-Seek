@@ -30,7 +30,7 @@ namespace HideAndSeekMonster
         private void OnRoarScan(Vector3 roarPos)
         {
             bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
-            Effects.Shockwave(roarPos + Vector3.up, ScanRange * 2f, new Color(1f, 0.6f, 0.3f), 0.9f);
+            Effects.Shockwave(roarPos + Vector3.up * 0.1f, ScanRange * 2f, new Color(1f, 0.6f, 0.3f), 0.9f);
             if (localSeeker)
             {
                 int n = AliveHiders().Count(h => FlatDistance(PlayerPos(h), roarPos) <= ScanRange)
@@ -125,21 +125,35 @@ namespace HideAndSeekMonster
             _specialReadyAt = Time.time + Cd(Abilities.Cooldown(ability));
             Plugin.Log.LogInfo($"[Monster] special pressed: {ability}");
 
-            if (ability == AbilityType.Laser) { Send(MsgLaser, LocalAimDirection()); return; }
+            bool gambled = false;
+            if (ability == AbilityType.Gamble)
+            {
+                ability = Abilities.GambleTable[Random.Range(0, Abilities.GambleTable.Length)];
+                gambled = true;
+                Plugin.Log.LogInfo($"[Monster] gamble rolled: {ability}");
+            }
+
+            if (ability == AbilityType.Laser)
+            {
+                if (gambled) Banner(L.Gambled(Abilities.Name(ability)), Abilities.UnityColor(AbilityType.Gamble), 2f);
+                Send(MsgLaser, LocalAimDirection());
+                return;
+            }
 
             Vector3 origin = _monster != null ? _monster.MuzzlePosition : SeekerPosition() + Vector3.up * 1.5f;
-            Send(MsgSpecial, (int)ability, origin, LocalAimDirection());
+            Send(MsgSpecial, (int)ability, origin, LocalAimDirection(), gambled);
         }
 
         // ------------------------------------------------------------------
         // Received on every client
         // ------------------------------------------------------------------
-        private void OnSpecial(AbilityType ability, Vector3 origin, Vector3 dir)
+        private void OnSpecial(AbilityType ability, Vector3 origin, Vector3 dir, bool gambled = false)
         {
             bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
             dir = dir.sqrMagnitude > 0.001f ? dir.normalized : Vector3.forward;
+            if (gambled) Banner(L.Gambled(Abilities.Name(ability)), Abilities.UnityColor(AbilityType.Gamble), 2f);
             string hiderMsg = L.AbilityUsedByMonster(ability);
-            if (!localSeeker && !string.IsNullOrEmpty(hiderMsg)) Banner(hiderMsg, Abilities.UnityColor(ability), 2f);
+            if (!localSeeker && !gambled && !string.IsNullOrEmpty(hiderMsg)) Banner(hiderMsg, Abilities.UnityColor(ability), 2f);
 
             switch (ability)
             {
@@ -173,6 +187,70 @@ namespace HideAndSeekMonster
                     _projectiles.Add(new Projectile(origin, dir * 17f + Vector3.up * 3.5f, Abilities.UnityColor(ability)));
                     if (_monster != null) _monster.PlayAttack();
                     break;
+                case AbilityType.Bomb:
+                    _projectiles.Add(new Projectile(origin, dir * 13f + Vector3.up * 4.5f, Abilities.UnityColor(ability), AbilityType.Bomb, 0.7f));
+                    if (_monster != null) _monster.PlayAttack();
+                    break;
+                case AbilityType.Puke:
+                    _pukeUntil = Time.time + Abilities.Duration(ability);
+                    _pukeTickAt = Time.time + 0.2f;
+                    if (_monster != null) _monster.PlayRoar();
+                    break;
+                case AbilityType.Levitate:
+                    {
+                        Vector3 center = Seeker != null ? PlayerPos(Seeker) : origin;
+                        var col = Abilities.UnityColor(ability);
+                        Effects.Shockwave(center + Vector3.up * 0.1f, Abilities.LevitateRange * 2f, col, 0.8f);
+                        if (_monster != null) _monster.PlayRoar();
+                        float slamIn = Abilities.Duration(ability);
+                        if (LocalHider(out var me) && Vector3.Distance(PlayerPos(me), center) <= Abilities.LevitateRange)
+                            _levitateUntil = Time.time + slamIn;
+                        if (IsHost)
+                        {
+                            var victims = AliveHiders().Where(h => Vector3.Distance(PlayerPos(h), center) <= Abilities.LevitateRange).ToList();
+                            var dummies = AliveDummies().Where(d => Vector3.Distance(d.transform.position, center) <= Abilities.LevitateRange).ToList();
+                            foreach (var d in dummies) d.transform.position += Vector3.up * 2f;
+                            Later(slamIn, () =>
+                            {
+                                foreach (var h in victims) HostDamage(h, Abilities.LevitateDamage, "levitate");
+                                foreach (var d in dummies)
+                                {
+                                    if (d == null) continue;
+                                    d.transform.position -= Vector3.up * 2f;
+                                    HostDamageDummy(d, Abilities.LevitateDamage, center, "levitate");
+                                }
+                            });
+                        }
+                        break;
+                    }
+                case AbilityType.Slam:
+                    if (_monster != null) _monster.PlayAttack();
+                    Later(Abilities.Duration(ability), () =>
+                    {
+                        Vector3 c = Seeker != null ? PlayerPos(Seeker) : origin;
+                        Effects.Shockwave(c + Vector3.up * 0.2f, Abilities.SlamRadius * 2.2f, Abilities.UnityColor(AbilityType.Slam), 0.5f);
+                        if (_monster != null) _monster.PlayRoar();
+                        if (LocalHider(out var me) && FlatDistance(PlayerPos(me), c) <= Abilities.SlamRadius && Mathf.Abs(PlayerPos(me).y - c.y) < 2.5f)
+                            LocalPush(Away(c, PlayerPos(me)) * 9f + Vector3.up * 5f);
+                        if (IsHost)
+                        {
+                            foreach (var h in AliveHiders())
+                                if (FlatDistance(PlayerPos(h), c) <= Abilities.SlamRadius && Mathf.Abs(PlayerPos(h).y - c.y) < 2.5f)
+                                    HostDamage(h, Abilities.SlamDamage, "slam");
+                            foreach (var d in AliveDummies())
+                                if (FlatDistance(d.transform.position, c) <= Abilities.SlamRadius) HostDamageDummy(d, Abilities.SlamDamage, c, "slam");
+                        }
+                    });
+                    break;
+                case AbilityType.Pull:
+                    {
+                        Vector3 center = Seeker != null ? PlayerPos(Seeker) : origin;
+                        _pullUntil = Time.time + Abilities.Duration(ability);
+                        _pullFxAt = 0f;
+                        _pulled = LocalHider(out var me) && Vector3.Distance(PlayerPos(me), center) <= Abilities.PullRange;
+                        if (_monster != null) _monster.PlayRoar();
+                        break;
+                    }
                 case AbilityType.Shockwave:
                     {
                         Vector3 center = Seeker != null ? PlayerPos(Seeker) : origin;
@@ -183,6 +261,7 @@ namespace HideAndSeekMonster
                         {
                             _stunUntil = Time.time + Abilities.Duration(ability);
                             Banner(L.Stunned, Abilities.UnityColor(ability), 2f);
+                            LocalPush(Away(center, PlayerPos(local)) * 7f + Vector3.up * 2.5f);
                         }
                         break;
                     }
@@ -211,6 +290,18 @@ namespace HideAndSeekMonster
                 Vector3 from = p.Position;
                 p.Step(Time.deltaTime);
                 bool hitWall = Physics.Linecast(from, p.Position, out var hit, ~0, QueryTriggerInteraction.Ignore) && !IsPlayerCollider(hit.collider);
+                if (p.Kind == AbilityType.Bomb)
+                {
+                    bool nearPlayer = AliveHiders().Any(h => Vector3.Distance(PlayerPos(h) + Vector3.up * 0.9f, p.Position) < 1.2f)
+                                      || AliveDummies().Any(d => Vector3.Distance(d.transform.position + Vector3.up * 0.9f, p.Position) < 1.2f);
+                    if (hitWall || nearPlayer || p.Age > 3f)
+                    {
+                        BombExplode(hitWall ? hit.point : p.Position);
+                        p.Destroy();
+                        _projectiles.RemoveAt(i);
+                    }
+                    continue;
+                }
                 if (IsHost && Phase == Phase.Hunting) HostProjectileHits(p);
                 if (hitWall || p.Dead || p.Age > 5f)
                 {
@@ -256,6 +347,186 @@ namespace HideAndSeekMonster
             // local hider: stunned by a shockwave
             if (Time.time < _stunUntil)
                 Compat.Call(PlayerController.instance, "OverrideSpeed", 0.25f, 0.2f);
+
+            RunLater();
+            Safe("clouds", CloudTick);
+            Safe("puke", PukeTick);
+            Safe("pull", PullTick);
+            Safe("levitate", LevitateTick);
+            Safe("charge fx", ChargeFxTick);
+            if (_monster != null) _monster.SetAttackForm(Charging && _chargeType == AbilityType.FlyingCharge);
+        }
+
+        // ------------------------------------------------------------------
+        // Helpers for the game-like specials
+        // ------------------------------------------------------------------
+        private float _pukeUntil, _pukeTickAt, _pukeFxAt, _pullUntil, _pullFxAt, _levitateUntil, _chargeFxAt;
+        private bool _pulled, _levitating;
+        private readonly List<(Vector3 pos, float until)> _clouds = new List<(Vector3, float)>();
+        private float _cloudTickAt;
+        private readonly List<(float at, System.Action act)> _later = new List<(float, System.Action)>();
+
+        private void Later(float delay, System.Action act) => _later.Add((Time.time + delay, act));
+
+        private void RunLater()
+        {
+            for (int i = _later.Count - 1; i >= 0; i--)
+            {
+                if (Time.time < _later[i].at) continue;
+                var act = _later[i].act;
+                _later.RemoveAt(i);
+                Safe("later", act);
+            }
+        }
+
+        /// <summary>The local player, if they are an alive hider of this round.</summary>
+        private bool LocalHider(out PlayerAvatar me)
+        {
+            me = GameRefs.LocalAvatar;
+            return me != null && IsAlive(me) && Seeker != null && !GameRefs.IsLocal(Seeker) && _hiderViewIds.Contains(me.photonView.ViewID);
+        }
+
+        private static Vector3 Away(Vector3 from, Vector3 to)
+        {
+            var d = to - from; d.y = 0;
+            return d.sqrMagnitude > 0.001f ? d.normalized : Vector3.forward;
+        }
+
+        /// <summary>Push the local player (game's own impulse, physics fallback).</summary>
+        private static void LocalPush(Vector3 impulse)
+        {
+            var pc = PlayerController.instance;
+            if (pc == null) return;
+            if (!Compat.Call(pc, "ForceImpulse", impulse))
+            {
+                var rb = Compat.Get<Rigidbody>(pc, "rb");
+                if (rb != null) rb.AddForce(impulse, ForceMode.VelocityChange);
+            }
+        }
+
+        private Vector3 MonsterForward()
+        {
+            if (Seeker != null && GameRefs.IsLocal(Seeker))
+            {
+                var v = GameRefs.ViewTransform(Seeker);
+                if (v != null) { var f = v.forward; f.y = 0; if (f.sqrMagnitude > 0.001f) return f.normalized; }
+            }
+            if (_monster != null) return _monster.transform.forward;
+            return Seeker != null ? Seeker.transform.forward : Vector3.forward;
+        }
+
+        private void BombExplode(Vector3 pos)
+        {
+            var col = Abilities.UnityColor(AbilityType.Bomb);
+            Effects.Shockwave(pos, Abilities.BombRadius * 2.2f, new Color(1f, 0.85f, 0.4f), 0.45f);
+            Effects.Shockwave(pos, Abilities.CloudRadius * 2f, new Color(col.r, col.g, col.b, 0.5f), Abilities.CloudTime);
+            _clouds.Add((pos, Time.time + Abilities.CloudTime));
+            if (_monster != null) _monster.PlayRoar();
+            if (LocalHider(out var me) && Vector3.Distance(PlayerPos(me) + Vector3.up * 0.9f, pos) <= Abilities.BombRadius)
+            {
+                LocalPush(Away(pos, PlayerPos(me)) * 8f + Vector3.up * 4f);
+                _flashUntil = Time.time + 0.4f;
+            }
+            if (!IsHost || Phase != Phase.Hunting) return;
+            foreach (var h in AliveHiders())
+                if (Vector3.Distance(PlayerPos(h) + Vector3.up * 0.9f, pos) <= Abilities.BombRadius) HostDamage(h, Abilities.BombDamage, "bomb");
+            foreach (var d in AliveDummies())
+                if (Vector3.Distance(d.transform.position + Vector3.up * 0.9f, pos) <= Abilities.BombRadius) HostDamageDummy(d, Abilities.BombDamage, pos, "bomb");
+        }
+
+        private void CloudTick()
+        {
+            _clouds.RemoveAll(c => Time.time >= c.until);
+            if (_clouds.Count == 0 || !IsHost || Phase != Phase.Hunting || Time.time < _cloudTickAt) return;
+            _cloudTickAt = Time.time + Abilities.DamageTick;
+            foreach (var h in AliveHiders())
+                if (_clouds.Any(c => Vector3.Distance(PlayerPos(h) + Vector3.up * 0.9f, c.pos) <= Abilities.CloudRadius))
+                    HostDamage(h, Abilities.CloudDamage, "uranium cloud");
+            foreach (var d in AliveDummies())
+                if (_clouds.Any(c => Vector3.Distance(d.transform.position + Vector3.up * 0.9f, c.pos) <= Abilities.CloudRadius))
+                    HostDamageDummy(d, Abilities.CloudDamage, d.transform.position, "uranium cloud");
+        }
+
+        private bool InPukeCone(Vector3 mouth, Vector3 fwd, Vector3 target)
+        {
+            Vector3 to = target - mouth;
+            Vector3 flat = new Vector3(to.x, 0, to.z);
+            if (flat.magnitude > Abilities.PukeRange || Mathf.Abs(to.y) > 3f) return false;
+            return flat.magnitude < 1f || Vector3.Angle(flat, fwd) < 35f;
+        }
+
+        private void PukeTick()
+        {
+            if (Time.time >= _pukeUntil || Seeker == null) return;
+            Vector3 fwd = MonsterForward();
+            Vector3 mouth = (_monster != null ? _monster.transform.position : PlayerPos(Seeker)) + Vector3.up * Mathf.Clamp((_monster != null ? _monster.BodyHeight : 2f) * 0.6f, 0.8f, 3f) + fwd * 0.6f;
+            var col = Abilities.UnityColor(AbilityType.Puke);
+            if (Time.time >= _pukeFxAt)
+            {
+                _pukeFxAt = Time.time + 0.04f;
+                Vector3 v = (fwd + Random.insideUnitSphere * 0.25f + Vector3.up * 0.15f).normalized * Random.Range(8f, 11f);
+                Effects.Blob(mouth, v, col, 0.9f);
+            }
+            if (LocalHider(out var me) && InPukeCone(mouth, fwd, PlayerPos(me) + Vector3.up * 0.9f))
+                Compat.Call(PlayerController.instance, "OverrideSpeed", 0.5f, 0.2f);
+            if (!IsHost || Phase != Phase.Hunting || Time.time < _pukeTickAt) return;
+            _pukeTickAt = Time.time + Abilities.DamageTick;
+            foreach (var h in AliveHiders())
+                if (InPukeCone(mouth, fwd, PlayerPos(h) + Vector3.up * 0.9f)) HostDamage(h, Abilities.PukeDamage, "puke");
+            foreach (var d in AliveDummies())
+                if (InPukeCone(mouth, fwd, d.transform.position + Vector3.up * 0.9f)) HostDamageDummy(d, Abilities.PukeDamage, mouth, "puke");
+        }
+
+        private void PullTick()
+        {
+            if (Time.time >= _pullUntil || Seeker == null) return;
+            Vector3 center = PlayerPos(Seeker);
+            if (Time.time >= _pullFxAt)
+            {
+                _pullFxAt = Time.time + 0.5f;
+                Effects.Implode(center + Vector3.up * 0.1f, Abilities.PullRange * 2f, Abilities.UnityColor(AbilityType.Pull), 0.5f);
+            }
+            if (!_pulled || !LocalHider(out var me)) return;
+            var pc = PlayerController.instance;
+            Compat.Call(pc, "OverrideSpeed", 0.6f, 0.2f);
+            var rb = Compat.Get<Rigidbody>(pc, "rb");
+            if (rb == null) return;
+            Vector3 to = center - PlayerPos(me); to.y = 0;
+            if (to.magnitude < 1.5f) return;
+            rb.velocity += to.normalized * 18f * Time.deltaTime;
+        }
+
+        private void LevitateTick()
+        {
+            if (Time.time < _levitateUntil)
+            {
+                _levitating = true;
+                var pc = PlayerController.instance;
+                Compat.Call(pc, "AntiGravity", 0.25f);
+                var rb = Compat.Get<Rigidbody>(pc, "rb");
+                if (rb != null) { var v = rb.velocity; v.y = Mathf.MoveTowards(v.y, 3.5f, 25f * Time.deltaTime); rb.velocity = v; }
+            }
+            else if (_levitating)
+            {
+                _levitating = false;
+                LocalPush(Vector3.down * 18f);
+                _flashUntil = Time.time + 0.3f;
+            }
+        }
+
+        /// <summary>Rapid / Flying Charge: coloured aura pulses around the monster (everyone sees it).</summary>
+        private void ChargeFxTick()
+        {
+            if (!Charging || Seeker == null || Time.time < _chargeFxAt) return;
+            _chargeFxAt = Time.time + 0.12f;
+            Vector3 c = (_monster != null ? _monster.transform.position : PlayerPos(Seeker));
+            float h = _monster != null ? _monster.BodyHeight : 2f;
+            var col = Abilities.UnityColor(_chargeType);
+            float r = Abilities.ChargeRadius * Mathf.Max(1f, _roundScale);
+            Effects.Shockwave(c + Vector3.up * h * 0.5f, r * 2f, new Color(col.r, col.g, col.b, 0.35f), 0.3f);
+            Vector3 back = -MonsterForward();
+            for (int i = 0; i < 2; i++)
+                Effects.Blob(c + Vector3.up * Random.Range(0.2f, h) + Random.insideUnitSphere * 0.5f, back * 4f + Vector3.up, col, 0.4f, false);
         }
 
         private bool InChargeRadius(Vector3 seekerPos, Vector3 target)
@@ -288,7 +559,7 @@ namespace HideAndSeekMonster
         {
             Vector3 center = Seeker != null ? PlayerPos(Seeker) : Vector3.zero;
             var col = Abilities.UnityColor(AbilityType.Reveal);
-            Effects.Shockwave(center + Vector3.up, Abilities.RadarRange * 2f, col, 1.2f);
+            Effects.Shockwave(center + Vector3.up * 0.1f, Abilities.RadarRange * 2f, col, 1.2f);
             if (_monster != null) _monster.PlayRoar();
 
             if (localSeeker)
@@ -323,6 +594,11 @@ namespace HideAndSeekMonster
             _leapHit.Clear();
             _hp.Clear();
             _lastMonsterHit.Clear();
+            _later.Clear();
+            _clouds.Clear();
+            _pukeUntil = _pullUntil = _levitateUntil = 0f;
+            _pulled = _levitating = false;
+            if (_monster != null) _monster.SetAttackForm(false);
         }
 
         // ------------------------------------------------------------------
@@ -466,17 +742,19 @@ namespace HideAndSeekMonster
         public float Age;
         public bool Dead;
         public Color Color;
+        public AbilityType Kind;
         private readonly GameObject _visual;
 
-        public Projectile(Vector3 pos, Vector3 vel, Color color)
+        public Projectile(Vector3 pos, Vector3 vel, Color color, AbilityType kind = AbilityType.Throw, float size = 0.45f)
         {
             Position = pos;
             Velocity = vel;
             Color = color;
+            Kind = kind;
             _visual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             var col = _visual.GetComponent<Collider>();
             if (col != null) Object.Destroy(col);
-            _visual.transform.localScale = Vector3.one * 0.45f;
+            _visual.transform.localScale = Vector3.one * size;
             _visual.transform.position = pos;
             var r = _visual.GetComponent<Renderer>();
             if (r != null) r.material.color = color;
@@ -539,7 +817,71 @@ namespace HideAndSeekMonster
                 r.material.color = new Color(color.r, color.g, color.b, 0.45f);
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             }
-            go.AddComponent<Fader>().Init(life, null, r, maxSize);
+            var f = go.AddComponent<Fader>();
+            f.Init(life, null, r, maxSize);
+            f.Flat = maxSize >= 12f; // huge waves as a ring on the floor – a sphere around the camera would tint the whole screen
+        }
+
+        /// <summary>Small flying blob with gravity (puke, charge sparks).</summary>
+        public static void Blob(Vector3 pos, Vector3 vel, Color color, float life, bool gravity = true)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var col = go.GetComponent<Collider>();
+            if (col != null) Object.Destroy(col);
+            go.transform.position = pos;
+            go.transform.localScale = Vector3.one * Random.Range(0.12f, 0.25f);
+            var r = go.GetComponent<Renderer>();
+            if (r != null)
+            {
+                if (Shader != null) r.material = new Material(Shader);
+                r.material.color = color;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            go.AddComponent<Mover>().Init(vel, life, gravity, r);
+        }
+
+        /// <summary>A sphere shrinking towards its centre (pull / gas).</summary>
+        public static void Implode(Vector3 center, float startSize, Color color, float life)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var col = go.GetComponent<Collider>();
+            if (col != null) Object.Destroy(col);
+            go.transform.position = center;
+            go.transform.localScale = new Vector3(startSize, 0.08f, startSize);
+            var r = go.GetComponent<Renderer>();
+            if (r != null)
+            {
+                if (Shader != null) r.material = new Material(Shader);
+                r.material.color = new Color(color.r, color.g, color.b, 0.25f);
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            var f = go.AddComponent<Fader>();
+            f.Init(life, null, r, -startSize);
+            f.Flat = true;
+        }
+
+        private class Mover : MonoBehaviour
+        {
+            private Vector3 _v;
+            private float _life, _t;
+            private bool _gravity;
+            private Renderer _r;
+            private Color _c;
+
+            public void Init(Vector3 v, float life, bool gravity, Renderer r)
+            {
+                _v = v; _life = life; _gravity = gravity; _r = r;
+                if (_r != null) _c = _r.material.color;
+            }
+
+            private void Update()
+            {
+                _t += Time.deltaTime;
+                if (_gravity) _v += Physics.gravity * Time.deltaTime;
+                transform.position += _v * Time.deltaTime;
+                if (_r != null) _r.material.color = new Color(_c.r, _c.g, _c.b, _c.a * (1f - _t / _life));
+                if (_t >= _life) Destroy(gameObject);
+            }
         }
 
         private class Fader : MonoBehaviour
@@ -548,6 +890,7 @@ namespace HideAndSeekMonster
             private LineRenderer _lr;
             private Renderer _r;
             private Color _c0, _c1;
+            public bool Flat;
 
             public void Init(float life, LineRenderer lr, Renderer r, float maxSize = 0f)
             {
@@ -567,7 +910,16 @@ namespace HideAndSeekMonster
                 }
                 if (_r != null)
                 {
-                    if (_maxSize > 0f) transform.localScale = Vector3.one * Mathf.Lerp(0.5f, _maxSize, Mathf.Sqrt(k));
+                    if (_maxSize > 0f)
+                    {
+                        float sz = Mathf.Lerp(0.5f, _maxSize, Mathf.Sqrt(k));
+                        transform.localScale = Flat ? new Vector3(sz, 0.08f, sz) : Vector3.one * sz;
+                    }
+                    else if (_maxSize < 0f)
+                    {
+                        float sz = Mathf.Lerp(-_maxSize, 0.2f, k * k);
+                        transform.localScale = Flat ? new Vector3(sz, 0.08f, sz) : Vector3.one * sz;
+                    }
                     _r.material.color = new Color(_c0.r, _c0.g, _c0.b, _c0.a * (1f - k));
                 }
                 if (_t >= _life) Destroy(gameObject);

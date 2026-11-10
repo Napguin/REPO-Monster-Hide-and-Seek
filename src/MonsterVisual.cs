@@ -70,6 +70,7 @@ namespace HideAndSeekMonster
             if (_body == null) { IsFallback = true; BuildFallback(); }
 
             _body.localScale *= scale;
+            if (!IsFallback) TrimStrayRenderers(scale);
             SetLayerRecursive(gameObject, 0);
             Vector3 size = GroundBody();
             if (size.y > 0.2f) BodyHeight = size.y;
@@ -152,7 +153,8 @@ namespace HideAndSeekMonster
                 _animator.applyRootMotion = false;
                 _animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 _animator.enabled = true;
-                InitAnimator(_animator);
+                // The duck (Apex Predator) stays a duck and only shows its attack form during Flying Charge.
+                InitAnimator(_animator, _entry == null || _entry.Ability != AbilityType.FlyingCharge);
             }
             if (laser != null)
             {
@@ -241,7 +243,7 @@ namespace HideAndSeekMonster
         /// "despawned", "small form" (Elsa, Apex Predator) or waiting for a spawn trigger. Push it into a
         /// visible, scary state: big form, spawned, not stunned/despawning/dead.
         /// </summary>
-        private static void InitAnimator(Animator anim)
+        private static void InitAnimator(Animator anim, bool bigForm = true)
         {
             if (anim == null || anim.runtimeAnimatorController == null) return;
             try
@@ -253,7 +255,7 @@ namespace HideAndSeekMonster
                     string n = p.name.ToLowerInvariant();
                     if (p.type == AnimatorControllerParameterType.Bool)
                     {
-                        if (n.Contains("big") || n.Contains("grown")) { anim.SetBool(p.nameHash, true); set.Add(p.name + "=true"); }
+                        if (n.Contains("big") || n.Contains("grown")) { anim.SetBool(p.nameHash, bigForm); set.Add(p.name + "=" + bigForm); }
                         else if (n.Contains("despawn") || n.Contains("stun") || n.Contains("dead") || n.Contains("death")
                                  || n.Contains("leav") || n.Contains("fall") || n.Contains("small"))
                         { anim.SetBool(p.nameHash, false); set.Add(p.name + "=false"); }
@@ -262,13 +264,66 @@ namespace HideAndSeekMonster
                     {
                         bool spawn = n.Contains("spawn") && !n.Contains("despawn");
                         bool toBig = n.Contains("tobig") || n.Contains("smalltobig") || (n.Contains("transform") && !n.Contains("small"));
-                        if (spawn || toBig) { anim.SetTrigger(p.nameHash); set.Add(p.name + "!"); }
+                        if (spawn || (toBig && bigForm)) { anim.SetTrigger(p.nameHash); set.Add(p.name + "!"); }
                     }
                 }
                 anim.Update(0f);
                 if (set.Count > 0) Plugin.Log.LogInfo("[Monster] animator init: " + string.Join(", ", set));
             }
             catch (System.Exception ex) { Plugin.Log.LogWarning("[Monster] animator init failed: " + ex.Message); }
+        }
+
+        /// <summary>
+        /// Some monsters (Oogly) carry trails / grab effects that sit far away from the body and make the model
+        /// huge (22 m). Hide everything named like a trail and every renderer far away from the body.
+        /// </summary>
+        private void TrimStrayRenderers(float scale)
+        {
+            int hidden = 0;
+            float maxDist = 5f * Mathf.Max(1f, scale);
+            foreach (var r in _body.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r == null || r is ParticleSystemRenderer) continue;
+                string n = r.gameObject.name.ToLowerInvariant();
+                bool stray = r is TrailRenderer || r is LineRenderer && !(_gameLaser != null && r.transform.IsChildOf(_gameLaser.transform))
+                             || n.Contains("trail") || n.Contains("grabbed");
+                if (!stray && r.enabled && r.gameObject.activeInHierarchy && r.bounds.size.sqrMagnitude > 0.0001f)
+                    stray = Vector3.Distance(r.bounds.center, _body.position) > maxDist || r.bounds.size.magnitude > 12f * Mathf.Max(1f, scale);
+                if (!stray) continue;
+                r.enabled = false;
+                hidden++;
+            }
+            if (hidden > 0) Plugin.Log.LogInfo($"[Monster] '{MonsterName}': hid {hidden} stray renderer(s)");
+        }
+
+        // ------------------------------------------------------------------
+        // Attack form (Apex Predator during Flying Charge)
+        // ------------------------------------------------------------------
+        private bool _attackForm;
+        public void SetAttackForm(bool on)
+        {
+            if (_attackForm == on) return;
+            _attackForm = on;
+            if (_animator == null || _animator.runtimeAnimatorController == null) return;
+            var set = new List<string>();
+            foreach (var p in _animator.parameters)
+            {
+                string n = p.name.ToLowerInvariant();
+                bool deForm = n.Contains("detransform") || n.Contains("de transform") || n.Contains("tosmall") || n.Contains("bigtosmall");
+                if (p.type == AnimatorControllerParameterType.Bool)
+                {
+                    if (n.Contains("big") || n.Contains("grown") || n.Contains("transform") && !deForm || n.Contains("angry")
+                        || n.Contains("aggro") || n.Contains("chase") || n.Contains("attack") || n.Contains("fly"))
+                    { _animator.SetBool(p.nameHash, on); set.Add(p.name + "=" + on); }
+                    else if (n.Contains("small") || deForm) { _animator.SetBool(p.nameHash, !on); set.Add(p.name + "=" + !on); }
+                }
+                else if (p.type == AnimatorControllerParameterType.Trigger)
+                {
+                    bool toBig = !deForm && (n.Contains("transform") || n.Contains("tobig") || n.Contains("attackstart") || n.Contains("notice"));
+                    if (on ? toBig : deForm) { _animator.SetTrigger(p.nameHash); set.Add(p.name + "!"); }
+                }
+            }
+            Plugin.Log.LogInfo($"[Monster] attack form {(on ? "on" : "off")}: " + (set.Count > 0 ? string.Join(", ", set) : "no matching animator parameters"));
         }
 
         private static bool Keep(Component c) =>
@@ -443,6 +498,7 @@ namespace HideAndSeekMonster
                     if (p.type == AnimatorControllerParameterType.Bool)
                     {
                         if (n.Contains("walk") || n.Contains("move")) _animator.SetBool(p.nameHash, speed > 0.3f);
+                        else if (_attackForm) continue;
                         else if (n.Contains("run") || n.Contains("sprint") || n.Contains("chase")) _animator.SetBool(p.nameHash, speed > 3.5f);
                         else if (n.Contains("attack")) _animator.SetBool(p.nameHash, _lungeTimer > 0f);
                     }

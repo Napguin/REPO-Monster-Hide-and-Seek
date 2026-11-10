@@ -822,7 +822,7 @@ namespace HideAndSeekMonster
                         break;
                     case MsgSpecial:
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
-                        OnSpecial((AbilityType)(int)data[2], (Vector3)data[3], (Vector3)data[4]);
+                        OnSpecial((AbilityType)(int)data[2], (Vector3)data[3], (Vector3)data[4], data.Length > 5 && data[5] is bool g && g);
                         break;
                     case MsgDamage:
                         if (!SenderIsMaster(sender)) return;

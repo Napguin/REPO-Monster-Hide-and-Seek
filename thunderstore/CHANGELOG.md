@@ -8,6 +8,11 @@
   whether they were detected or not.
 - **Rapid Charge** (was Sprint): 5 s double speed, 20 damage every 0.5 s to hiders close by, no main attack meanwhile.
 - Test mode: no cooldowns.
+- **Specials closer to the game:** Cleanup Crew throws its head (bomb + uranium cloud), Spewer pukes,
+  Mentalist levitates and slams, Trudge ground-slams, Heart Hugger pulls hiders in with gas,
+  Bowtie's scream pushes hiders away, Gambit rolls a random special.
+- Apex Predator shows its attack form during Flying Charge. Rapid / Flying Charge have a visible aura.
+- Big scan / radar waves are rings on the floor now (no more tinted screen). Oogly: stray trail parts hidden.
 - **Flying Charge** (new, Apex Predator): fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by.
 
 ## 1.4.0

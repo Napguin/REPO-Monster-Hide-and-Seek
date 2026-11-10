@@ -64,6 +64,12 @@ namespace HideAndSeekMonster
                 case AbilityType.Shot: return De ? "Schuss" : "Shot";
                 case AbilityType.Sprint: return "Rapid Charge";
                 case AbilityType.FlyingCharge: return "Flying Charge";
+                case AbilityType.Bomb: return De ? "Kopfbombe" : "Head bomb";
+                case AbilityType.Puke: return De ? "Kotzen" : "Puke";
+                case AbilityType.Levitate: return De ? "Levitation" : "Levitate";
+                case AbilityType.Slam: return De ? "Bodenschlag" : "Ground slam";
+                case AbilityType.Pull: return De ? "Herzgas" : "Heart gas";
+                case AbilityType.Gamble: return De ? "Glücksspiel" : "Gamble";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
@@ -83,7 +89,13 @@ namespace HideAndSeekMonster
                 case AbilityType.Leap: return De ? $"Weiter Sprung nach vorn: {HideAndSeekMonster.Abilities.LeapDamage} Schaden an jedem, den du dabei triffst." : $"Big jump forward: {HideAndSeekMonster.Abilities.LeapDamage} damage to anyone you hit.";
                 case AbilityType.Reveal: return De ? "Radar-Ping: zeigt 1 s lang Position und Entfernung aller Hider in 30 m durch Wände. 2 min Cooldown. Die Hider werden gewarnt." : "Radar ping: shows position and distance of all hiders within 30 m through walls for 1 s. 2 min cooldown. Hiders get warned.";
                 case AbilityType.Throw: return De ? $"Wirft ein Geschoss im Bogen: {HideAndSeekMonster.Abilities.ThrowDamage} Schaden beim Treffer." : $"Throws a projectile in an arc: {HideAndSeekMonster.Abilities.ThrowDamage} damage on hit.";
-                case AbilityType.Shockwave: return De ? "Hider in 10 m Umkreis werden 2,5 s stark verlangsamt." : "Hiders within 10 m are heavily slowed for 2.5 s.";
+                case AbilityType.Shockwave: return De ? "Schrei: Hider in 10 m werden weggestoßen und 2,5 s stark verlangsamt." : "Scream: hiders within 10 m are pushed away and heavily slowed for 2.5 s.";
+                case AbilityType.Bomb: return De ? "Wirft den eigenen Kopf: Explosion (50 Schaden, 4 m) und eine Uranwolke, die 5 s lang 10 Schaden alle 0,5 s macht." : "Throws its own head: explosion (50 damage, 4 m) and a uranium cloud doing 10 damage every 0.5 s for 5 s.";
+                case AbilityType.Puke: return De ? "Kotzt 2,5 s nach vorn (7 m): 10 Schaden alle 0,5 s und verlangsamt." : "Pukes forward for 2.5 s (7 m): 10 damage every 0.5 s and slows.";
+                case AbilityType.Levitate: return De ? "Hebt alle Hider in 10 m in die Luft und schmettert sie runter: 30 Schaden." : "Lifts every hider within 10 m into the air and slams them down: 30 damage.";
+                case AbilityType.Slam: return De ? "Holt aus und schlägt auf den Boden: 50 Schaden in 5 m und Rückstoß." : "Winds up and slams the ground: 50 damage within 5 m and knock-back.";
+                case AbilityType.Pull: return De ? "Herzgas: Hider in 12 m werden 3 s lang zum Monster gezogen." : "Heart gas: hiders within 12 m are pulled towards the monster for 3 s.";
+                case AbilityType.Gamble: return De ? "Dreht am Rad: eine zufällige Spezialfähigkeit." : "Spins the wheel: a random special ability.";
                 default: return "";
             }
         }
@@ -94,12 +106,18 @@ namespace HideAndSeekMonster
             {
                 case AbilityType.Sprint: return De ? "RAPID CHARGE! Das Monster stürmt los!" : "RAPID CHARGE! The monster is charging!";
                 case AbilityType.FlyingCharge: return De ? "FLYING CHARGE! Das Monster fliegt!" : "FLYING CHARGE! The monster is flying!";
-                case AbilityType.Shockwave: return De ? "SCHOCKWELLE!" : "SHOCKWAVE!";
+                case AbilityType.Shockwave: return De ? "SCHREI!" : "SCREAM!";
+                case AbilityType.Bomb: return De ? "BOMBE! Weg vom Kopf!" : "BOMB! Get away from the head!";
+                case AbilityType.Puke: return De ? "Das Monster kotzt!" : "The monster is puking!";
+                case AbilityType.Levitate: return De ? "LEVITATION! Das Monster hebt alle hoch!" : "LEVITATE! The monster lifts everyone up!";
+                case AbilityType.Slam: return De ? "BODENSCHLAG!" : "GROUND SLAM!";
+                case AbilityType.Pull: return De ? "HERZGAS! Du wirst angezogen!" : "HEART GAS! You're being pulled in!";
                 case AbilityType.Leap: return De ? "Das Monster springt!" : "The monster leaps!";
                 default: return "";
             }
         }
 
+        public static string Gambled(string ability) => De ? $"GLÜCKSSPIEL: {ability}!" : $"GAMBLE: {ability}!";
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";

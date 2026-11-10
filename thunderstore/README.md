@@ -47,12 +47,18 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 |---|---|---|
 | Laser | 3 s beam, 25 damage every 0.5 s, walls block it | Clown |
 | Shot | one long-range shot, 60 damage to the first hider in the line of fire | Huntsman |
-| Rapid Charge | double speed for 5 s, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Robe, Reaper, Animal |
+| Rapid Charge | double speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Robe, Reaper, Animal |
+| Flying Charge | attack form, fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by | Apex Predator |
 | Leap attack | big jump forward, 40 damage to anyone hit | Headman, Headgrab, Upscream, Snatcher, Chef, Tick |
-| Flying Charge | fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by, no main attack meanwhile | Apex Predator |
-| Radar Ping | shows position and distance of every hider within 30 m, through walls, for 1 s (2 min cooldown). Every hider is told whether they were detected | Peeper, Mentalist, Loom, Oogly, Elsa |
-| Throw | projectile in an arc, 40 damage on hit | Rugrat, Cleanup Crew, Spewer, Birthday Boy |
-| Shockwave | hiders within 10 m are heavily slowed for 2.5 s | Bowtie, Trudge, Heart Hugger, Gambit, Bella |
+| Radar Ping | position and distance of every hider within 30 m for 1 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom, Oogly, Elsa |
+| Throw | projectile in an arc, 40 damage on hit | Rugrat, Birthday Boy |
+| Head bomb | throws its head: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | Cleanup Crew |
+| Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows | Spewer |
+| Levitate | lifts every hider within 10 m into the air and slams them down: 30 damage | Mentalist |
+| Scream | hiders within 10 m are pushed away and slowed for 2.5 s | Bowtie, Bella |
+| Ground slam | wind-up, then 50 damage within 5 m and knock-back | Trudge |
+| Heart gas | hiders within 12 m are pulled towards the monster for 3 s | Heart Hugger |
+| Gamble | a random special | Gambit |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.
 

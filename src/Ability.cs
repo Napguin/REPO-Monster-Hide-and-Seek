@@ -12,7 +12,13 @@ namespace HideAndSeekMonster
         Reveal = 5,    // "Radar Ping": shows hiders in range, they get warned
         Throw = 6,     // throw a projectile that kills on hit
         Shockwave = 7, // stun / slow every hider nearby
-        FlyingCharge = 8 // Apex Predator: fly + damage everyone close
+        FlyingCharge = 8, // Apex Predator: fly + damage everyone close (attack form)
+        Bomb = 9,        // Cleanup Crew: throws its head – explosion + uranium cloud
+        Puke = 10,       // Spewer: vomit stream in front of it
+        Levitate = 11,   // Mentalist: lifts hiders up and slams them down
+        Slam = 12,       // Trudge: ground slam with knock-back
+        Pull = 13,       // Heart Hugger: gas that pulls hiders towards it
+        Gamble = 14      // Gambit: random special
     }
 
     internal static class Abilities
@@ -33,18 +39,18 @@ namespace HideAndSeekMonster
             { "tick", AbilityType.Leap },
             { "apex predator", AbilityType.FlyingCharge },
             { "peeper", AbilityType.Reveal },
-            { "mentalist", AbilityType.Reveal },
+            { "mentalist", AbilityType.Levitate },
             { "loom", AbilityType.Reveal },
             { "oogly", AbilityType.Reveal },
             { "elsa", AbilityType.Reveal },
             { "rugrat", AbilityType.Throw },
-            { "cleanup crew", AbilityType.Throw },
-            { "spewer", AbilityType.Throw },
+            { "cleanup crew", AbilityType.Bomb },
+            { "spewer", AbilityType.Puke },
             { "birthday boy", AbilityType.Throw },
             { "bowtie", AbilityType.Shockwave },
-            { "trudge", AbilityType.Shockwave },
-            { "heart hugger", AbilityType.Shockwave },
-            { "gambit", AbilityType.Shockwave },
+            { "trudge", AbilityType.Slam },
+            { "heart hugger", AbilityType.Pull },
+            { "gambit", AbilityType.Gamble },
             { "bella", AbilityType.Shockwave },
         };
 
@@ -64,6 +70,12 @@ namespace HideAndSeekMonster
                 case AbilityType.Shot: return 15f;
                 case AbilityType.Sprint: return 15f;
                 case AbilityType.FlyingCharge: return 18f;
+                case AbilityType.Bomb: return 10f;
+                case AbilityType.Puke: return 12f;
+                case AbilityType.Levitate: return 20f;
+                case AbilityType.Slam: return 10f;
+                case AbilityType.Pull: return 16f;
+                case AbilityType.Gamble: return 15f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -79,6 +91,10 @@ namespace HideAndSeekMonster
                 case AbilityType.Laser: return Plugin.LaserDuration.Value;
                 case AbilityType.Sprint: return 5f;
                 case AbilityType.FlyingCharge: return 6f;
+                case AbilityType.Puke: return 2.5f;
+                case AbilityType.Levitate: return 1.6f;  // time in the air before the slam
+                case AbilityType.Slam: return 0.6f;      // wind-up
+                case AbilityType.Pull: return 3f;
                 case AbilityType.Leap: return 1.2f;
                 case AbilityType.Reveal: return 1f;
                 case AbilityType.Shockwave: return 2.5f; // stun time
@@ -94,6 +110,16 @@ namespace HideAndSeekMonster
         public const float DamageTick = 0.5f;
         public const float ChargeRadius = 2.2f;
         public const float RadarRange = 30f;
+        public const int BombDamage = 50, CloudDamage = 10, PukeDamage = 10, LevitateDamage = 30, SlamDamage = 50;
+        public const float BombRadius = 4f, CloudRadius = 3f, CloudTime = 5f;
+        public const float PukeRange = 7f, LevitateRange = 10f, SlamRadius = 5f, PullRange = 12f;
+
+        /// <summary>Abilities Gambit can roll.</summary>
+        public static readonly AbilityType[] GambleTable =
+        {
+            AbilityType.Laser, AbilityType.Shot, AbilityType.Sprint, AbilityType.Leap, AbilityType.Reveal, AbilityType.Throw,
+            AbilityType.Shockwave, AbilityType.Bomb, AbilityType.Puke, AbilityType.Levitate, AbilityType.Slam, AbilityType.Pull
+        };
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
         public static int ChargeDamage(AbilityType a) => a == AbilityType.FlyingCharge ? FlyingChargeDamage : RapidChargeDamage;
@@ -115,6 +141,12 @@ namespace HideAndSeekMonster
                 case AbilityType.Throw: return "#ffb347";
                 case AbilityType.Shockwave: return "#6f8cff";
                 case AbilityType.FlyingCharge: return "#ff6fd0";
+                case AbilityType.Bomb: return "#7dff3a";
+                case AbilityType.Puke: return "#b5c93a";
+                case AbilityType.Levitate: return "#c9a0ff";
+                case AbilityType.Slam: return "#d08a4a";
+                case AbilityType.Pull: return "#ff5f8f";
+                case AbilityType.Gamble: return "#ffe14d";
                 default: return "#a89a9c";
             }
         }
