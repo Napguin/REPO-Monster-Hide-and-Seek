@@ -12,6 +12,9 @@
   with zero gravity. **Spewer** can always fly too (space up, ctrl down).
 - Cleanup Crew's head bounces off walls and explodes after 4 s (blinking faster and faster).
 - Clown can't move while charging / firing the laser.
+- Clown laser stays on the crosshair (jumping no longer knocks it off for the rest of the round).
+- Oogly model tilted 45° more upright.
+- Monster sounds no longer stack and play at most 2.5 s (Spewer's long puke sound).
 - **Specials closer to the game:** Cleanup Crew throws its head (bomb + uranium cloud), Spewer pukes,
   Mentalist levitates and slams, Trudge ground-slams, Heart Hugger pulls hiders in with gas,
   Bowtie's scream pushes hiders away, Gambit rolls a random special.

@@ -71,6 +71,9 @@ namespace HideAndSeekMonster
 
             _body.localScale *= scale;
             _baseScale = _body.localScale;
+            // The Oogly lies almost flat (it's built to dive from the ceiling): tilt it 45° more upright.
+            if (!IsFallback && _entry != null && _entry.Name.ToLowerInvariant() == "oogly")
+                _body.localRotation = Quaternion.Euler(-45f, 0f, 0f) * _body.localRotation;
             if (!IsFallback) TrimStrayRenderers(scale);
             SetLayerRecursive(gameObject, 0);
             Vector3 size = GroundBody();
@@ -165,6 +168,10 @@ namespace HideAndSeekMonster
                 laserRoot.SetParent(transform, true);
                 laserRoot.gameObject.SetActive(true);
                 _gameLaser = laser;
+                // Remember where the laser sits on the monster: jumping/physics must never move it permanently.
+                _laserRoot = laserRoot;
+                _laserLocalPos = laserRoot.localPosition;
+                _laserLocalRot = laserRoot.localRotation;
                 Plugin.Log.LogInfo($"[Monster] game laser kept ('{laserRoot.name}')");
             }
 
@@ -676,6 +683,33 @@ namespace HideAndSeekMonster
         /// Plays through the game's own Sound system first (correct mixer/volume),
         /// falls back to a plain AudioSource, and finally to a generated growl.
         /// </summary>
+        // Monster sounds don't stack: a new one cuts the previous one, and none plays longer than this
+        // (the Spewer's puke sound is very long).
+        private const float MaxSoundSeconds = 2.5f;
+        private AudioSource _lastSource;
+        private Coroutine _soundCap;
+
+        private void CapSound(AudioSource src)
+        {
+            if (_lastSource != null && _lastSource != src && _lastSource.isPlaying) _lastSource.Stop();
+            _lastSource = src;
+            if (_soundCap != null) StopCoroutine(_soundCap);
+            _soundCap = src != null ? StartCoroutine(FadeOutAfter(src, MaxSoundSeconds)) : null;
+        }
+
+        private System.Collections.IEnumerator FadeOutAfter(AudioSource src, float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            if (src == null) yield break;
+            float v0 = src.volume;
+            for (float t = 0f; t < 0.3f && src != null; t += Time.deltaTime)
+            {
+                src.volume = v0 * (1f - t / 0.3f);
+                yield return null;
+            }
+            if (src != null) { src.Stop(); src.volume = v0; }
+        }
+
         private void PlaySound(List<Sound> sounds, List<AudioClip> clips, float volume)
         {
             Vector3 pos = transform.position + Vector3.up * Mathf.Min(BodyHeight, 2.5f) * 0.7f;
@@ -685,7 +719,7 @@ namespace HideAndSeekMonster
                 try
                 {
                     var src = snd.Play(pos, volume, 1f, 1f, 1f);
-                    if (src != null) { LastSoundInfo = "game sound: " + (src.clip != null ? src.clip.name : "?"); return; }
+                    if (src != null) { CapSound(src); LastSoundInfo = "game sound: " + (src.clip != null ? src.clip.name : "?"); return; }
                     LastSoundInfo = "game sound returned no source";
                 }
                 catch (System.Exception ex) { LastSoundInfo = "game sound failed: " + ex.Message; }
@@ -698,8 +732,13 @@ namespace HideAndSeekMonster
 
             if (_audio == null) return;
             if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
+            if (_lastSource != null && _lastSource != _audio && _lastSource.isPlaying) _lastSource.Stop();
+            _audio.Stop();
             _audio.pitch = Random.Range(0.9f, 1.05f);
-            _audio.PlayOneShot(clip, volume);
+            _audio.clip = clip;
+            _audio.volume = volume;
+            _audio.Play();
+            CapSound(_audio);
         }
 
         private static AudioClip _growl;
@@ -732,6 +771,27 @@ namespace HideAndSeekMonster
         // Laser (special ability of laser monsters, e.g. Clown)
         // ------------------------------------------------------------------
         private SemiLaser _gameLaser;
+        private Transform _laserRoot;
+        private Vector3 _laserLocalPos;
+        private Quaternion _laserLocalRot;
+
+        /// <summary>Put the game laser back onto its spot on the monster (and point it where we shoot).</summary>
+        private void PinLaser(Vector3? aimDir = null)
+        {
+            if (_laserRoot == null) return;
+            _laserRoot.localPosition = _laserLocalPos;
+            _laserRoot.localRotation = _laserLocalRot;
+            if (aimDir.HasValue && aimDir.Value.sqrMagnitude > 0.001f)
+            {
+                // rotate around the muzzle so the beam leaves exactly where we start it
+                var shoot = Compat.Get<Transform>(_gameLaser, "shootTransform");
+                Vector3 pivot = shoot != null ? shoot.position : _laserRoot.position;
+                Vector3 fwd = shoot != null ? shoot.forward : _laserRoot.forward;
+                var delta = Quaternion.FromToRotation(fwd, aimDir.Value.normalized);
+                _laserRoot.rotation = delta * _laserRoot.rotation;
+                _laserRoot.position = pivot + delta * (_laserRoot.position - pivot);
+            }
+        }
         private LineRenderer _line;
         private Light _lineLight;
         private bool _gameLaserBroken;
@@ -745,6 +805,7 @@ namespace HideAndSeekMonster
             {
                 if (_gameLaser != null)
                 {
+                    if (!_laserFiring) PinLaser();
                     var t = Compat.Get<Transform>(_gameLaser, "shootTransform");
                     if (t != null) return t.position;
                     return _gameLaser.transform.position;
@@ -760,6 +821,8 @@ namespace HideAndSeekMonster
             {
                 try
                 {
+                    _laserFiring = true;
+                    PinLaser(end - start);
                     if (Compat.Call(_gameLaser, "LaserActive", start, end, hitting)) { HideLine(); return; }
                 }
                 catch (System.Exception ex) { Plugin.Log.LogWarning("[Monster] game laser failed: " + ex.Message); }
@@ -768,7 +831,14 @@ namespace HideAndSeekMonster
             DrawLine(start, end, hitting);
         }
 
-        public void LaserStop() => HideLine();
+        private bool _laserFiring;
+
+        public void LaserStop()
+        {
+            _laserFiring = false;
+            HideLine();
+            PinLaser();
+        }
 
         private void DrawLine(Vector3 start, Vector3 end, bool hitting)
         {
