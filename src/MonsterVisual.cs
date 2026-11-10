@@ -308,6 +308,9 @@ namespace HideAndSeekMonster
             if (_attackForm == on) return;
             _attackForm = on;
             SwapFormRenderers(on);
+            // Monsters with separate form meshes (duck): leave the animator alone – its transform trigger
+            // without the game's script gets stuck half-way and hides both forms.
+            if (_formMon != null && _formMon.Length > 0) return;
             if (_animator == null || _animator.runtimeAnimatorController == null) return;
             var set = new List<string>();
             foreach (var p in _animator.parameters)
@@ -385,7 +388,7 @@ namespace HideAndSeekMonster
             }
             if (_formMon.Length == 0) { Plugin.Log.LogInfo($"[Monster] form swap: '{MonsterName}' has no separate monster-form parts"); return; }
             _body.localScale = _baseScale * (on ? 1.6f : 1f); // the attack form is a lot scarier when bigger
-            _formEnforceUntil = on ? float.MaxValue : Time.time + 1f;
+            _formEnforceUntil = on ? float.MaxValue : Time.time + 3f;
             EnforceForm();
             Plugin.Log.LogInfo($"[Monster] form swap: {(on ? "monster" : "normal")} ({_formMon.Length} monster / {_formNormal.Length} normal renderers)");
         }
@@ -399,6 +402,10 @@ namespace HideAndSeekMonster
             if (_formMon == null || _formMon.Length == 0 || Time.time > _formEnforceUntil) return;
             foreach (var r in _formMon) Show(r, _attackForm);
             foreach (var r in _formNormal) Show(r, !_attackForm);
+            // The animation scales hidden parts (and their parents) to 0: undo that for the visible form.
+            foreach (var r in _attackForm ? _formMon : _formNormal)
+                for (var t = r != null ? r.transform : null; t != null && t != _body; t = t.parent)
+                    if (t.localScale.x < 0.05f || t.localScale.y < 0.05f || t.localScale.z < 0.05f) t.localScale = Vector3.one;
         }
 
         private bool IsMonsterFormPart(Renderer r)
@@ -415,9 +422,6 @@ namespace HideAndSeekMonster
             r.enabled = on;
             if (!on) return;
             for (var p = r.transform; p != null && !p.gameObject.activeSelf; p = p.parent) p.gameObject.SetActive(true);
-            // Some parts are scaled to 0 by the animation while hidden.
-            var t = r.transform;
-            if (t.localScale.sqrMagnitude < 0.0001f) t.localScale = Vector3.one;
         }
 
         private static bool Keep(Component c) =>
