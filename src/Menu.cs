@@ -68,9 +68,27 @@ namespace HideAndSeekMonster
             var col3 = new Rect(col2.xMax + gap, body.y, c3, body.height);
             foreach (var c in new[] { col1, col2, col3 }) GUI.DrawTexture(c, Tex(new Color(0.10f, 0.075f, 0.08f, 1f)));
 
-            DrawSeekerColumn(col1, u);
-            DrawMonsterColumn(col2, u);
-            DrawRulesColumn(col3, u);
+            // Each column on its own: an error in one must not blank the whole menu.
+            MenuPart("seeker column", () => DrawSeekerColumn(col1, u));
+            MenuPart("monster column", () => DrawMonsterColumn(col2, u));
+            MenuPart("rules column", () => DrawRulesColumn(col3, u));
+        }
+
+        private readonly System.Collections.Generic.Dictionary<string, float> _menuErrorAt = new System.Collections.Generic.Dictionary<string, float>();
+
+        private void MenuPart(string part, System.Action draw)
+        {
+            try { draw(); }
+            catch (System.Exception ex)
+            {
+                if (ex is ExitGUIException) throw;
+                if (!_menuErrorAt.TryGetValue(part, out float t) || Time.realtimeSinceStartup - t > 5f)
+                {
+                    _menuErrorAt[part] = Time.realtimeSinceStartup;
+                    Plugin.Log.LogError($"[menu: {part}] {ex}");
+                    _lastError = $"menu {part}: {ex.GetType().Name}: {ex.Message}";
+                }
+            }
         }
 
         // ---- 1. seeker ---------------------------------------------------
@@ -85,18 +103,24 @@ namespace HideAndSeekMonster
             float cardH = 50 * u, gap = 8 * u;
             var content = new Rect(0, 0, area.width - 18 * u, (alive.Count + 1) * (cardH + gap));
             _menuScrollSeeker = GUI.BeginScrollView(area, _menuScrollSeeker, content);
-            float y = 0;
-            if (GUI.Button(new Rect(0, y, content.width, cardH), $"<b>{L.Random}</b>", _selectedViewId < 0 ? _cardSelStyle : _cardStyle)) _selectedViewId = -1;
-            y += cardH + gap;
-            foreach (var pl in alive)
+            try
             {
-                int vid = pl.photonView.ViewID;
-                string me = GameRefs.IsLocal(pl) ? $"  <color=#a89a9c>({L.You})</color>" : "";
-                if (GUI.Button(new Rect(0, y, content.width, cardH), $"<b>{NameOf(pl)}</b>{me}", _selectedViewId == vid ? _cardSelStyle : _cardStyle))
-                    _selectedViewId = vid;
+                float y = 0;
+                if (GUI.Button(new Rect(0, y, content.width, cardH), $"<b>{L.Random}</b>", _selectedViewId < 0 ? _cardSelStyle : _cardStyle)) _selectedViewId = -1;
                 y += cardH + gap;
+                foreach (var pl in alive)
+                {
+                    int vid = pl.photonView.ViewID;
+                    string me = GameRefs.IsLocal(pl) ? $"  <color=#a89a9c>({L.You})</color>" : "";
+                    if (GUI.Button(new Rect(0, y, content.width, cardH), $"<b>{NameOf(pl)}</b>{me}", _selectedViewId == vid ? _cardSelStyle : _cardStyle))
+                        _selectedViewId = vid;
+                    y += cardH + gap;
+                }
             }
-            GUI.EndScrollView();
+            finally
+            {
+                GUI.EndScrollView();
+            }
         }
 
         // ---- 2. monster --------------------------------------------------
@@ -121,22 +145,28 @@ namespace HideAndSeekMonster
             int count = list.Count + 1;
             var content = new Rect(0, 0, area.width - 18 * u, Mathf.CeilToInt(count / (float)cols) * (cardH + gap));
             _menuScrollMonster = GUI.BeginScrollView(area, _menuScrollMonster, content);
-            for (int i = 0; i < count; i++)
+            try
             {
-                var rc = new Rect((i % cols) * (cardW + gap), (i / cols) * (cardH + gap), cardW, cardH);
-                if (i == 0)
+                for (int i = 0; i < count; i++)
                 {
-                    if (GUI.Button(rc, $"<b>{L.Random}</b>\n<size={Mathf.RoundToInt(14 * u)}><color=#a89a9c>{L.RandomMonsterHint}</color></size>",
-                            _selectedMonster == RandomMonster ? _cardSelStyle : _cardStyle))
-                        _selectedMonster = RandomMonster;
-                    continue;
+                    var rc = new Rect((i % cols) * (cardW + gap), (i / cols) * (cardH + gap), cardW, cardH);
+                    if (i == 0)
+                    {
+                        if (GUI.Button(rc, $"<b>{L.Random}</b>\n<size={Mathf.RoundToInt(14 * u)}><color=#a89a9c>{L.RandomMonsterHint}</color></size>",
+                                _selectedMonster == RandomMonster ? _cardSelStyle : _cardStyle))
+                            _selectedMonster = RandomMonster;
+                        continue;
+                    }
+                    var e = list[i - 1];
+                    var ab = e.Ability;
+                    string text = $"<b>{e.Name}</b>\n<size={Mathf.RoundToInt(14 * u)}><color={Abilities.Color(ab)}>★ {Abilities.Name(ab)}</color></size>";
+                    if (GUI.Button(rc, text, _selectedMonster == e.Name ? _cardSelStyle : _cardStyle)) _selectedMonster = e.Name;
                 }
-                var e = list[i - 1];
-                var ab = e.Ability;
-                string text = $"<b>{e.Name}</b>\n<size={Mathf.RoundToInt(14 * u)}><color={Abilities.Color(ab)}>★ {Abilities.Name(ab)}</color></size>";
-                if (GUI.Button(rc, text, _selectedMonster == e.Name ? _cardSelStyle : _cardStyle)) _selectedMonster = e.Name;
             }
-            GUI.EndScrollView();
+            finally
+            {
+                GUI.EndScrollView();
+            }
             if (list.Count == 0) GUI.Label(new Rect(area.x, area.y + 70 * u, area.width, 60 * u), L.NoMonsters, _mSmall);
         }
 
@@ -150,27 +180,33 @@ namespace HideAndSeekMonster
             var area = new Rect(r.x + p, r.y + 46 * u, r.width - 2 * p, r.height - 46 * u - startH - 2 * p);
             GUILayout.BeginArea(area);
             _menuScrollRules = GUILayout.BeginScrollView(_menuScrollRules);
-            Plugin.HideTime.Value = MenuSlider(L.HideTime, Plugin.HideTime.Value, 5f, 120f, "s", 0, u);
-            Plugin.RoundTime.Value = MenuSlider(L.RoundTime, Plugin.RoundTime.Value, 30f, 900f, "s", 0, u);
-            Plugin.AttackRange.Value = MenuSlider(L.AttackRange, Plugin.AttackRange.Value, 1f, 5f, "m", 1, u);
-            Plugin.SeekerSpeed.Value = MenuSlider(L.SeekerSpeed, Plugin.SeekerSpeed.Value, 0.5f, 2.5f, "x", 2, u);
-            Plugin.MonsterScale.Value = MenuSlider(L.MonsterSize, Plugin.MonsterScale.Value, 0.5f, 2f, "x", 2, u);
-            GUILayout.Space(6 * u);
-            Plugin.SeekerInvincible.Value = MenuToggle(L.Invincible, Plugin.SeekerInvincible.Value, u);
-            Plugin.DisableEnemies.Value = MenuToggle(L.DisableEnemies, Plugin.DisableEnemies.Value, u);
-            Plugin.BlindSeekerWhileHiding.Value = MenuToggle(L.Blind, Plugin.BlindSeekerWhileHiding.Value, u);
-            Plugin.MonsterCanGrab.Value = MenuToggle(L.CanGrab, Plugin.MonsterCanGrab.Value, u);
-            Plugin.TestMode.Value = MenuToggle(L.TestMode, Plugin.TestMode.Value, u);
-            if (Plugin.TestMode.Value) GUILayout.Label($"<color=#a89a9c>{L.TestModeHint}</color>", _mSmall);
+            try
+            {
+                Plugin.HideTime.Value = MenuSlider(L.HideTime, Plugin.HideTime.Value, 5f, 120f, "s", 0, u);
+                Plugin.RoundTime.Value = MenuSlider(L.RoundTime, Plugin.RoundTime.Value, 30f, 900f, "s", 0, u);
+                Plugin.AttackRange.Value = MenuSlider(L.AttackRange, Plugin.AttackRange.Value, 1f, 5f, "m", 1, u);
+                Plugin.SeekerSpeed.Value = MenuSlider(L.SeekerSpeed, Plugin.SeekerSpeed.Value, 0.5f, 2.5f, "x", 2, u);
+                Plugin.MonsterScale.Value = MenuSlider(L.MonsterSize, Plugin.MonsterScale.Value, 0.5f, 2f, "x", 2, u);
+                GUILayout.Space(6 * u);
+                Plugin.SeekerInvincible.Value = MenuToggle(L.Invincible, Plugin.SeekerInvincible.Value, u);
+                Plugin.DisableEnemies.Value = MenuToggle(L.DisableEnemies, Plugin.DisableEnemies.Value, u);
+                Plugin.BlindSeekerWhileHiding.Value = MenuToggle(L.Blind, Plugin.BlindSeekerWhileHiding.Value, u);
+                Plugin.MonsterCanGrab.Value = MenuToggle(L.CanGrab, Plugin.MonsterCanGrab.Value, u);
+                Plugin.TestMode.Value = MenuToggle(L.TestMode, Plugin.TestMode.Value, u);
+                if (Plugin.TestMode.Value) GUILayout.Label($"<color=#a89a9c>{L.TestModeHint}</color>", _mSmall);
 
-            GUILayout.Space(10 * u);
-            GUILayout.Label(L.ScoreTitle, _mSection);
-            if (_sbNames.Length == 0) GUILayout.Label($"<color=#a89a9c>{L.NoScores}</color>", _mSmall);
-            for (int i = 0; i < _sbNames.Length; i++)
-                GUILayout.Label($"{i + 1}. {_sbNames[i]}  <b>{(i < _sbTotal.Length ? _sbTotal[i] : 0)}</b>", _mSmall);
-            if (_sbNames.Length > 0 && GUILayout.Button(L.ResetScores, _chBtn, GUILayout.Height(34 * u))) HostResetScores();
-            GUILayout.EndScrollView();
-            GUILayout.EndArea();
+                GUILayout.Space(10 * u);
+                GUILayout.Label(L.ScoreTitle, _mSection);
+                if (_sbNames.Length == 0) GUILayout.Label($"<color=#a89a9c>{L.NoScores}</color>", _mSmall);
+                for (int i = 0; i < _sbNames.Length; i++)
+                    GUILayout.Label($"{i + 1}. {_sbNames[i]}  <b>{(i < _sbTotal.Length ? _sbTotal[i] : 0)}</b>", _mSmall);
+                if (_sbNames.Length > 0 && GUILayout.Button(L.ResetScores, _chBtn, GUILayout.Height(34 * u))) HostResetScores();
+            }
+            finally
+            {
+                GUILayout.EndScrollView();
+                GUILayout.EndArea();
+            }
 
             var alive = AllPlayers().Where(IsAlive).ToList();
             bool enough = alive.Count >= 2 || !SemiFunc.IsMultiplayer() || Plugin.TestMode.Value;
