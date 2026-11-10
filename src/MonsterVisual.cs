@@ -91,6 +91,7 @@ namespace HideAndSeekMonster
                 $"Sounds: roar {_entry?.RoarClips.Count ?? 0}, attack {_entry?.AttackClips.Count ?? 0}\n" +
                 $"Animator: {animInfo}";
             Plugin.Log.LogInfo($"[Monster] '{MonsterName}' built for {(_isLocal ? "local" : "remote")} player\n{DebugInfo}");
+            if (_isLocal) LogModelDump();
 
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.spatialBlend = 1f;
@@ -324,6 +325,41 @@ namespace HideAndSeekMonster
                 }
             }
             Plugin.Log.LogInfo($"[Monster] attack form {(on ? "on" : "off")}: " + (set.Count > 0 ? string.Join(", ", set) : "no matching animator parameters"));
+        }
+
+        /// <summary>Diagnostics: every renderer and animator of the model (helps fixing broken monsters).</summary>
+        private void LogModelDump()
+        {
+            try
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"[ModelDump] '{MonsterName}' prefab={_entry?.Prefab?.name}");
+                foreach (var an in _body.GetComponentsInChildren<Animator>(true))
+                {
+                    sb.AppendLine($"  animator '{Path(an.transform)}' ctrl={(an.runtimeAnimatorController != null ? an.runtimeAnimatorController.name : "none")} enabled={an.enabled}");
+                    if (an.runtimeAnimatorController != null)
+                        sb.AppendLine("    params: " + string.Join(", ", an.parameters.Select(p => p.name + ":" + p.type)));
+                    if (an.runtimeAnimatorController != null)
+                        sb.AppendLine("    clips: " + string.Join(", ", an.runtimeAnimatorController.animationClips.Select(c => c.name).Distinct().Take(60)));
+                }
+                int i = 0;
+                foreach (var r in _body.GetComponentsInChildren<Renderer>(true))
+                {
+                    if (i++ >= 80) { sb.AppendLine("  ..."); break; }
+                    var b = r.bounds;
+                    sb.AppendLine($"  {r.GetType().Name} '{Path(r.transform)}' on={r.enabled && r.gameObject.activeInHierarchy} center={(b.center - transform.position)} size={b.size}");
+                }
+                Plugin.Log.LogInfo(sb.ToString());
+            }
+            catch (System.Exception ex) { Plugin.Log.LogWarning("model dump failed: " + ex.Message); }
+        }
+
+        private string Path(Transform t)
+        {
+            var parts = new List<string>();
+            while (t != null && t != transform) { parts.Add(t.name); t = t.parent; }
+            parts.Reverse();
+            return string.Join("/", parts);
         }
 
         private static bool Keep(Component c) =>
