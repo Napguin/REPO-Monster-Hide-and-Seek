@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 
 namespace HideAndSeekMonster
@@ -104,7 +105,7 @@ namespace HideAndSeekMonster
                 case AbilityType.FlyingGrab: return 4f;
                 case AbilityType.ZeroGGrab: return 4f;
                 case AbilityType.Leap: return 1.2f;
-                case AbilityType.Reveal: return 1f;
+                case AbilityType.Reveal: return 2f;
                 case AbilityType.Shockwave: return 2.5f; // stun time
                 default: return 0f;
             }
@@ -123,11 +124,10 @@ namespace HideAndSeekMonster
         public const float PukeRange = 7f, LevitateRange = 10f, SlamRadius = 5f, PullRange = 12f;
 
         /// <summary>Abilities Gambit can roll.</summary>
+        /// <summary>Abilities Gambit can roll: every special in the mod (new ones are included automatically).</summary>
         public static readonly AbilityType[] GambleTable =
-        {
-            AbilityType.Laser, AbilityType.Shot, AbilityType.Sprint, AbilityType.Leap, AbilityType.Reveal, AbilityType.Throw,
-            AbilityType.Shockwave, AbilityType.Bomb, AbilityType.Puke, AbilityType.Levitate, AbilityType.Slam, AbilityType.Pull
-        };
+            ((AbilityType[])System.Enum.GetValues(typeof(AbilityType)))
+            .Where(a => a != AbilityType.None && a != AbilityType.Gamble).ToArray();
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
         public const int GasClouds = 5;

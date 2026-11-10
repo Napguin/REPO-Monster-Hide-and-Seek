@@ -1,8 +1,10 @@
 # Changelog
 
-## 1.5.1 (beta)
+## 1.5.2 (beta)
 - **Heart Hugger: Noxious Gas** – spews 5 large gas clouds that drift out and linger for 10 s.
   Hiders inside are tranquilized: very slow, sluggish camera, pink haze. (Heart gas pull is now only a Gambit roll.)
+- **Gambit** can roll every special in the mod (incl. Flying Charge, Flying Grab, Zero-G Grab, Noxious Gas) – new specials are added automatically.
+- Radar Ping shows the hiders for 2 s instead of 1 s.
 
 ## 1.5.0
 - **Damage instead of instant kills:** the main attack does 40 damage (players have 100 HP, config `AttackDamage`).

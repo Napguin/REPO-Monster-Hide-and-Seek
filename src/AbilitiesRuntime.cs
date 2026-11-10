@@ -404,7 +404,7 @@ namespace HideAndSeekMonster
             Safe("pull", PullTick);
             Safe("levitate", LevitateTick);
             Safe("charge fx", ChargeFxTick);
-            if (_monster != null) _monster.SetAttackForm(Charging && _chargeType == AbilityType.FlyingCharge);
+            if (_monster != null) _monster.SetAttackForm(Charging && _chargeType == AbilityType.FlyingCharge && CurrentAbility == AbilityType.FlyingCharge); // duck only, not a Gambit roll
         }
 
         // ------------------------------------------------------------------

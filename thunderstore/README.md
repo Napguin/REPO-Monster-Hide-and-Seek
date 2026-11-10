@@ -50,7 +50,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Rapid Charge | 1.5x speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Robe, Reaper, Animal |
 | Flying Charge | attack form, fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by | Apex Predator |
 | Leap attack | big jump forward, 40 damage to anyone hit | Headman, Headgrab, Upscream, Snatcher, Chef, Tick |
-| Radar Ping | position and distance of every hider within 30 m for 1 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom, Elsa |
+| Radar Ping | position and distance of every hider within 30 m for 2 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom, Elsa |
 | Flying Grab | invisible bubble (4 m) around the monster: hiders inside are stunned for 4 s, no main attack meanwhile. The Oogly can always fly | Oogly |
 | Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside float and are stunned for 4 s, no main attack meanwhile | Mentalist |
 | Throw | projectile in an arc, 40 damage on hit | Rugrat, Birthday Boy |
@@ -59,7 +59,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Scream | hiders within 10 m are pushed away and slowed for 2.5 s | Bowtie, Bella |
 | Ground slam | wind-up, then 50 damage within 5 m and knock-back | Trudge |
 | Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) | Heart Hugger |
-| Gamble | a random special | Gambit |
+| Gamble | a random special – any special of any monster (laser, bomb, gas, grabs, …) | Gambit |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.
 
