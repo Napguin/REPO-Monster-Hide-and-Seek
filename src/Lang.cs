@@ -70,6 +70,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Slam: return De ? "Bodenschlag" : "Ground slam";
                 case AbilityType.Pull: return De ? "Herzgas" : "Heart gas";
                 case AbilityType.Gamble: return De ? "Glücksspiel" : "Gamble";
+                case AbilityType.FlyingGrab: return "Flying Grab";
+                case AbilityType.ZeroGGrab: return "Zero-G Grab";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
@@ -84,18 +86,20 @@ namespace HideAndSeekMonster
             {
                 case AbilityType.Laser: return De ? $"Feuert 3 s einen Laser: {HideAndSeekMonster.Abilities.LaserDamage} Schaden alle 0,5 s im Strahl. Wände blocken ihn." : $"Fires a laser for 3 s: {HideAndSeekMonster.Abilities.LaserDamage} damage every 0.5 s in the beam. Walls block it.";
                 case AbilityType.Shot: return De ? $"Ein Schuss auf große Entfernung: {HideAndSeekMonster.Abilities.ShotDamage} Schaden beim ersten Hider in der Schusslinie." : $"One long-range shot: {HideAndSeekMonster.Abilities.ShotDamage} damage to the first hider in the line of fire.";
-                case AbilityType.Sprint: return De ? $"5 s doppelt so schnell, {HideAndSeekMonster.Abilities.RapidChargeDamage} Schaden alle 0,5 s an Hidern in der Nähe. Kein normaler Angriff währenddessen." : $"Double speed for 5 s, {HideAndSeekMonster.Abilities.RapidChargeDamage} damage every 0.5 s to hiders close to you. No main attack meanwhile.";
+                case AbilityType.Sprint: return De ? $"5 s 1,5-mal so schnell, {HideAndSeekMonster.Abilities.RapidChargeDamage} Schaden alle 0,5 s an Hidern in der Nähe. Kein normaler Angriff währenddessen." : $"1.5x speed for 5 s, {HideAndSeekMonster.Abilities.RapidChargeDamage} damage every 0.5 s to hiders close to you. No main attack meanwhile.";
                 case AbilityType.FlyingCharge: return De ? $"6 s fliegen (Leertaste hoch, Strg runter), {HideAndSeekMonster.Abilities.FlyingChargeDamage} Schaden alle 0,5 s an Hidern in der Nähe. Kein normaler Angriff währenddessen." : $"Fly for 6 s (space up, ctrl down), {HideAndSeekMonster.Abilities.FlyingChargeDamage} damage every 0.5 s to hiders close to you. No main attack meanwhile.";
                 case AbilityType.Leap: return De ? $"Weiter Sprung nach vorn: {HideAndSeekMonster.Abilities.LeapDamage} Schaden an jedem, den du dabei triffst." : $"Big jump forward: {HideAndSeekMonster.Abilities.LeapDamage} damage to anyone you hit.";
                 case AbilityType.Reveal: return De ? "Radar-Ping: zeigt 1 s lang Position und Entfernung aller Hider in 30 m durch Wände. 2 min Cooldown. Die Hider werden gewarnt." : "Radar ping: shows position and distance of all hiders within 30 m through walls for 1 s. 2 min cooldown. Hiders get warned.";
                 case AbilityType.Throw: return De ? $"Wirft ein Geschoss im Bogen: {HideAndSeekMonster.Abilities.ThrowDamage} Schaden beim Treffer." : $"Throws a projectile in an arc: {HideAndSeekMonster.Abilities.ThrowDamage} damage on hit.";
                 case AbilityType.Shockwave: return De ? "Schrei: Hider in 10 m werden weggestoßen und 2,5 s stark verlangsamt." : "Scream: hiders within 10 m are pushed away and heavily slowed for 2.5 s.";
-                case AbilityType.Bomb: return De ? "Wirft den eigenen Kopf: Explosion (50 Schaden, 4 m) und eine Uranwolke, die 5 s lang 10 Schaden alle 0,5 s macht." : "Throws its own head: explosion (50 damage, 4 m) and a uranium cloud doing 10 damage every 0.5 s for 5 s.";
+                case AbilityType.Bomb: return De ? "Wirft den eigenen Kopf, der von Wänden abprallt und nach 4 s explodiert (50 Schaden, 4 m). Danach 5 s Uranwolke mit 10 Schaden alle 0,5 s." : "Throws its own head – it bounces off walls and explodes after 4 s (50 damage, 4 m), leaving a uranium cloud (10 damage every 0.5 s for 5 s).";
                 case AbilityType.Puke: return De ? "Kotzt 2,5 s nach vorn (7 m): 10 Schaden alle 0,5 s und verlangsamt." : "Pukes forward for 2.5 s (7 m): 10 damage every 0.5 s and slows.";
                 case AbilityType.Levitate: return De ? "Hebt alle Hider in 10 m in die Luft und schmettert sie runter: 30 Schaden." : "Lifts every hider within 10 m into the air and slams them down: 30 damage.";
                 case AbilityType.Slam: return De ? "Holt aus und schlägt auf den Boden: 50 Schaden in 5 m und Rückstoß." : "Winds up and slams the ground: 50 damage within 5 m and knock-back.";
                 case AbilityType.Pull: return De ? "Herzgas: Hider in 12 m werden 3 s lang zum Monster gezogen." : "Heart gas: hiders within 12 m are pulled towards the monster for 3 s.";
                 case AbilityType.Gamble: return De ? "Dreht am Rad: eine zufällige Spezialfähigkeit." : "Spins the wheel: a random special ability.";
+                case AbilityType.FlyingGrab: return De ? "Unsichtbare Blase (4 m) um dich: Hider darin sind 4 s lang betäubt. Kein normaler Angriff währenddessen." : "Invisible bubble (4 m) around you: hiders inside are stunned for 4 s. No main attack meanwhile.";
+                case AbilityType.ZeroGGrab: return De ? "Betäubungsblase (6 m) mit Schwerelosigkeit: Hider darin schweben und sind 4 s lang betäubt. Kein normaler Angriff währenddessen." : "Stun bubble (6 m) with zero gravity: hiders inside float and are stunned for 4 s. No main attack meanwhile.";
                 default: return "";
             }
         }
@@ -112,6 +116,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Levitate: return De ? "LEVITATION! Das Monster hebt alle hoch!" : "LEVITATE! The monster lifts everyone up!";
                 case AbilityType.Slam: return De ? "BODENSCHLAG!" : "GROUND SLAM!";
                 case AbilityType.Pull: return De ? "HERZGAS! Du wirst angezogen!" : "HEART GAS! You're being pulled in!";
+                case AbilityType.FlyingGrab: return De ? "FLYING GRAB! Weg vom Monster!" : "FLYING GRAB! Get away from the monster!";
+                case AbilityType.ZeroGGrab: return De ? "ZERO-G GRAB! Weg vom Monster!" : "ZERO-G GRAB! Get away from the monster!";
                 case AbilityType.Leap: return De ? "Das Monster springt!" : "The monster leaps!";
                 default: return "";
             }
@@ -130,7 +136,7 @@ namespace HideAndSeekMonster
         public static string RadarSafe => De ? "Radar-Ping – du wurdest nicht entdeckt." : "Radar ping – you were not detected.";
         public static string RadarFound(int n) => De ? $"RADAR: {n} Hider entdeckt" : $"RADAR: {n} hider(s) detected";
         public static string Damage(string name, int dmg, int hp) => hp > 0 ? (De ? $"{name}  -{dmg}  ({hp} HP übrig)" : $"{name}  -{dmg}  ({hp} HP left)") : (De ? $"{name}  -{dmg}  TOT" : $"{name}  -{dmg}  DEAD");
-        public static string NoAttackWhileCharging => De ? "Kein Angriff während des Charge!" : "No attack while charging!";
+        public static string NoAttackWhileCharging => De ? "Kein Angriff während des Specials!" : "No attack during the special!";
         public static string Camera => De ? "Kamera" : "Camera";
         public static string MonsterSpecialInfo(string monster, string special) => De ? $"{monster} – Spezial: {special}" : $"{monster} – special: {special}";
 

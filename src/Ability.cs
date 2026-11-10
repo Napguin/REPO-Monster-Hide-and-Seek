@@ -18,7 +18,9 @@ namespace HideAndSeekMonster
         Levitate = 11,   // Mentalist: lifts hiders up and slams them down
         Slam = 12,       // Trudge: ground slam with knock-back
         Pull = 13,       // Heart Hugger: gas that pulls hiders towards it
-        Gamble = 14      // Gambit: random special
+        Gamble = 14,     // Gambit: random special
+        FlyingGrab = 15, // Oogly: invisible bubble that stuns hiders around it
+        ZeroGGrab = 16   // Mentalist: stun bubble + zero gravity inside
     }
 
     internal static class Abilities
@@ -39,9 +41,9 @@ namespace HideAndSeekMonster
             { "tick", AbilityType.Leap },
             { "apex predator", AbilityType.FlyingCharge },
             { "peeper", AbilityType.Reveal },
-            { "mentalist", AbilityType.Levitate },
+            { "mentalist", AbilityType.ZeroGGrab },
             { "loom", AbilityType.Reveal },
-            { "oogly", AbilityType.Reveal },
+            { "oogly", AbilityType.FlyingGrab },
             { "elsa", AbilityType.Reveal },
             { "rugrat", AbilityType.Throw },
             { "cleanup crew", AbilityType.Bomb },
@@ -76,6 +78,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Slam: return 10f;
                 case AbilityType.Pull: return 16f;
                 case AbilityType.Gamble: return 15f;
+                case AbilityType.FlyingGrab: return 15f;
+                case AbilityType.ZeroGGrab: return 18f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -95,6 +99,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Levitate: return 1.6f;  // time in the air before the slam
                 case AbilityType.Slam: return 0.6f;      // wind-up
                 case AbilityType.Pull: return 3f;
+                case AbilityType.FlyingGrab: return 4f;
+                case AbilityType.ZeroGGrab: return 4f;
                 case AbilityType.Leap: return 1.2f;
                 case AbilityType.Reveal: return 1f;
                 case AbilityType.Shockwave: return 2.5f; // stun time
@@ -122,8 +128,17 @@ namespace HideAndSeekMonster
         };
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
+        public static bool IsGrab(AbilityType a) => a == AbilityType.FlyingGrab || a == AbilityType.ZeroGGrab;
+        public static float GrabRadius(AbilityType a) => a == AbilityType.ZeroGGrab ? 6f : 4f;
+
+        /// <summary>Monsters that can always fly (space = up, ctrl = down).</summary>
+        public static bool FreeFlight(string monster)
+        {
+            var n = (monster ?? "").ToLowerInvariant();
+            return n == "oogly" || n == "spewer";
+        }
         public static int ChargeDamage(AbilityType a) => a == AbilityType.FlyingCharge ? FlyingChargeDamage : RapidChargeDamage;
-        public static float ChargeSpeed(AbilityType a) => a == AbilityType.FlyingCharge ? 1.5f : 2f;
+        public static float ChargeSpeed(AbilityType a) => 1.5f;
 
         public static string Name(AbilityType a) => L.AbilityName(a);
         public static string Description(AbilityType a) => L.AbilityDescription(a);
@@ -147,6 +162,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Slam: return "#d08a4a";
                 case AbilityType.Pull: return "#ff5f8f";
                 case AbilityType.Gamble: return "#ffe14d";
+                case AbilityType.FlyingGrab: return "#7dff5a";
+                case AbilityType.ZeroGGrab: return "#9a6bff";
                 default: return "#a89a9c";
             }
         }

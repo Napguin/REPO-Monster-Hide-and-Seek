@@ -6,8 +6,12 @@
 - **Player Scan** (roar): shows how many players are within 15 m instead of the direction. Cooldown 20 s (`ScanCooldown`).
 - **Radar Ping** (was X-ray): shows position and distance of every hider within 30 m for 1 s, 2 min cooldown. Every hider gets told
   whether they were detected or not.
-- **Rapid Charge** (was Sprint): 5 s double speed, 20 damage every 0.5 s to hiders close by, no main attack meanwhile.
+- **Rapid Charge** (was Sprint): 5 s at 1.5x speed, 20 damage every 0.5 s to hiders close by, no main attack meanwhile.
 - Test mode: no cooldowns.
+- **Oogly: Flying Grab** – invisible stun bubble around it, and it can always fly. **Mentalist: Zero-G Grab** – stun bubble
+  with zero gravity. **Spewer** can always fly too (space up, ctrl down).
+- Cleanup Crew's head bounces off walls and explodes after 4 s (blinking faster and faster).
+- Clown can't move while charging / firing the laser.
 - **Specials closer to the game:** Cleanup Crew throws its head (bomb + uranium cloud), Spewer pukes,
   Mentalist levitates and slams, Trudge ground-slams, Heart Hugger pulls hiders in with gas,
   Bowtie's scream pushes hiders away, Gambit rolls a random special.

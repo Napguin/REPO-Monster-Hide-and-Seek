@@ -45,16 +45,17 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 
 | Special | What it does | Monsters |
 |---|---|---|
-| Laser | 3 s beam, 25 damage every 0.5 s, walls block it | Clown |
+| Laser | 3 s beam, 25 damage every 0.5 s, walls block it; the Clown can't move while firing | Clown |
 | Shot | one long-range shot, 60 damage to the first hider in the line of fire | Huntsman |
-| Rapid Charge | double speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Robe, Reaper, Animal |
+| Rapid Charge | 1.5x speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Robe, Reaper, Animal |
 | Flying Charge | attack form, fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by | Apex Predator |
 | Leap attack | big jump forward, 40 damage to anyone hit | Headman, Headgrab, Upscream, Snatcher, Chef, Tick |
-| Radar Ping | position and distance of every hider within 30 m for 1 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom, Oogly, Elsa |
+| Radar Ping | position and distance of every hider within 30 m for 1 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom, Elsa |
+| Flying Grab | invisible bubble (4 m) around the monster: hiders inside are stunned for 4 s, no main attack meanwhile. The Oogly can always fly | Oogly |
+| Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside float and are stunned for 4 s, no main attack meanwhile | Mentalist |
 | Throw | projectile in an arc, 40 damage on hit | Rugrat, Birthday Boy |
-| Head bomb | throws its head: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | Cleanup Crew |
-| Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows | Spewer |
-| Levitate | lifts every hider within 10 m into the air and slams them down: 30 damage | Mentalist |
+| Head bomb | throws its head – it bounces off walls and explodes after 4 s: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | Cleanup Crew |
+| Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | Spewer |
 | Scream | hiders within 10 m are pushed away and slowed for 2.5 s | Bowtie, Bella |
 | Ground slam | wind-up, then 50 damage within 5 m and knock-back | Trudge |
 | Heart gas | hiders within 12 m are pulled towards the monster for 3 s | Heart Hugger |

@@ -16,6 +16,14 @@ namespace HideAndSeekMonster
         private float _chargeUntil;
         private AbilityType _chargeType;
         private bool Charging => Time.time < _chargeUntil;
+        // Flying Grab / Zero-G Grab (all clients)
+        private float _grabUntil;
+        private AbilityType _grabType;
+        private bool Grabbing => Time.time < _grabUntil;
+        /// <summary>Main attack disabled while a charge or grab zone is active.</summary>
+        private bool AttackBlocked => Charging || Grabbing;
+        private float AttackBlockedUntil => Mathf.Max(Charging ? _chargeUntil : 0f, Grabbing ? _grabUntil : 0f);
+        private bool _grabStunShown;
         // host: damage ticks
         private float _chargeTickAt, _laserTickAt;
         private readonly HashSet<int> _leapHit = new HashSet<int>();
@@ -242,6 +250,13 @@ namespace HideAndSeekMonster
                         }
                     });
                     break;
+                case AbilityType.FlyingGrab:
+                case AbilityType.ZeroGGrab:
+                    _grabUntil = Time.time + Abilities.Duration(ability);
+                    _grabType = ability;
+                    _grabStunShown = false;
+                    if (_monster != null) _monster.PlayAttack();
+                    break;
                 case AbilityType.Pull:
                     {
                         Vector3 center = Seeker != null ? PlayerPos(Seeker) : origin;
@@ -292,11 +307,25 @@ namespace HideAndSeekMonster
                 bool hitWall = Physics.Linecast(from, p.Position, out var hit, ~0, QueryTriggerInteraction.Ignore) && !IsPlayerCollider(hit.collider);
                 if (p.Kind == AbilityType.Bomb)
                 {
-                    bool nearPlayer = AliveHiders().Any(h => Vector3.Distance(PlayerPos(h) + Vector3.up * 0.9f, p.Position) < 1.2f)
-                                      || AliveDummies().Any(d => Vector3.Distance(d.transform.position + Vector3.up * 0.9f, p.Position) < 1.2f);
-                    if (hitWall || nearPlayer || p.Age > 3f)
+                    // The head is a physical object: it bounces off walls/floor and rolls out, then explodes after 4 s.
+                    Vector3 delta = p.Position - from;
+                    if (!p.Resting && delta.sqrMagnitude > 0.000001f
+                        && Physics.SphereCast(from, 0.3f, delta.normalized, out var bh, delta.magnitude, ~0, QueryTriggerInteraction.Ignore)
+                        && !IsPlayerCollider(bh.collider))
                     {
-                        BombExplode(hitWall ? hit.point : p.Position);
+                        p.Position = from + delta.normalized * Mathf.Max(0f, bh.distance - 0.02f) + bh.normal * 0.02f;
+                        p.Velocity = Vector3.Reflect(p.Velocity, bh.normal) * 0.55f;
+                        if (bh.normal.y > 0.6f)
+                        {
+                            p.Velocity = new Vector3(p.Velocity.x * 0.75f, p.Velocity.y, p.Velocity.z * 0.75f);
+                            if (p.Velocity.magnitude < 0.8f) { p.Resting = true; p.Velocity = Vector3.zero; }
+                        }
+                        p.SyncVisual();
+                    }
+                    p.Blink(4f);
+                    if (p.Age > 4f)
+                    {
+                        BombExplode(p.Position);
                         p.Destroy();
                         _projectiles.RemoveAt(i);
                     }
@@ -349,6 +378,10 @@ namespace HideAndSeekMonster
                 Compat.Call(PlayerController.instance, "OverrideSpeed", 0.25f, 0.2f);
 
             RunLater();
+            Safe("grab zone", GrabTick);
+            if (Seeker != null && GameRefs.IsLocal(Seeker) && Phase == Phase.Hunting && Abilities.FreeFlight(_monsterName)
+                && !(Charging && _chargeType == AbilityType.FlyingCharge))
+                Safe("free flight", FlyTick);
             Safe("clouds", CloudTick);
             Safe("puke", PukeTick);
             Safe("pull", PullTick);
@@ -538,6 +571,29 @@ namespace HideAndSeekMonster
             return FlatDistance(seekerPos, target) <= r && dy < (_chargeType == AbilityType.FlyingCharge ? 3f : 2.5f);
         }
 
+        /// <summary>Flying Grab / Zero-G Grab: hiders inside the bubble around the monster are stunned (and float).</summary>
+        private void GrabTick()
+        {
+            if (!Grabbing || Seeker == null) return;
+            if (!LocalHider(out var me)) return;
+            Vector3 c = PlayerPos(Seeker);
+            float r = Abilities.GrabRadius(_grabType) * Mathf.Max(1f, _roundScale);
+            if (Vector3.Distance(PlayerPos(me), c) > r) return;
+            var pc = PlayerController.instance;
+            Compat.Call(pc, "OverrideSpeed", 0.1f, 0.2f);
+            if (_grabType == AbilityType.ZeroGGrab)
+            {
+                Compat.Call(pc, "AntiGravity", 0.25f);
+                var rb = Compat.Get<Rigidbody>(pc, "rb");
+                if (rb != null) { var v = rb.velocity; v.y = Mathf.MoveTowards(v.y, 1.2f, 10f * Time.deltaTime); rb.velocity = v; }
+            }
+            if (!_grabStunShown)
+            {
+                _grabStunShown = true;
+                Banner(L.Stunned, Abilities.UnityColor(_grabType), 2f);
+            }
+        }
+
         private void FlyTick()
         {
             var pc = PlayerController.instance;
@@ -598,7 +654,7 @@ namespace HideAndSeekMonster
             _lastMonsterHit.Clear();
             _later.Clear();
             _clouds.Clear();
-            _pukeUntil = _pullUntil = _levitateUntil = 0f;
+            _pukeUntil = _pullUntil = _levitateUntil = _grabUntil = 0f;
             _pulled = _levitating = false;
             if (_monster != null) _monster.SetAttackForm(false);
         }
@@ -690,8 +746,8 @@ namespace HideAndSeekMonster
             var ability = CurrentAbility;
             var slots = new List<(string key, string name, float readyAt, float total, Color color)>
             {
-                (BindName(_attackAction), L.Attack, Charging ? Mathf.Max(_attackReadyAt, _chargeUntil) : _attackReadyAt,
-                    Charging ? Abilities.Duration(_chargeType) : Plugin.AttackCooldown.Value, new Color(1f, 0.35f, 0.3f)),
+                (BindName(_attackAction), L.Attack, AttackBlocked ? Mathf.Max(_attackReadyAt, AttackBlockedUntil) : _attackReadyAt,
+                    AttackBlocked ? Abilities.Duration(Charging ? _chargeType : _grabType) : Plugin.AttackCooldown.Value, new Color(1f, 0.35f, 0.3f)),
                 (BindName(_roarAction), L.Roar, _roarReadyAt, Plugin.RoarCooldown.Value, new Color(1f, 0.6f, 0.3f)),
             };
             if (ability != AbilityType.None)
@@ -766,9 +822,27 @@ namespace HideAndSeekMonster
             light.intensity = 2f;
         }
 
+        public bool Resting;
+
+        public void SyncVisual()
+        {
+            if (_visual != null) _visual.transform.position = Position;
+        }
+
+        /// <summary>Bomb: the light blinks faster and faster until it explodes.</summary>
+        public void Blink(float fuse)
+        {
+            if (_visual == null) return;
+            var l = _visual.GetComponent<Light>();
+            if (l == null) return;
+            float k = Mathf.Clamp01(Age / fuse);
+            l.intensity = Mathf.Sin(Age * Mathf.Lerp(6f, 40f, k)) > 0f ? 3f : 0.4f;
+        }
+
         public void Step(float dt)
         {
             Age += dt;
+            if (Resting) return;
             Velocity += Physics.gravity * dt;
             Position += Velocity * dt;
             if (_visual != null)

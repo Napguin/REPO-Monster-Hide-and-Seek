@@ -221,6 +221,14 @@ namespace HideAndSeekMonster
 
             Safe("speed", () =>
             {
+                // Clown: rooted to the spot while the laser charges and fires.
+                if (LaserActive())
+                {
+                    Compat.Call(pc, "OverrideSpeed", 0f, 0.2f);
+                    var rb = Compat.Get<Rigidbody>(pc, "rb");
+                    if (rb != null) rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+                    return;
+                }
                 float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f) * (Charging ? Abilities.ChargeSpeed(_chargeType) : 1f);
                 if (!Mathf.Approximately(speed, 1f)) Compat.Call(pc, "OverrideSpeed", speed, 0.2f);
             });
@@ -239,7 +247,7 @@ namespace HideAndSeekMonster
             Safe("attack key", () =>
             {
                 if (!_attackAction.WasPressedThisFrame() || Time.time < _attackReadyAt) return;
-                if (Charging) { Banner(L.NoAttackWhileCharging, Abilities.UnityColor(_chargeType), 1f); return; }
+                if (AttackBlocked) { Banner(L.NoAttackWhileCharging, Abilities.UnityColor(Charging ? _chargeType : _grabType), 1f); return; }
                 _attackReadyAt = Time.time + Cd(Plugin.AttackCooldown.Value);
                 _lungeUntil = Time.time + 0.35f;
                 var cam = GameRefs.ViewTransform(Seeker);
@@ -490,7 +498,7 @@ namespace HideAndSeekMonster
 
         private void HostHandleAttack(Vector3 pos, Vector3 forward)
         {
-            if (Phase != Phase.Hunting || Seeker == null || Charging) return;
+            if (Phase != Phase.Hunting || Seeker == null || AttackBlocked) return;
             int dmg = Plugin.AttackDamage.Value;
             forward.y = 0;
             forward = forward.sqrMagnitude > 0.001f ? forward.normalized : Seeker.transform.forward;
