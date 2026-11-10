@@ -65,7 +65,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Sprint: return 15f;
                 case AbilityType.FlyingCharge: return 18f;
                 case AbilityType.Leap: return 8f;
-                case AbilityType.Reveal: return 20f;
+                case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
                 case AbilityType.Shockwave: return 15f;
                 default: return 5f;
@@ -80,7 +80,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Sprint: return 5f;
                 case AbilityType.FlyingCharge: return 6f;
                 case AbilityType.Leap: return 1.2f;
-                case AbilityType.Reveal: return 5f;
+                case AbilityType.Reveal: return 1f;
                 case AbilityType.Shockwave: return 2.5f; // stun time
                 default: return 0f;
             }

@@ -50,7 +50,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Rapid Charge | double speed for 5 s, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Robe, Reaper, Animal |
 | Leap attack | big jump forward, 40 damage to anyone hit | Headman, Headgrab, Upscream, Snatcher, Chef, Tick |
 | Flying Charge | fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by, no main attack meanwhile | Apex Predator |
-| Radar Ping | shows where every hider within 30 m was, through walls, for 5 s. Every hider is told whether they were detected | Peeper, Mentalist, Loom, Oogly, Elsa |
+| Radar Ping | shows position and distance of every hider within 30 m, through walls, for 1 s (2 min cooldown). Every hider is told whether they were detected | Peeper, Mentalist, Loom, Oogly, Elsa |
 | Throw | projectile in an arc, 40 damage on hit | Rugrat, Cleanup Crew, Spewer, Birthday Boy |
 | Shockwave | hiders within 10 m are heavily slowed for 2.5 s | Bowtie, Trudge, Heart Hugger, Gambit, Bella |
 

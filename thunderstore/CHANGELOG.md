@@ -4,7 +4,7 @@
 - **Damage instead of instant kills:** the main attack does 40 damage (players have 100 HP, config `AttackDamage`).
   Running into hiders no longer kills them. Specials do damage too: Laser 25 / 0.5 s, Shot 60, Leap 40, Throw 40.
 - **Player Scan** (roar): shows how many players are within 15 m instead of the direction. Cooldown 20 s (`ScanCooldown`).
-- **Radar Ping** (was X-ray): snapshot of every hider within 30 m for 5 s. Every hider gets told
+- **Radar Ping** (was X-ray): shows position and distance of every hider within 30 m for 1 s, 2 min cooldown. Every hider gets told
   whether they were detected or not.
 - **Rapid Charge** (was Sprint): 5 s double speed, 20 damage every 0.5 s to hiders close by, no main attack meanwhile.
 - **Flying Charge** (new, Apex Predator): fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by.
