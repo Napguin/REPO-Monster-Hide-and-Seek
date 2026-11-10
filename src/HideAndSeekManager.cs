@@ -240,7 +240,7 @@ namespace HideAndSeekMonster
             {
                 if (!_attackAction.WasPressedThisFrame() || Time.time < _attackReadyAt) return;
                 if (Charging) { Banner(L.NoAttackWhileCharging, Abilities.UnityColor(_chargeType), 1f); return; }
-                _attackReadyAt = Time.time + Plugin.AttackCooldown.Value;
+                _attackReadyAt = Time.time + Cd(Plugin.AttackCooldown.Value);
                 _lungeUntil = Time.time + 0.35f;
                 var cam = GameRefs.ViewTransform(Seeker);
                 Plugin.Log.LogInfo("[Monster] attack pressed");
@@ -250,7 +250,7 @@ namespace HideAndSeekMonster
             Safe("roar key", () =>
             {
                 if (!_roarAction.WasPressedThisFrame() || Time.time < _roarReadyAt) return;
-                _roarReadyAt = Time.time + Plugin.RoarCooldown.Value;
+                _roarReadyAt = Time.time + Cd(Plugin.RoarCooldown.Value);
                 Plugin.Log.LogInfo("[Monster] roar pressed");
                 Banner(L.RoarBanner, new Color(1f, 0.3f, 0.2f), 1f);
                 Send(MsgRoar, SeekerPosition());
@@ -278,6 +278,9 @@ namespace HideAndSeekMonster
         // =====================================================================
         // Laser
         // =====================================================================
+        /// <summary>Test mode: no cooldowns (only a tiny delay against double presses).</summary>
+        private float Cd(float seconds) => _roundTest ? 0.15f : seconds;
+
         private bool LaserActive() => Time.time < _laserEndTime;
 
         /// <summary>Direction from the monster's muzzle to what the player's camera looks at.</summary>

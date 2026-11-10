@@ -122,7 +122,7 @@ namespace HideAndSeekMonster
             var ability = CurrentAbility;
             if (ability == AbilityType.None) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
             if (Time.time < _specialReadyAt) return;
-            _specialReadyAt = Time.time + Abilities.Cooldown(ability);
+            _specialReadyAt = Time.time + Cd(Abilities.Cooldown(ability));
             Plugin.Log.LogInfo($"[Monster] special pressed: {ability}");
 
             if (ability == AbilityType.Laser) { Send(MsgLaser, LocalAimDirection()); return; }

@@ -29,7 +29,7 @@ Running into hiders does nothing – the monster has to hurt them with its attac
 
 ### Test mode (solo)
 Enable **Test mode** in the F8 menu (or `Test / TestMode` in the config) and start a round alone.
-You become the monster, training dummies stand around you as hiders, hiding time is only 3 s.
+You become the monster, training dummies stand around you as hiders, hiding time is only 3 s and there are no cooldowns.
 
 | Key | Action |
 |---|---|
