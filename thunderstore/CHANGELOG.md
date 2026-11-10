@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1 (beta)
+- **Heart Hugger: Noxious Gas** – spews 5 large gas clouds that drift out and linger for 10 s.
+  Hiders inside are tranquilized: very slow, sluggish camera, pink haze. (Heart gas pull is now only a Gambit roll.)
+
 ## 1.5.0
 - **Damage instead of instant kills:** the main attack does 40 damage (players have 100 HP, config `AttackDamage`).
   Running into hiders no longer kills them. Specials do damage too: Laser 25 / 0.5 s, Shot 60, Leap 40, Throw 40.

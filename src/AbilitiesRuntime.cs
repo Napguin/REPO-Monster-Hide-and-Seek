@@ -250,6 +250,20 @@ namespace HideAndSeekMonster
                         }
                     });
                     break;
+                case AbilityType.NoxiousGas:
+                    {
+                        Vector3 c = (Seeker != null ? PlayerPos(Seeker) : origin) + Vector3.up * 1.2f;
+                        Vector3 fwd = MonsterForward();
+                        var col = Abilities.UnityColor(ability);
+                        for (int k = 0; k < Abilities.GasClouds; k++)
+                        {
+                            // one cloud stays on the monster, the others drift out in a ring
+                            Vector3 d = k == 0 ? Vector3.zero : Quaternion.Euler(0, (k - 1) * 90f + 45f, 0) * fwd;
+                            _gas.Add(new GasCloud(c, d * Abilities.GasSpread, Time.time + Abilities.GasTime, col));
+                        }
+                        if (_monster != null) _monster.PlayRoar();
+                        break;
+                    }
                 case AbilityType.FlyingGrab:
                 case AbilityType.ZeroGGrab:
                     _grabUntil = Time.time + Abilities.Duration(ability);
@@ -381,6 +395,7 @@ namespace HideAndSeekMonster
 
             RunLater();
             Safe("grab zone", GrabTick);
+            Safe("gas", GasTick);
             if (Seeker != null && GameRefs.IsLocal(Seeker) && Phase == Phase.Hunting && Abilities.FreeFlight(_monsterName)
                 && !(Charging && _chargeType == AbilityType.FlyingCharge))
                 Safe("free flight", FlyTick);
@@ -574,6 +589,40 @@ namespace HideAndSeekMonster
         }
 
         /// <summary>Flying Grab / Zero-G Grab: hiders inside the bubble around the monster are stunned (and float).</summary>
+        // ---- Noxious Gas (all clients) ----
+        private readonly List<GasCloud> _gas = new List<GasCloud>();
+        private bool _tranqShown;
+        private float _tranqUntil;
+
+        private void GasTick()
+        {
+            for (int i = _gas.Count - 1; i >= 0; i--)
+            {
+                if (!_gas[i].Step(Time.deltaTime)) { _gas[i].Destroy(); _gas.RemoveAt(i); }
+            }
+            if (_gas.Count == 0) { _tranqShown = false; return; }
+
+            foreach (var d in AliveDummies())
+                if (_gas.Any(g => g.Contains(d.transform.position + Vector3.up * 0.9f))) d.Stun(0.3f, false);
+
+            if (!LocalHider(out var me)) return;
+            if (!_gas.Any(g => g.Contains(PlayerPos(me) + Vector3.up * 0.9f))) return;
+            _tranqUntil = Time.time + 0.3f;
+            var pc = PlayerController.instance;
+            Compat.Call(pc, "OverrideSpeed", 0.3f, 0.2f);
+            Compat.Call(pc, "OverrideLookSpeed", 0.25f, 0.5f, 1f, 0.2f);
+            if (!_tranqShown) { _tranqShown = true; Banner(L.Tranquilized, Abilities.UnityColor(AbilityType.NoxiousGas), 2.5f); }
+        }
+
+        private void DrawTranqOverlay(float sw, float sh)
+        {
+            if (Time.time >= _tranqUntil) return;
+            var c = Abilities.UnityColor(AbilityType.NoxiousGas);
+            GUI.color = new Color(c.r, c.g, c.b, 0.16f);
+            GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
+            GUI.color = Color.white;
+        }
+
         private float _grabFxAt;
 
         private void GrabTick()
@@ -681,6 +730,9 @@ namespace HideAndSeekMonster
             _lastMonsterHit.Clear();
             _later.Clear();
             _clouds.Clear();
+            foreach (var g in _gas) g.Destroy();
+            _gas.Clear();
+            _tranqUntil = 0f;
             _pukeUntil = _pullUntil = _levitateUntil = _grabUntil = 0f;
             _pulled = _levitating = false;
             if (_monster != null) _monster.SetAttackForm(false);
@@ -816,6 +868,67 @@ namespace HideAndSeekMonster
             GUI.color = new Color(c.r, c.g, c.b, 0.10f);
             GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
             GUI.color = Color.white;
+        }
+    }
+
+    /// <summary>A big drifting gas cloud (Heart Hugger). Simulated on every client.</summary>
+    internal class GasCloud
+    {
+        private Vector3 _pos, _vel;
+        private readonly float _until, _born;
+        private readonly GameObject _go;
+        private readonly Renderer _r;
+        private readonly Color _c;
+
+        public GasCloud(Vector3 pos, Vector3 vel, float until, Color color)
+        {
+            _pos = pos; _vel = vel; _until = until; _born = Time.time; _c = color;
+            _go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var col = _go.GetComponent<Collider>();
+            if (col != null) Object.Destroy(col);
+            _go.transform.position = pos;
+            _go.transform.localScale = Vector3.one * 0.5f;
+            _r = _go.GetComponent<Renderer>();
+            var sh = Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Color");
+            if (_r != null)
+            {
+                if (sh != null) _r.material = new Material(sh);
+                _r.material.color = new Color(color.r, color.g, color.b, 0f);
+                _r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+        }
+
+        public bool Contains(Vector3 p) => (p - _pos).sqrMagnitude <= Radius * Radius;
+
+        private float Radius => Abilities.GasRadius * Mathf.Clamp01((Time.time - _born) / 0.8f);
+
+        /// <summary>Returns false when the cloud is gone.</summary>
+        public bool Step(float dt)
+        {
+            if (Time.time >= _until) return false;
+            // drift out, slow down, don't go through walls
+            Vector3 step = _vel * dt;
+            if (step.sqrMagnitude > 0f && Physics.SphereCast(_pos, 0.5f, step.normalized, out _, step.magnitude + 0.5f, ~0, QueryTriggerInteraction.Ignore))
+                _vel = Vector3.zero;
+            else _pos += step;
+            _vel = Vector3.MoveTowards(_vel, Vector3.zero, _vel.magnitude * 1.5f * dt + 0.01f);
+            if (_go == null) return true;
+            float life = _until - Time.time;
+            float a = 0.22f * Mathf.Clamp01((Time.time - _born) / 0.5f) * Mathf.Clamp01(life / 1.5f);
+            float wobble = 1f + 0.05f * Mathf.Sin(Time.time * 2f + _born);
+            _go.transform.position = _pos;
+            _go.transform.localScale = Vector3.one * Radius * 2f * wobble;
+            if (_r != null)
+            {
+                _r.material.color = new Color(_c.r, _c.g, _c.b, a);
+                _r.enabled = !Effects.NearCamera(_pos, Radius + 0.4f); // inside: overlay instead of a full-screen sphere
+            }
+            return true;
+        }
+
+        public void Destroy()
+        {
+            if (_go != null) Object.Destroy(_go);
         }
     }
 

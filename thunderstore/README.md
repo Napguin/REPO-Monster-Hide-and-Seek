@@ -58,7 +58,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | Spewer |
 | Scream | hiders within 10 m are pushed away and slowed for 2.5 s | Bowtie, Bella |
 | Ground slam | wind-up, then 50 damage within 5 m and knock-back | Trudge |
-| Heart gas | hiders within 12 m are pulled towards the monster for 3 s | Heart Hugger |
+| Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) | Heart Hugger |
 | Gamble | a random special | Gambit |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.

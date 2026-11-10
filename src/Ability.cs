@@ -20,7 +20,8 @@ namespace HideAndSeekMonster
         Pull = 13,       // Heart Hugger: gas that pulls hiders towards it
         Gamble = 14,     // Gambit: random special
         FlyingGrab = 15, // Oogly: invisible bubble that stuns hiders around it
-        ZeroGGrab = 16   // Mentalist: stun bubble + zero gravity inside
+        ZeroGGrab = 16,  // Mentalist: stun bubble + zero gravity inside
+        NoxiousGas = 17  // Heart Hugger: 5 big lingering gas clouds that tranquilize hiders
     }
 
     internal static class Abilities
@@ -51,7 +52,7 @@ namespace HideAndSeekMonster
             { "birthday boy", AbilityType.Throw },
             { "bowtie", AbilityType.Shockwave },
             { "trudge", AbilityType.Slam },
-            { "heart hugger", AbilityType.Pull },
+            { "heart hugger", AbilityType.NoxiousGas },
             { "gambit", AbilityType.Gamble },
             { "bella", AbilityType.Shockwave },
         };
@@ -80,6 +81,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Gamble: return 15f;
                 case AbilityType.FlyingGrab: return 15f;
                 case AbilityType.ZeroGGrab: return 18f;
+                case AbilityType.NoxiousGas: return 25f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -128,6 +130,9 @@ namespace HideAndSeekMonster
         };
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
+        public const int GasClouds = 5;
+        public const float GasTime = 10f, GasRadius = 3f, GasSpread = 5f;
+
         public static bool IsGrab(AbilityType a) => a == AbilityType.FlyingGrab || a == AbilityType.ZeroGGrab;
         public static float GrabRadius(AbilityType a) => a == AbilityType.ZeroGGrab ? 6f : 4f;
 
@@ -164,6 +169,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Gamble: return "#ffe14d";
                 case AbilityType.FlyingGrab: return "#7dff5a";
                 case AbilityType.ZeroGGrab: return "#9a6bff";
+                case AbilityType.NoxiousGas: return "#e070c0";
                 default: return "#a89a9c";
             }
         }

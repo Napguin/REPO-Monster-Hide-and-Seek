@@ -72,6 +72,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Gamble: return De ? "Glücksspiel" : "Gamble";
                 case AbilityType.FlyingGrab: return "Flying Grab";
                 case AbilityType.ZeroGGrab: return "Zero-G Grab";
+                case AbilityType.NoxiousGas: return "Noxious Gas";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
@@ -98,6 +99,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Slam: return De ? "Holt aus und schlägt auf den Boden: 50 Schaden in 5 m und Rückstoß." : "Winds up and slams the ground: 50 damage within 5 m and knock-back.";
                 case AbilityType.Pull: return De ? "Herzgas: Hider in 12 m werden 3 s lang zum Monster gezogen." : "Heart gas: hiders within 12 m are pulled towards the monster for 3 s.";
                 case AbilityType.Gamble: return De ? "Dreht am Rad: eine zufällige Spezialfähigkeit." : "Spins the wheel: a random special ability.";
+                case AbilityType.NoxiousGas: return De ? "Stößt 5 große Gaswolken aus, die 10 s liegen bleiben. Hider im Gas werden betäubt: sehr langsam, träge Kamera." : "Spews 5 large gas clouds that linger for 10 s. Hiders in the gas are tranquilized: very slow, sluggish camera.";
                 case AbilityType.FlyingGrab: return De ? "Unsichtbare Blase (4 m) um dich: Hider darin sind 4 s lang betäubt. Kein normaler Angriff währenddessen." : "Invisible bubble (4 m) around you: hiders inside are stunned for 4 s. No main attack meanwhile.";
                 case AbilityType.ZeroGGrab: return De ? "Betäubungsblase (6 m) mit Schwerelosigkeit: Hider darin schweben und sind 4 s lang betäubt. Kein normaler Angriff währenddessen." : "Stun bubble (6 m) with zero gravity: hiders inside float and are stunned for 4 s. No main attack meanwhile.";
                 default: return "";
@@ -116,6 +118,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Levitate: return De ? "LEVITATION! Das Monster hebt alle hoch!" : "LEVITATE! The monster lifts everyone up!";
                 case AbilityType.Slam: return De ? "BODENSCHLAG!" : "GROUND SLAM!";
                 case AbilityType.Pull: return De ? "HERZGAS! Du wirst angezogen!" : "HEART GAS! You're being pulled in!";
+                case AbilityType.NoxiousGas: return De ? "NOXIOUS GAS! Raus aus den Wolken!" : "NOXIOUS GAS! Stay out of the clouds!";
                 case AbilityType.FlyingGrab: return De ? "FLYING GRAB! Weg vom Monster!" : "FLYING GRAB! Get away from the monster!";
                 case AbilityType.ZeroGGrab: return De ? "ZERO-G GRAB! Weg vom Monster!" : "ZERO-G GRAB! Get away from the monster!";
                 case AbilityType.Leap: return De ? "Das Monster springt!" : "The monster leaps!";
@@ -125,6 +128,7 @@ namespace HideAndSeekMonster
 
         public static string Gambled(string ability) => De ? $"GLÜCKSSPIEL: {ability}!" : $"GAMBLE: {ability}!";
         public static string GrabCaught(string ability, int n) => De ? $"{ability}: {n} Hider in der Blase" : $"{ability}: {n} hider(s) in the bubble";
+        public static string Tranquilized => De ? "Betäubt vom Gas..." : "Tranquilized by the gas...";
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";

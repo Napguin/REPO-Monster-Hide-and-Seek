@@ -142,6 +142,10 @@ The round settings of the **host** are used for everyone.
 | Controls / Attack, Roar, ToggleView | mouse L / mouse R / V | Input System paths, e.g. `<Keyboard>/f` |
 
 
+## Beta builds
+Upcoming changes are tested as beta builds in [`test-builds/`](test-builds/) (not on Thunderstore).
+See the top of [`thunderstore/CHANGELOG.md`](thunderstore/CHANGELOG.md) for what's new. Everyone in the lobby needs the same build.
+
 ## Bugs & ideas
 Found a bug or have an idea for a monster's special? Open an
 [issue](https://github.com/Napguin/REPO-Monster-Hide-and-Seek/issues) – a `BepInEx/LogOutput.log` from your mod
