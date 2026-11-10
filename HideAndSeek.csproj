@@ -4,10 +4,22 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>HideAndSeekMonster</AssemblyName>
     <RootNamespace>HideAndSeekMonster</RootNamespace>
-    <Version>1.4.104</Version>
+    <Version>1.4.105</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <!-- File metadata (shown in Windows file properties). A DLL without any of this looks more suspicious
+         to heuristic virus scanners. -->
+    <Product>Hide And Seek Monster</Product>
+    <AssemblyTitle>Hide And Seek Monster – R.E.P.O. mod (BepInEx plugin)</AssemblyTitle>
+    <Description>BepInEx plugin for R.E.P.O.: hide and seek game mode where one player becomes a monster. Source: https://github.com/Napguin/REPO-Monster-Hide-and-Seek</Description>
+    <Company>Napguin</Company>
+    <Authors>Napguin</Authors>
+    <Copyright>Copyright © Napguin 2026</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+    <RepositoryUrl>https://github.com/Napguin/REPO-Monster-Hide-and-Seek</RepositoryUrl>
+    <Deterministic>true</Deterministic>
+    <Optimize>true</Optimize>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
     <!-- Optional: path to your R.E.P.O. install, e.g. C:\Program Files (x86)\Steam\steamapps\common\REPO
