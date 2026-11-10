@@ -12,6 +12,9 @@
   Mentalist levitates and slams, Trudge ground-slams, Heart Hugger pulls hiders in with gas,
   Bowtie's scream pushes hiders away, Gambit rolls a random special.
 - Apex Predator shows its attack form during Flying Charge. Rapid / Flying Charge have a visible aura.
+- Fix: monster chosen during the hiding phase (e.g. Reaper, Elsa) was invisible / in the wrong form – hiding the own body
+  no longer resets the monster's animation.
+- Third-person camera no longer goes through the ceiling with tall monsters.
 - Big scan / radar waves are rings on the floor now (no more tinted screen). Oogly: stray trail parts hidden.
 - **Flying Charge** (new, Apex Predator): fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by.
 

@@ -137,14 +137,28 @@ namespace HideAndSeekMonster
 
         private static Vector3 ComputeOffset(Transform camT)
         {
-            Vector3 pivot = camT.position + Vector3.up * Height;
+            // Never lift the camera through the ceiling (tall monsters like Elsa).
+            float height = Height;
+            float up = NearestHit(camT.position, Vector3.up, Height + 0.4f);
+            if (up < Height + 0.4f) height = Mathf.Max(0f, up - 0.4f);
+            Vector3 pivot = camT.position + Vector3.up * height;
             Vector3 dir = -camT.forward;
             float want = Distance;
 
-            float hitDist = want;
-            var hits = Physics.SphereCastAll(pivot, 0.25f, dir, want, ~0, QueryTriggerInteraction.Ignore);
+            float hitDist = NearestHit(pivot, dir, want);
+            float target = Mathf.Max(0.3f, hitDist - 0.1f);
+            _smoothedDist = target < _smoothedDist ? target : Mathf.Lerp(_smoothedDist, target, 1f - Mathf.Exp(-6f * Time.deltaTime));
+
+            // If a wall forces the camera very close, lift it less so we don't end up inside the head.
+            return Vector3.up * height * Mathf.Clamp01(_smoothedDist / Mathf.Max(0.01f, want)) + dir * _smoothedDist;
+        }
+
+        /// <summary>Distance to the nearest level geometry (players, props and the monster ignored).</summary>
+        private static float NearestHit(Vector3 from, Vector3 dir, float max)
+        {
+            float best = max;
             var local = GameRefs.LocalAvatar;
-            foreach (var h in hits)
+            foreach (var h in Physics.SphereCastAll(from, 0.25f, dir, max, ~0, QueryTriggerInteraction.Ignore))
             {
                 if (h.collider == null || h.distance <= 0f) continue;
                 if (h.collider.attachedRigidbody != null && !h.collider.attachedRigidbody.isKinematic) continue; // props
@@ -152,13 +166,10 @@ namespace HideAndSeekMonster
                 if (PlayerController.instance != null && h.collider.transform.root == PlayerController.instance.transform.root) continue;
                 if (h.collider.GetComponentInParent<PlayerAvatar>() != null) continue;
                 if (h.collider.GetComponentInParent<PlayerController>() != null) continue;
-                hitDist = Mathf.Min(hitDist, h.distance);
+                if (h.collider.GetComponentInParent<MonsterVisual>() != null) continue;
+                best = Mathf.Min(best, h.distance);
             }
-            float target = Mathf.Max(0.3f, hitDist - 0.1f);
-            _smoothedDist = target < _smoothedDist ? target : Mathf.Lerp(_smoothedDist, target, 1f - Mathf.Exp(-6f * Time.deltaTime));
-
-            // If a wall forces the camera very close, lift it less so we don't end up inside the head.
-            return Vector3.up * Height * Mathf.Clamp01(_smoothedDist / Mathf.Max(0.01f, want)) + dir * _smoothedDist;
+            return best;
         }
 
         public static void RestoreAll()

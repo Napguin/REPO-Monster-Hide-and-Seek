@@ -508,10 +508,7 @@ namespace HideAndSeekMonster
             if (_body != null && ((_regrounds == 0 && _age > 0.6f) || (_regrounds == 1 && _age > 2f)))
             {
                 _regrounds++;
-                bool wasActive = _body.gameObject.activeSelf;
-                if (!wasActive) _body.gameObject.SetActive(true);
                 var size = GroundBody();
-                if (!wasActive) _body.gameObject.SetActive(false);
                 if (size.y > 0.2f) BodyHeight = size.y;
                 Plugin.Log.LogInfo($"[Monster] '{MonsterName}' re-grounded, size {size.x:0.0} x {size.y:0.0} x {size.z:0.0} m");
             }
@@ -707,9 +704,15 @@ namespace HideAndSeekMonster
             if (_lineLight != null) _lineLight.enabled = false;
         }
 
+        // Hide only the rendering: switching the GameObject off would reset the animator to its start state
+        // (Reaper invisible, Elsa small ...).
+        private bool _bodyVisible = true;
         public void SetBodyVisible(bool visible)
         {
-            if (_body != null && _body.gameObject.activeSelf != visible) _body.gameObject.SetActive(visible);
+            if (_body == null || _bodyVisible == visible) return;
+            _bodyVisible = visible;
+            foreach (var r in _body.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = !visible;
+            foreach (var l in _body.GetComponentsInChildren<Light>(true)) l.enabled = visible;
         }
 
         public void Remove() => Destroy(gameObject);
