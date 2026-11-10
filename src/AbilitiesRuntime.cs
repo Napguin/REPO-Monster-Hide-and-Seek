@@ -518,12 +518,14 @@ namespace HideAndSeekMonster
         private void ChargeFxTick()
         {
             if (!Charging || Seeker == null || Time.time < _chargeFxAt) return;
-            _chargeFxAt = Time.time + 0.12f;
+            _chargeFxAt = Time.time + 0.25f;
+            bool ownFirstPerson = GameRefs.IsLocal(Seeker) && !ThirdPersonCamera.Working;
             Vector3 c = (_monster != null ? _monster.transform.position : PlayerPos(Seeker));
             float h = _monster != null ? _monster.BodyHeight : 2f;
             var col = Abilities.UnityColor(_chargeType);
             float r = Abilities.ChargeRadius * Mathf.Max(1f, _roundScale);
-            Effects.Shockwave(c + Vector3.up * h * 0.5f, r * 2f, new Color(col.r, col.g, col.b, 0.35f), 0.3f);
+            Effects.Ring(c + Vector3.up * 0.05f, r * 2f, new Color(col.r, col.g, col.b, 0.3f), 0.4f);
+            if (ownFirstPerson) return; // sparks right in front of the camera would only flash
             Vector3 back = -MonsterForward();
             for (int i = 0; i < 2; i++)
                 Effects.Blob(c + Vector3.up * Random.Range(0.2f, h) + Random.insideUnitSphere * 0.5f, back * 4f + Vector3.up, col, 0.4f, false);
@@ -728,7 +730,7 @@ namespace HideAndSeekMonster
         {
             if (Time.time >= _stunUntil) return;
             var c = Abilities.UnityColor(AbilityType.Shockwave);
-            GUI.color = new Color(c.r, c.g, c.b, 0.18f + 0.08f * Mathf.Sin(Time.time * 12f));
+            GUI.color = new Color(c.r, c.g, c.b, 0.10f);
             GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
             GUI.color = Color.white;
         }
@@ -814,12 +816,41 @@ namespace HideAndSeekMonster
             if (r != null)
             {
                 if (Shader != null) r.material = new Material(Shader);
-                r.material.color = new Color(color.r, color.g, color.b, 0.45f);
+                r.material.color = new Color(color.r, color.g, color.b, Mathf.Min(color.a, 0.22f));
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             }
             var f = go.AddComponent<Fader>();
             f.Init(life, null, r, maxSize);
             f.Flat = maxSize >= 12f; // huge waves as a ring on the floor – a sphere around the camera would tint the whole screen
+        }
+
+        /// <summary>A flat ring growing on the floor.</summary>
+        public static void Ring(Vector3 center, float maxSize, Color color, float life)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var col = go.GetComponent<Collider>();
+            if (col != null) Object.Destroy(col);
+            go.transform.position = center;
+            go.transform.localScale = new Vector3(0.5f, 0.05f, 0.5f);
+            var r = go.GetComponent<Renderer>();
+            if (r != null)
+            {
+                if (Shader != null) r.material = new Material(Shader);
+                r.material.color = color;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            var f = go.AddComponent<Fader>();
+            f.Init(life, null, r, maxSize);
+            f.Flat = true;
+        }
+
+        /// <summary>True when the camera is within the given distance of a point (effects there would fill the screen).</summary>
+        internal static bool NearCamera(Vector3 p, float dist)
+        {
+            var cam = GameRefs.MainCamera;
+            if (cam == null) return false;
+            Vector3 cp = cam.transform.position + (ThirdPersonCamera.Working ? ThirdPersonCamera.LastOffset : Vector3.zero);
+            return (cp - p).sqrMagnitude < dist * dist;
         }
 
         /// <summary>Small flying blob with gravity (puke, charge sparks).</summary>
@@ -879,6 +910,7 @@ namespace HideAndSeekMonster
                 _t += Time.deltaTime;
                 if (_gravity) _v += Physics.gravity * Time.deltaTime;
                 transform.position += _v * Time.deltaTime;
+                if (_r != null) _r.enabled = !NearCamera(transform.position, 1.2f);
                 if (_r != null) _r.material.color = new Color(_c.r, _c.g, _c.b, _c.a * (1f - _t / _life));
                 if (_t >= _life) Destroy(gameObject);
             }
@@ -914,6 +946,8 @@ namespace HideAndSeekMonster
                     {
                         float sz = Mathf.Lerp(0.5f, _maxSize, Mathf.Sqrt(k));
                         transform.localScale = Flat ? new Vector3(sz, 0.08f, sz) : Vector3.one * sz;
+                        // Camera inside the sphere: the whole screen would be tinted – don't draw it.
+                        if (!Flat) _r.enabled = !NearCamera(transform.position, sz * 0.5f + 0.5f);
                     }
                     else if (_maxSize < 0f)
                     {

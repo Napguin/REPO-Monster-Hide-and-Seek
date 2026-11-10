@@ -70,6 +70,7 @@ namespace HideAndSeekMonster
             if (_body == null) { IsFallback = true; BuildFallback(); }
 
             _body.localScale *= scale;
+            _baseScale = _body.localScale;
             if (!IsFallback) TrimStrayRenderers(scale);
             SetLayerRecursive(gameObject, 0);
             Vector3 size = GroundBody();
@@ -301,10 +302,12 @@ namespace HideAndSeekMonster
         // Attack form (Apex Predator during Flying Charge)
         // ------------------------------------------------------------------
         private bool _attackForm;
+        private Vector3 _baseScale = Vector3.one;
         public void SetAttackForm(bool on)
         {
             if (_attackForm == on) return;
             _attackForm = on;
+            SwapFormRenderers(on);
             if (_animator == null || _animator.runtimeAnimatorController == null) return;
             var set = new List<string>();
             foreach (var p in _animator.parameters)
@@ -360,6 +363,27 @@ namespace HideAndSeekMonster
             while (t != null && t != transform) { parts.Add(t.name); t = t.parent; }
             parts.Reverse();
             return string.Join("/", parts);
+        }
+
+        /// <summary>
+        /// The duck's monster form is a second set of meshes ("Mon Head", "Mon Mouth Top" ...) that the game's
+        /// script switches on. Show those and hide the normal duck parts while in attack form.
+        /// </summary>
+        private void SwapFormRenderers(bool on)
+        {
+            if (_body == null) return;
+            var rends = _body.GetComponentsInChildren<Renderer>(true).Where(r => !(r is ParticleSystemRenderer)).ToArray();
+            var monster = rends.Where(r => r.gameObject.name.StartsWith("Mon ") && !r.gameObject.name.Contains("Substitute")).ToArray();
+            if (monster.Length == 0) return;
+            foreach (var r in rends)
+            {
+                if (r.gameObject.name.Contains("Substitute")) continue;
+                bool isMon = monster.Contains(r);
+                r.enabled = on ? isMon : !isMon;
+                if (r.enabled && !r.gameObject.activeSelf) r.gameObject.SetActive(true);
+            }
+            _body.localScale = _baseScale * (on ? 1.6f : 1f); // the attack form is a lot scarier when bigger
+            Plugin.Log.LogInfo($"[Monster] form swap: {(on ? "monster" : "normal")} parts ({monster.Length} monster renderers)");
         }
 
         private static bool Keep(Component c) =>

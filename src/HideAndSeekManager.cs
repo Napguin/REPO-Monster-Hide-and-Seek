@@ -1100,7 +1100,7 @@ namespace HideAndSeekMonster
                 if (!localIsSeeker) DrawStunOverlay(sw, sh);
                 if (!localIsSeeker && Time.time < _flashUntil)
                 {
-                    GUI.color = new Color(0.8f, 0f, 0f, 0.35f * ((_flashUntil - Time.time) / 0.6f));
+                    GUI.color = new Color(0.8f, 0f, 0f, 0.18f * Mathf.Clamp01((_flashUntil - Time.time) / 0.6f));
                     GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
                 }
 

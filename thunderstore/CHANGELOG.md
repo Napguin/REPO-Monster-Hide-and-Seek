@@ -15,6 +15,9 @@
 - Fix: monster chosen during the hiding phase (e.g. Reaper, Elsa) was invisible / in the wrong form – hiding the own body
   no longer resets the monster's animation.
 - Third-person camera no longer goes through the ceiling with tall monsters.
+- Apex Predator: the monster-form meshes are shown during Flying Charge (and the duck grows).
+- Softer effects: weaker colours, no flickering stun overlay, no spheres/sparks drawn around the camera
+  (tight rooms, first person), charge aura is a ring on the floor.
 - Big scan / radar waves are rings on the floor now (no more tinted screen). Oogly: stray trail parts hidden.
 - **Flying Charge** (new, Apex Predator): fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by.
 
