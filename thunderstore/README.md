@@ -24,7 +24,7 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 | **V** | Switch between third person (see your monster) and first person |
 
 During the hiding phase the seeker can pick which monster they want to be.
-The monster is faster, has infinite stamina and is invincible. It can grab things, so doors and buttons work.
+The monster is faster, has infinite stamina and is invincible, but can't use the map. It can grab things, so doors and buttons work.
 Running into hiders does nothing – the monster has to hurt them with its attack or special.
 
 ### Test mode (solo)

@@ -53,3 +53,56 @@ namespace HideAndSeekMonster
         }
     }
 }
+
+namespace HideAndSeekMonster
+{
+    /// <summary>The monster may not use the map (Tab) during a round – it has to find the hiders itself.</summary>
+    internal static class SeekerMapBlock
+    {
+        public static bool Blocked
+        {
+            get
+            {
+                var mgr = HideAndSeekManager.Instance;
+                return mgr != null && mgr.RoundActive && mgr.Seeker != null && GameRefs.IsLocal(mgr.Seeker);
+            }
+        }
+    }
+
+    [HarmonyLib.HarmonyPatch]
+    internal static class SeekerMapInputPatch
+    {
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            var names = new[] { "KeyDown", "KeyUp", "KeyHold", "InputToggleGet" };
+            foreach (var m in typeof(InputManager).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly))
+                if (System.Array.IndexOf(names, m.Name) >= 0 && m.ReturnType == typeof(bool) && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(InputKey))
+                    yield return m;
+            foreach (var m in typeof(SemiFunc).GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+                if ((m.Name == "InputDown" || m.Name == "InputUp" || m.Name == "InputHold") && m.ReturnType == typeof(bool)
+                    && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(InputKey))
+                    yield return m;
+        }
+
+        private static bool Prefix(InputKey key, ref bool __result)
+        {
+            if (key != InputKey.Map || !SeekerMapBlock.Blocked) return true;
+            __result = false;
+            return false;
+        }
+    }
+
+    [HarmonyLib.HarmonyPatch(typeof(MapToolController), "Update")]
+    internal static class SeekerMapClosePatch
+    {
+        // If the map was open when the round started, close it.
+        private static void Prefix(MapToolController __instance)
+        {
+            if (!SeekerMapBlock.Blocked || __instance == null) return;
+            var owner = Compat.Get<PlayerAvatar>(__instance, "PlayerAvatar");
+            if (owner != null && !GameRefs.IsLocal(owner)) return;
+            Compat.Set(__instance, "mapToggled", false);
+            Compat.Set(__instance, "Active", false);
+        }
+    }
+}

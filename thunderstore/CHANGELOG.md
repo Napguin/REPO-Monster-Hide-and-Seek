@@ -1,6 +1,7 @@
 # Changelog
 
-## 1.5.5 (beta)
+## 1.5.6 (beta)
+- The monster can't open the map (Tab) during a round – an open map is closed when the round starts.
 - Flying monsters stop below the ceiling, and the third-person camera no longer looks through ceilings/walls
   when you're pressed against them.
 - **Flying Grab / Zero-G Grab:** caught hiders now tumble (ragdoll) and can't get up while the ability lasts,
