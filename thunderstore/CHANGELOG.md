@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.0 (beta)
+## 1.5.0 (beta – test builds are numbered 1.4.9x)
 - **Damage instead of instant kills:** the main attack does 40 damage (players have 100 HP, config `AttackDamage`).
   Running into hiders no longer kills them. Specials do damage too: Laser 25 / 0.5 s, Shot 60, Leap 40, Throw 40.
 - **Player Scan** (roar): shows how many players are within 15 m instead of the direction. Cooldown 20 s (`ScanCooldown`).

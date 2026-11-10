@@ -2,7 +2,7 @@
 
 **Download (released):** [`release/HideAndSeekMonster-1.4.0.zip`](release/HideAndSeekMonster-1.4.0.zip) – Thunderstore-ready package.
 
-**Beta (branch `beta`, not on Thunderstore):** [`test-builds/HideAndSeekMonster-1.5.0-beta.zip`](test-builds/HideAndSeekMonster-1.5.0-beta.zip) – damage system, Player Scan, Radar Ping, Rapid/Flying Charge.
+**Beta (branch `beta`, not on Thunderstore):** [`test-builds/HideAndSeekMonster-1.4.93-beta.zip`](test-builds/HideAndSeekMonster-1.4.93-beta.zip) – every beta build has its own version (1.4.9x), so the mod manager really updates it. The version is shown in the test-mode overlay.
 
 Mod description (also shown on Thunderstore): [`thunderstore/README.md`](thunderstore/README.md)  
 Build & upload guide: [`BUILD.md`](BUILD.md)

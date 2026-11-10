@@ -21,7 +21,7 @@ namespace HideAndSeekMonster
         public static string MonsterSize => De ? "Monstergröße" : "Monster size";
         public static string TestMode => De ? "Testmodus (alleine testen)" : "Test mode (solo testing)";
         public static string TestModeHint => De ? "Du wirst das Monster, Trainingspuppen sind die Hider." : "You become the monster, training dummies are the hiders.";
-        public static string TestModeTitle => De ? "=== TESTMODUS ===" : "=== TEST MODE ===";
+        public static string TestModeTitle => (De ? "=== TESTMODUS ===" : "=== TEST MODE ===") + $"   v{Plugin.Version}";
         public static string TestKeys => De
             ? "Keine Cooldowns im Testmodus\nF9 = nächstes Monster (Shift+F9 = vorheriges)\nF10 = Puppe vor dir spawnen\nF11 = diese Anzeige ein/aus\nF8 = Menü (Runde abbrechen)"
             : "No cooldowns in test mode\nF9 = next monster (Shift+F9 = previous)\nF10 = spawn dummy in front of you\nF11 = toggle this overlay\nF8 = menu (abort round)";
