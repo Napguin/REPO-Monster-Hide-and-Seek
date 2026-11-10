@@ -51,8 +51,8 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Flying Charge | attack form, fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by | Apex Predator |
 | Leap attack | big jump forward, 40 damage to anyone hit | Headman, Headgrab, Upscream, Snatcher, Chef, Tick |
 | Radar Ping | position and distance of every hider within 30 m for 2 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom, Elsa |
-| Flying Grab | invisible bubble (4 m) around the monster: hiders inside are stunned for 4 s, no main attack meanwhile. The Oogly can always fly | Oogly |
-| Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside float and are stunned for 4 s, no main attack meanwhile | Mentalist |
+| Flying Grab | invisible bubble (4 m) around the monster: hiders inside tumble and are stunned for 8 s so the monster can grab and carry them; no main attack meanwhile. The Oogly can always fly | Oogly |
+| Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside tumble, float and are stunned for 4 s so the monster can grab them; no main attack meanwhile | Mentalist |
 | Throw | projectile in an arc, 40 damage on hit | Rugrat, Birthday Boy |
 | Head bomb | throws its head – it bounces off walls and explodes after 4 s: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | Cleanup Crew |
 | Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | Spewer |

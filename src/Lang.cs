@@ -100,8 +100,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Pull: return De ? "Herzgas: Hider in 12 m werden 3 s lang zum Monster gezogen." : "Heart gas: hiders within 12 m are pulled towards the monster for 3 s.";
                 case AbilityType.Gamble: return De ? "Dreht am Rad: eine zufällige Spezialfähigkeit." : "Spins the wheel: a random special ability.";
                 case AbilityType.NoxiousGas: return De ? "Stößt 5 große Gaswolken aus, die 10 s liegen bleiben. Hider im Gas werden betäubt: sehr langsam, träge Kamera." : "Spews 5 large gas clouds that linger for 10 s. Hiders in the gas are tranquilized: very slow, sluggish camera.";
-                case AbilityType.FlyingGrab: return De ? "Unsichtbare Blase (4 m) um dich: Hider darin sind 4 s lang betäubt. Kein normaler Angriff währenddessen." : "Invisible bubble (4 m) around you: hiders inside are stunned for 4 s. No main attack meanwhile.";
-                case AbilityType.ZeroGGrab: return De ? "Betäubungsblase (6 m) mit Schwerelosigkeit: Hider darin schweben und sind 4 s lang betäubt. Kein normaler Angriff währenddessen." : "Stun bubble (6 m) with zero gravity: hiders inside float and are stunned for 4 s. No main attack meanwhile.";
+                case AbilityType.FlyingGrab: return De ? "Unsichtbare Blase (4 m) um dich: Hider darin fallen um und sind 8 s lang betäubt – greif sie dir (Linksklick halten)! Kein normaler Angriff währenddessen." : "Invisible bubble (4 m) around you: hiders inside tumble and are stunned for 8 s – grab them (hold left click)! No main attack meanwhile.";
+                case AbilityType.ZeroGGrab: return De ? "Betäubungsblase (6 m) mit Schwerelosigkeit: Hider darin fallen um, schweben und sind 4 s lang betäubt – greif sie dir! Kein normaler Angriff währenddessen." : "Stun bubble (6 m) with zero gravity: hiders inside tumble, float and are stunned for 4 s – grab them! No main attack meanwhile.";
                 default: return "";
             }
         }

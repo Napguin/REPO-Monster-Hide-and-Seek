@@ -23,7 +23,7 @@ namespace HideAndSeekMonster
         /// <summary>Main attack disabled while a charge or grab zone is active.</summary>
         private bool AttackBlocked => Charging || Grabbing;
         private float AttackBlockedUntil => Mathf.Max(Charging ? _chargeUntil : 0f, Grabbing ? _grabUntil : 0f);
-        private bool _grabStunShown;
+        private bool _grabStunShown, _grabCaught;
         // host: damage ticks
         private float _chargeTickAt, _laserTickAt;
         private readonly HashSet<int> _leapHit = new HashSet<int>();
@@ -269,6 +269,7 @@ namespace HideAndSeekMonster
                     _grabUntil = Time.time + Abilities.Duration(ability);
                     _grabType = ability;
                     _grabStunShown = false;
+                    _grabCaught = false;
                     _grabFxAt = 0f;
                     if (_monster != null) _monster.PlayAttack();
                     Plugin.Log.LogInfo($"[Monster] {ability} active for {Abilities.Duration(ability)}s, radius {Abilities.GrabRadius(ability)}m");
@@ -652,11 +653,28 @@ namespace HideAndSeekMonster
             }
 
             if (!LocalHider(out var me)) return;
-            if (Vector3.Distance(PlayerPos(me), c) > r) return;
+            // Once caught you stay caught until the ability ends – even if the monster carries you out of the bubble.
+            if (!_grabCaught && Vector3.Distance(PlayerPos(me), c) > r) return;
             var pc = PlayerController.instance;
             _stunUntil = Mathf.Max(_stunUntil, Time.time + 0.3f); // stun overlay + slow (AbilityTick)
             Compat.Call(pc, "OverrideSpeed", 0.1f, 0.2f);
-            if (_grabType == AbilityType.ZeroGGrab)
+
+            // Knock the hider into the game's tumble (ragdoll): only tumbling players can be grabbed and carried.
+            var tumble = Compat.Get<Component>(me, "tumble");
+            if (tumble != null)
+            {
+                if (!_grabCaught)
+                {
+                    Compat.Call(tumble, "TumbleRequest", true, false);
+                    Plugin.Log.LogInfo($"[Monster] caught by {_grabType}: tumbling");
+                    if (_grabType == AbilityType.ZeroGGrab) Compat.Call(tumble, "TumbleForce", Vector3.up * 4f);
+                }
+                Compat.Call(tumble, "TumbleOverrideTime", 0.4f); // can't get up while caught
+                if (_grabType == AbilityType.ZeroGGrab) Compat.Call(tumble, "DisableCustomGravity", 0.3f);
+            }
+            _grabCaught = true;
+
+            if (_grabType == AbilityType.ZeroGGrab && tumble == null)
             {
                 Compat.Call(pc, "AntiGravity", 0.25f);
                 var rb = Compat.Get<Rigidbody>(pc, "rb");

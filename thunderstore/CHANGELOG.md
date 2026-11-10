@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.3 (beta)
+## 1.5.4 (beta)
+- **Flying Grab / Zero-G Grab:** caught hiders now tumble (ragdoll) and can't get up while the ability lasts,
+  so the monster can grab and carry them. Flying Grab lasts 8 s (cooldown 20 s).
 - **Heart Hugger: Noxious Gas** – spews 5 gas clouds (1.8 m radius) that drift out and linger for 10 s.
   Hiders inside are tranquilized: very slow, sluggish camera, pink haze. (Heart gas pull is now only a Gambit roll.)
 - **Gambit** can roll every special in the mod (incl. Flying Charge, Flying Grab, Zero-G Grab, Noxious Gas) – new specials are added automatically.

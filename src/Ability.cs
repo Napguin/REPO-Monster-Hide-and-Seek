@@ -80,7 +80,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Slam: return 10f;
                 case AbilityType.Pull: return 16f;
                 case AbilityType.Gamble: return 15f;
-                case AbilityType.FlyingGrab: return 15f;
+                case AbilityType.FlyingGrab: return 20f;
                 case AbilityType.ZeroGGrab: return 18f;
                 case AbilityType.NoxiousGas: return 25f;
                 case AbilityType.Leap: return 8f;
@@ -102,7 +102,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Levitate: return 1.6f;  // time in the air before the slam
                 case AbilityType.Slam: return 0.6f;      // wind-up
                 case AbilityType.Pull: return 3f;
-                case AbilityType.FlyingGrab: return 4f;
+                case AbilityType.FlyingGrab: return 8f;
                 case AbilityType.ZeroGGrab: return 4f;
                 case AbilityType.Leap: return 1.2f;
                 case AbilityType.Reveal: return 2f;
