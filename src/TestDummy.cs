@@ -51,6 +51,17 @@ namespace HideAndSeekMonster
             return go;
         }
 
+        private float _stunUntil, _floatUntil, _lift;
+        private bool _stunColor;
+
+        /// <summary>Grab zones: stunned (light blue, no sway) and optionally floating.</summary>
+        public void Stun(float seconds, bool zeroG)
+        {
+            if (Dead) return;
+            _stunUntil = Mathf.Max(_stunUntil, Time.time + seconds);
+            if (zeroG) _floatUntil = Mathf.Max(_floatUntil, Time.time + seconds);
+        }
+
         public void Kill(Vector3 from)
         {
             if (Dead) return;
@@ -69,6 +80,16 @@ namespace HideAndSeekMonster
                 _visual.localEulerAngles = new Vector3(-_fall, 0, 0);
                 return;
             }
+            bool stunned = Time.time < _stunUntil;
+            if (stunned != _stunColor)
+            {
+                _stunColor = stunned;
+                foreach (var r in _renderers)
+                    if (r.material.color != Color.black) r.material.color = stunned ? new Color(0.45f, 0.85f, 1f) : new Color(1f, 0.8f, 0.15f);
+            }
+            _lift = Mathf.MoveTowards(_lift, Time.time < _floatUntil ? 1.5f : 0f, (Time.time < _floatUntil ? 1.2f : 6f) * Time.deltaTime);
+            _visual.localPosition = new Vector3(0, _lift, 0);
+            if (stunned) { _visual.localEulerAngles = new Vector3(Mathf.Sin(Time.time * 30f) * 3f, 0, 0); return; }
             // idle sway so it's easy to spot
             _visual.localEulerAngles = new Vector3(0, Mathf.Sin(Time.time * 0.7f + _seed) * 40f, Mathf.Sin(Time.time * 2f + _seed) * 4f);
         }

@@ -124,6 +124,7 @@ namespace HideAndSeekMonster
         }
 
         public static string Gambled(string ability) => De ? $"GLÜCKSSPIEL: {ability}!" : $"GAMBLE: {ability}!";
+        public static string GrabCaught(string ability, int n) => De ? $"{ability}: {n} Hider in der Blase" : $"{ability}: {n} hider(s) in the bubble";
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";

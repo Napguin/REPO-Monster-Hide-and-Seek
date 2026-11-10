@@ -255,7 +255,9 @@ namespace HideAndSeekMonster
                     _grabUntil = Time.time + Abilities.Duration(ability);
                     _grabType = ability;
                     _grabStunShown = false;
+                    _grabFxAt = 0f;
                     if (_monster != null) _monster.PlayAttack();
+                    Plugin.Log.LogInfo($"[Monster] {ability} active for {Abilities.Duration(ability)}s, radius {Abilities.GrabRadius(ability)}m");
                     break;
                 case AbilityType.Pull:
                     {
@@ -572,20 +574,45 @@ namespace HideAndSeekMonster
         }
 
         /// <summary>Flying Grab / Zero-G Grab: hiders inside the bubble around the monster are stunned (and float).</summary>
+        private float _grabFxAt;
+
         private void GrabTick()
         {
             if (!Grabbing || Seeker == null) return;
-            if (!LocalHider(out var me)) return;
             Vector3 c = PlayerPos(Seeker);
             float r = Abilities.GrabRadius(_grabType) * Mathf.Max(1f, _roundScale);
+            bool zeroG = _grabType == AbilityType.ZeroGGrab;
+
+            // test dummies (host only)
+            foreach (var d in AliveDummies())
+                if (Vector3.Distance(d.transform.position, c) <= r) d.Stun(0.3f, zeroG);
+
+            // the monster: faint ring showing the reach (hiders don't see it – it's an invisible bubble) + count
+            if (GameRefs.IsLocal(Seeker))
+            {
+                if (Time.time >= _grabFxAt)
+                {
+                    _grabFxAt = Time.time + 0.5f;
+                    var col = Abilities.UnityColor(_grabType);
+                    Effects.Ring(c + Vector3.up * 0.05f, r * 2f, new Color(col.r, col.g, col.b, 0.25f), 0.5f);
+                    int n = AliveHiders().Count(h => Vector3.Distance(PlayerPos(h), c) <= r)
+                            + AliveDummies().Count(d => Vector3.Distance(d.transform.position, c) <= r);
+                    Banner(L.GrabCaught(Abilities.Name(_grabType), n), col, 0.6f);
+                }
+                return;
+            }
+
+            if (!LocalHider(out var me)) return;
             if (Vector3.Distance(PlayerPos(me), c) > r) return;
             var pc = PlayerController.instance;
+            _stunUntil = Mathf.Max(_stunUntil, Time.time + 0.3f); // stun overlay + slow (AbilityTick)
             Compat.Call(pc, "OverrideSpeed", 0.1f, 0.2f);
             if (_grabType == AbilityType.ZeroGGrab)
             {
                 Compat.Call(pc, "AntiGravity", 0.25f);
                 var rb = Compat.Get<Rigidbody>(pc, "rb");
                 if (rb != null) { var v = rb.velocity; v.y = Mathf.MoveTowards(v.y, 1.2f, 10f * Time.deltaTime); rb.velocity = v; }
+                else LocalPush(Vector3.up * 0.3f);
             }
             if (!_grabStunShown)
             {
