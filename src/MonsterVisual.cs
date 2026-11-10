@@ -93,6 +93,7 @@ namespace HideAndSeekMonster
                 $"Animator: {animInfo}";
             Plugin.Log.LogInfo($"[Monster] '{MonsterName}' built for {(_isLocal ? "local" : "remote")} player\n{DebugInfo}");
             if (_isLocal) LogModelDump();
+            if (!IsFallback && _entry != null && _entry.Ability == AbilityType.FlyingCharge) BuildAttackBody();
 
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.spatialBlend = 1f;
@@ -310,7 +311,7 @@ namespace HideAndSeekMonster
             SwapFormRenderers(on);
             // Monsters with separate form meshes (duck): leave the animator alone – its transform trigger
             // without the game's script gets stuck half-way and hides both forms.
-            if (_formMon != null && _formMon.Length > 0) return;
+            if (_attackBody != null) return;
             if (_animator == null || _animator.runtimeAnimatorController == null) return;
             var set = new List<string>();
             foreach (var p in _animator.parameters)
@@ -369,59 +370,85 @@ namespace HideAndSeekMonster
         }
 
         /// <summary>
-        /// The duck's monster form is a second set of meshes ("Mon Head", "Mon Mouth Top" ...) that the game's
-        /// script switches on. Show those and hide the normal duck parts while in attack form.
+        /// The duck's monster form is a second set of meshes ("mesh Mon Head", "mesh Mon Mouth Top" ... below a
+        /// "MONSTER" folder) that the game's script/animation switches on. Without the script the animator keeps
+        /// them hidden and scaled to 0, so we build a separate, animator-free copy of the monster form once and
+        /// show that instead of the animated duck.
         /// </summary>
-        private Renderer[] _formMon, _formNormal;
-        private float _formEnforceUntil;
+        private Transform _attackBody;
+        private bool _attackBodyBuilt;
 
-        private void SwapFormRenderers(bool on)
-        {
-            if (_body == null) return;
-            if (_formMon == null)
-            {
-                var rends = _body.GetComponentsInChildren<Renderer>(true)
-                    .Where(r => !(r is ParticleSystemRenderer) && !r.gameObject.name.Contains("Substitute")).ToArray();
-                // Duck: "mesh Mon Head", "mesh Mon Mouth Top" ... below a "MONSTER" folder.
-                _formMon = rends.Where(IsMonsterFormPart).ToArray();
-                _formNormal = rends.Where(r => !IsMonsterFormPart(r)).ToArray();
-            }
-            if (_formMon.Length == 0) { Plugin.Log.LogInfo($"[Monster] form swap: '{MonsterName}' has no separate monster-form parts"); return; }
-            _body.localScale = _baseScale * (on ? 1.6f : 1f); // the attack form is a lot scarier when bigger
-            _formEnforceUntil = on ? float.MaxValue : Time.time + 3f;
-            EnforceForm();
-            Plugin.Log.LogInfo($"[Monster] form swap: {(on ? "monster" : "normal")} ({_formMon.Length} monster / {_formNormal.Length} normal renderers)");
-        }
-
-        /// <summary>
-        /// The duck's animator keys the renderers' on/off state itself, so it has to be enforced every frame
-        /// after the animation ran (LateUpdate).
-        /// </summary>
-        private void EnforceForm()
-        {
-            if (_formMon == null || _formMon.Length == 0 || Time.time > _formEnforceUntil) return;
-            foreach (var r in _formMon) Show(r, _attackForm);
-            foreach (var r in _formNormal) Show(r, !_attackForm);
-            // The animation scales hidden parts (and their parents) to 0: undo that for the visible form.
-            foreach (var r in _attackForm ? _formMon : _formNormal)
-                for (var t = r != null ? r.transform : null; t != null && t != _body; t = t.parent)
-                    if (t.localScale.x < 0.05f || t.localScale.y < 0.05f || t.localScale.z < 0.05f) t.localScale = Vector3.one;
-        }
-
-        private bool IsMonsterFormPart(Renderer r)
+        private static bool IsMonsterFormPart(Renderer r, Transform root)
         {
             if (r.gameObject.name.Contains("Mon ")) return true;
-            for (var t = r.transform; t != null && t != _body; t = t.parent)
+            for (var t = r.transform; t != null && t != root; t = t.parent)
                 if (t.name == "MONSTER") return true;
             return false;
         }
 
-        private static void Show(Renderer r, bool on)
+        private void BuildAttackBody()
         {
-            if (r == null) return;
-            r.enabled = on;
-            if (!on) return;
-            for (var p = r.transform; p != null && !p.gameObject.activeSelf; p = p.parent) p.gameObject.SetActive(true);
+            _attackBodyBuilt = true;
+            if (_body == null) return;
+            bool hasMon = _body.GetComponentsInChildren<Renderer>(true).Any(r => IsMonsterFormPart(r, _body) && !r.gameObject.name.Contains("Substitute"));
+            if (!hasMon) { Plugin.Log.LogInfo($"[Monster] '{MonsterName}' has no separate monster-form parts"); return; }
+
+            var copy = Instantiate(_body.gameObject, transform);
+            copy.name = "AttackBody";
+            _attackBody = copy.transform;
+            _attackBody.localPosition = _body.localPosition;
+            _attackBody.localRotation = _body.localRotation;
+            _attackBody.localScale = _baseScale * 1.6f; // the attack form is a lot scarier when bigger
+            foreach (var a in copy.GetComponentsInChildren<Animator>(true)) DestroyImmediate(a);
+
+            int shown = 0;
+            foreach (var r in copy.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r is ParticleSystemRenderer) continue;
+                bool mon = IsMonsterFormPart(r, _attackBody) && !r.gameObject.name.Contains("Substitute");
+                r.enabled = mon;
+                r.forceRenderingOff = false;
+                if (!mon) continue;
+                shown++;
+                // switch on every parent and undo zero scales up to the copy's root
+                for (var t = r.transform; t != null && t != _attackBody; t = t.parent)
+                {
+                    if (!t.gameObject.activeSelf) t.gameObject.SetActive(true);
+                    var sc = t.localScale;
+                    if (Mathf.Abs(sc.x) < 0.05f || Mathf.Abs(sc.y) < 0.05f || Mathf.Abs(sc.z) < 0.05f) t.localScale = Vector3.one;
+                }
+            }
+            copy.SetActive(false);
+            Plugin.Log.LogInfo($"[Monster] '{MonsterName}': attack-form copy built ({shown} parts)");
+        }
+
+        private void SwapFormRenderers(bool on)
+        {
+            if (!_attackBodyBuilt) BuildAttackBody();
+            if (_attackBody == null) return;
+            _attackBody.localPosition = _body.localPosition; // follow re-grounding
+            _attackBody.gameObject.SetActive(on);
+            ApplyVisibility();
+            if (on)
+            {
+                var rs = _attackBody.GetComponentsInChildren<Renderer>(false).Where(r => r.enabled).ToArray();
+                var info = rs.Length == 0 ? "none" : $"{rs.Length} visible, first at {(rs[0].bounds.center - transform.position)} size {rs[0].bounds.size}";
+                Plugin.Log.LogInfo($"[Monster] form swap: monster ({info})");
+            }
+            else Plugin.Log.LogInfo("[Monster] form swap: normal");
+        }
+
+        /// <summary>Hide/show the animated body and the attack-form copy (rendering only).</summary>
+        private void ApplyVisibility()
+        {
+            bool bodyOn = _bodyVisible && !(_attackForm && _attackBody != null);
+            if (_body != null)
+            {
+                foreach (var r in _body.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = !bodyOn;
+                foreach (var l in _body.GetComponentsInChildren<Light>(true)) l.enabled = bodyOn;
+            }
+            if (_attackBody != null)
+                foreach (var r in _attackBody.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = !_bodyVisible;
         }
 
         private static bool Keep(Component c) =>
@@ -578,7 +605,6 @@ namespace HideAndSeekMonster
             float speed = (transform.position - _lastPos).magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
             _lastPos = transform.position;
             Animate(speed);
-            EnforceForm();
         }
 
         private void Animate(float speed)
@@ -774,8 +800,7 @@ namespace HideAndSeekMonster
         {
             if (_body == null || _bodyVisible == visible) return;
             _bodyVisible = visible;
-            foreach (var r in _body.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = !visible;
-            foreach (var l in _body.GetComponentsInChildren<Light>(true)) l.enabled = visible;
+            ApplyVisibility();
         }
 
         public void Remove() => Destroy(gameObject);
