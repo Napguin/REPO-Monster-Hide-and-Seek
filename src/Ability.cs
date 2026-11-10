@@ -131,7 +131,7 @@ namespace HideAndSeekMonster
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
         public const int GasClouds = 5;
-        public const float GasTime = 10f, GasRadius = 3f, GasSpread = 5f;
+        public const float GasTime = 10f, GasRadius = 1.8f, GasSpread = 4f;
 
         public static bool IsGrab(AbilityType a) => a == AbilityType.FlyingGrab || a == AbilityType.ZeroGGrab;
         public static float GrabRadius(AbilityType a) => a == AbilityType.ZeroGGrab ? 6f : 4f;
