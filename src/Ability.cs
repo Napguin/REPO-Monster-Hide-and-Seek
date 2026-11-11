@@ -23,7 +23,9 @@ namespace HideAndSeekMonster
         FlyingGrab = 15, // Oogly: invisible bubble that stuns hiders around it
         ZeroGGrab = 16,  // Mentalist: stun bubble + zero gravity inside
         NoxiousGas = 17, // Heart Hugger: 5 big lingering gas clouds that tranquilize hiders
-        Swarm = 18       // Gnome / Banger: summon 5 allies that hunt hiders on their own
+        Swarm = 18,      // Gnome / Banger: summon 5 allies that hunt hiders on their own
+        Charge = 19,     // Robe / Headgrab: freeze, then dash forward horizontally (60 damage on contact)
+        Lunge = 20       // Headman / Chef: like Charge, but in the camera direction (also up / in the air)
     }
 
     internal static class Abilities
@@ -33,14 +35,14 @@ namespace HideAndSeekMonster
         {
             { "clown", AbilityType.Laser },
             { "huntsman", AbilityType.Shot },
-            { "robe", AbilityType.Sprint },
+            { "robe", AbilityType.Charge },
             { "reaper", AbilityType.Sprint },
             { "animal", AbilityType.Sprint },
-            { "headman", AbilityType.Leap },
-            { "headgrab", AbilityType.Leap },
+            { "headman", AbilityType.Lunge },
+            { "headgrab", AbilityType.Charge },
             { "upscream", AbilityType.Leap },
             { "snatcher", AbilityType.Leap },
-            { "chef", AbilityType.Leap },
+            { "chef", AbilityType.Lunge },
             { "tick", AbilityType.Leap },
             { "apex predator", AbilityType.FlyingCharge },
             { "peeper", AbilityType.Reveal },
@@ -87,6 +89,8 @@ namespace HideAndSeekMonster
                 case AbilityType.ZeroGGrab: return 18f;
                 case AbilityType.NoxiousGas: return 25f;
                 case AbilityType.Swarm: return 40f;
+                case AbilityType.Charge: return 10f;
+                case AbilityType.Lunge: return 10f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -134,6 +138,10 @@ namespace HideAndSeekMonster
             .Where(a => a != AbilityType.None && a != AbilityType.Gamble).ToArray();
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
+        public const int DashDamage = 60;
+        public const float DashWindup = 0.5f, DashTime = 0.35f, DashSpeed = 24f, DashHitRadius = 1.8f;
+        public static bool IsDash(AbilityType a) => a == AbilityType.Charge || a == AbilityType.Lunge;
+
         public const int GasClouds = 5;
         public const float GasTime = 10f, GasRadius = 1.8f, GasSpread = 4f;
 
@@ -175,6 +183,8 @@ namespace HideAndSeekMonster
                 case AbilityType.ZeroGGrab: return "#9a6bff";
                 case AbilityType.NoxiousGas: return "#e070c0";
                 case AbilityType.Swarm: return "#5f6bff";
+                case AbilityType.Charge: return "#9dff5a";
+                case AbilityType.Lunge: return "#ffee44";
                 default: return "#a89a9c";
             }
         }

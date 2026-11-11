@@ -21,9 +21,16 @@ namespace HideAndSeekMonster
         private AbilityType _grabType;
         private bool Grabbing => Time.time < _grabUntil;
         /// <summary>Main attack disabled while a charge or grab zone is active.</summary>
-        private bool AttackBlocked => Charging || Grabbing;
-        private float AttackBlockedUntil => Mathf.Max(Charging ? _chargeUntil : 0f, Grabbing ? _grabUntil : 0f);
+        private bool AttackBlocked => Charging || Grabbing || Time.time < _dashEnd;
+        private float AttackBlockedUntil => Mathf.Max(Mathf.Max(Charging ? _chargeUntil : 0f, Grabbing ? _grabUntil : 0f), _dashEnd);
         private bool _grabStunShown, _grabCaught;
+        // Charge / Lunge (all clients): wind-up, then dash
+        private float _dashStart, _dashEnd;
+        private AbilityType _dashType;
+        private Vector3 _dashDir;
+        private readonly HashSet<int> _dashHit = new HashSet<int>();
+        private bool DashWindup => Time.time < _dashStart;
+        private bool Dashing => Time.time >= _dashStart && Time.time < _dashEnd;
         // host: damage ticks
         private float _chargeTickAt, _laserTickAt;
         private readonly HashSet<int> _leapHit = new HashSet<int>();
@@ -253,6 +260,21 @@ namespace HideAndSeekMonster
                 case AbilityType.Swarm:
                     OnSwarm(origin);
                     break;
+                case AbilityType.Charge:
+                case AbilityType.Lunge:
+                    {
+                        _dashType = ability;
+                        _dashStart = Time.time + Abilities.DashWindup;
+                        _dashEnd = _dashStart + Abilities.DashTime;
+                        _dashHit.Clear();
+                        // Charge: flat. Lunge: exactly where the camera looks.
+                        Vector3 d = dir;
+                        if (localSeeker) { var v = GameRefs.ViewTransform(Seeker); if (v != null) d = v.forward; }
+                        if (ability == AbilityType.Charge) { d.y = 0f; if (d.sqrMagnitude < 0.001f) d = MonsterForward(); }
+                        _dashDir = d.normalized;
+                        if (_monster != null) _monster.PlayRoar();
+                        break;
+                    }
                 case AbilityType.NoxiousGas:
                     {
                         Vector3 c = (Seeker != null ? PlayerPos(Seeker) : origin) + Vector3.up * 1.2f;
@@ -401,6 +423,7 @@ namespace HideAndSeekMonster
             Safe("grab zone", GrabTick);
             Safe("gas", GasTick);
             Safe("minions", MinionTick);
+            Safe("dash", DashTick);
             if (Seeker != null && GameRefs.IsLocal(Seeker) && Phase == Phase.Hunting && Abilities.FreeFlight(_monsterName)
                 && !(Charging && _chargeType == AbilityType.FlyingCharge))
                 Safe("free flight", FlyTick);
@@ -586,6 +609,47 @@ namespace HideAndSeekMonster
                 Effects.Blob(c + Vector3.up * Random.Range(0.2f, h) + Random.insideUnitSphere * 0.5f, back * 4f + Vector3.up, col, 0.4f, false);
         }
 
+        private void DashTick()
+        {
+            if (Seeker == null || Time.time >= _dashEnd + 0.1f) return;
+            bool localSeeker = GameRefs.IsLocal(Seeker);
+            var pc = PlayerController.instance;
+            if (localSeeker && pc != null)
+            {
+                var rb = Compat.Get<Rigidbody>(pc, "rb");
+                if (DashWindup)
+                {
+                    // frozen while winding up
+                    Compat.Call(pc, "OverrideSpeed", 0f, 0.2f);
+                    if (rb != null) rb.velocity = new Vector3(0f, _dashType == AbilityType.Lunge ? 0f : rb.velocity.y, 0f);
+                    if (_dashType == AbilityType.Lunge) Compat.Call(pc, "AntiGravity", 0.2f);
+                }
+                else if (Dashing && rb != null)
+                {
+                    Vector3 v = _dashDir * Abilities.DashSpeed;
+                    if (_dashType == AbilityType.Charge) v.y = rb.velocity.y; // stays on the ground
+                    else Compat.Call(pc, "AntiGravity", 0.2f);
+                    rb.velocity = v;
+                }
+                else if (rb != null && Time.time < _dashEnd + 0.1f)
+                {
+                    // stop after the dash instead of sliding on
+                    var v = rb.velocity; rb.velocity = new Vector3(v.x * 0.2f, Mathf.Min(v.y, 2f), v.z * 0.2f);
+                }
+            }
+
+            // host: 60 damage once per target while dashing
+            if (!IsHost || Phase != Phase.Hunting || !Dashing) return;
+            Vector3 sp = SeekerPosition();
+            float r = Abilities.DashHitRadius * Mathf.Max(1f, _roundScale);
+            foreach (var h in AliveHiders())
+                if (Vector3.Distance(PlayerPos(h) + Vector3.up * 0.8f, sp + Vector3.up * 0.8f) <= r && _dashHit.Add(h.photonView.ViewID))
+                    HostDamage(h, Abilities.DashDamage, Abilities.Name(_dashType));
+            foreach (var d in AliveDummies())
+                if (Vector3.Distance(d.transform.position, sp) <= r + 0.4f && _dashHit.Add(-1000 - d.GetInstanceID()))
+                    HostDamageDummy(d, Abilities.DashDamage, sp, Abilities.Name(_dashType));
+        }
+
         private bool InChargeRadius(Vector3 seekerPos, Vector3 target)
         {
             float dy = Mathf.Abs(target.y - seekerPos.y);
@@ -761,7 +825,7 @@ namespace HideAndSeekMonster
             foreach (var g in _gas) g.Destroy();
             _gas.Clear();
             _tranqUntil = 0f;
-            _pukeUntil = _pullUntil = _levitateUntil = _grabUntil = 0f;
+            _pukeUntil = _pullUntil = _levitateUntil = _grabUntil = _dashStart = _dashEnd = 0f;
             _pulled = _levitating = false;
             if (_monster != null) _monster.SetAttackForm(false);
         }
@@ -854,7 +918,7 @@ namespace HideAndSeekMonster
             var slots = new List<(string key, string name, float readyAt, float total, Color color)>
             {
                 (BindName(_attackAction), L.Attack, AttackBlocked ? Mathf.Max(_attackReadyAt, AttackBlockedUntil) : _attackReadyAt,
-                    AttackBlocked ? Abilities.Duration(Charging ? _chargeType : _grabType) : Plugin.AttackCooldown.Value, new Color(1f, 0.35f, 0.3f)),
+                    AttackBlocked ? (Charging ? Abilities.Duration(_chargeType) : Grabbing ? Abilities.Duration(_grabType) : Abilities.DashWindup + Abilities.DashTime) : Plugin.AttackCooldown.Value, new Color(1f, 0.35f, 0.3f)),
                 (BindName(_roarAction), L.Roar, _roarReadyAt, Plugin.RoarCooldown.Value, new Color(1f, 0.6f, 0.3f)),
             };
             if (ability != AbilityType.None)

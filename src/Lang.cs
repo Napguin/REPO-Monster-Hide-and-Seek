@@ -74,6 +74,8 @@ namespace HideAndSeekMonster
                 case AbilityType.ZeroGGrab: return "Zero-G Grab";
                 case AbilityType.NoxiousGas: return "Noxious Gas";
                 case AbilityType.Swarm: return De ? "Schwarm" : "Swarm";
+                case AbilityType.Charge: return "Charge";
+                case AbilityType.Lunge: return "Lunge";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
@@ -100,6 +102,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Slam: return De ? "Holt aus und schlägt auf den Boden: 50 Schaden in 5 m und Rückstoß." : "Winds up and slams the ground: 50 damage within 5 m and knock-back.";
                 case AbilityType.Pull: return De ? "Herzgas: Hider in 12 m werden 3 s lang zum Monster gezogen." : "Heart gas: hiders within 12 m are pulled towards the monster for 3 s.";
                 case AbilityType.Gamble: return De ? "Dreht am Rad: eine zufällige Spezialfähigkeit." : "Spins the wheel: a random special ability.";
+                case AbilityType.Charge: return De ? "Kurz stehen bleiben, dann blitzschnell ein Stück geradeaus nach vorn (nur waagerecht). 60 Schaden bei Kontakt." : "Stops for a moment, then dashes forward very fast over a short distance (horizontal only). 60 damage on contact.";
+                case AbilityType.Lunge: return De ? "Wie Charge, aber in Blickrichtung – auch nach oben/unten und in der Luft. 60 Schaden bei Kontakt." : "Like Charge, but in the camera direction – also up/down and in the air. 60 damage on contact.";
                 case AbilityType.Swarm: return De ? "Ruft 5 Verbündete, die Hider selbstständig jagen (30 s). Gnome schlagen immer wieder zu (10 Schaden), Banger sprengen sich in die Luft (35 Schaden, 3 m)." : "Summons 5 allies that hunt hiders on their own (30 s). Gnomes hit again and again (10 damage), Bangers blow themselves up (35 damage, 3 m).";
                 case AbilityType.NoxiousGas: return De ? "Stößt 5 große Gaswolken aus, die 10 s liegen bleiben. Hider im Gas werden betäubt: sehr langsam, träge Kamera." : "Spews 5 large gas clouds that linger for 10 s. Hiders in the gas are tranquilized: very slow, sluggish camera.";
                 case AbilityType.FlyingGrab: return De ? "Unsichtbare Blase (4 m) um dich: Hider darin fallen um und sind 8 s lang betäubt – greif sie dir (Linksklick halten)! Kein normaler Angriff währenddessen." : "Invisible bubble (4 m) around you: hiders inside tumble and are stunned for 8 s – grab them (hold left click)! No main attack meanwhile.";
@@ -120,6 +124,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Levitate: return De ? "LEVITATION! Das Monster hebt alle hoch!" : "LEVITATE! The monster lifts everyone up!";
                 case AbilityType.Slam: return De ? "BODENSCHLAG!" : "GROUND SLAM!";
                 case AbilityType.Pull: return De ? "HERZGAS! Du wirst angezogen!" : "HEART GAS! You're being pulled in!";
+                case AbilityType.Charge: return De ? "CHARGE! Aus dem Weg!" : "CHARGE! Get out of the way!";
+                case AbilityType.Lunge: return De ? "LUNGE! Aus dem Weg!" : "LUNGE! Get out of the way!";
                 case AbilityType.Swarm: return De ? "SCHWARM! Da kommen noch mehr!" : "SWARM! Here come more of them!";
                 case AbilityType.NoxiousGas: return De ? "NOXIOUS GAS! Raus aus den Wolken!" : "NOXIOUS GAS! Stay out of the clouds!";
                 case AbilityType.FlyingGrab: return De ? "FLYING GRAB! Weg vom Monster!" : "FLYING GRAB! Get away from the monster!";
