@@ -121,7 +121,7 @@ namespace HideAndSeekMonster
 
         // ---- damage values (players have 100 HP) ----
         public const int ShotDamage = 60, ThrowDamage = 40, LeapDamage = 40;
-        public const int LaserDamage = 25;          // per tick
+        public const int LaserDamage = 50;          // per tick
         public const int RapidChargeDamage = 20;    // per tick
         public const int FlyingChargeDamage = 10;   // per tick
         public const float DamageTick = 0.5f;
@@ -139,7 +139,8 @@ namespace HideAndSeekMonster
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
         public const int DashDamage = 60;
-        public const float DashWindup = 0.5f, DashTime = 0.35f, DashSpeed = 24f, DashHitRadius = 1.8f;
+        public const float DashWindup = 0.5f, DashSpeed = 24f, DashHitRadius = 1.8f;
+        public static float DashTime(AbilityType a) => a == AbilityType.Charge ? 0.6f : 0.35f; // Charge ~14 m, Lunge ~8 m
         public static bool IsDash(AbilityType a) => a == AbilityType.Charge || a == AbilityType.Lunge;
 
         public const int GasClouds = 5;

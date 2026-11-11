@@ -447,6 +447,11 @@ namespace HideAndSeekMonster
                 if (aliveHiders.Any(p => p.photonView.ViewID == id)) continue;
                 _hiderOutTime[id] = Time.time;
                 if (!_roundTest && RecentlyHitByMonster(id)) _seekerKilled.Add(id); // died from monster damage
+                else if (!_roundTest && _summoned.Count > 0)
+                {
+                    var dead = FindByViewId(id);
+                    if (dead != null && NearSummoned(PlayerPos(dead))) _seekerKilled.Add(id); // killed by the Swarm
+                }
             }
         }
 
@@ -641,7 +646,7 @@ namespace HideAndSeekMonster
             if (dir == null || dir.enemiesSpawned == null) return;
             foreach (var e in dir.enemiesSpawned)
             {
-                if (e == null) continue;
+                if (e == null || IsSummoned(e)) continue; // our Swarm minions stay
                 try
                 {
                     if (Compat.Get(e, "Spawned", false)) Compat.Call(e, "Despawn");

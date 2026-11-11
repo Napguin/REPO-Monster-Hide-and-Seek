@@ -22,6 +22,7 @@ namespace HideAndSeekMonster
             public List<Sound> RoarSounds = new List<Sound>();
             public List<Sound> AttackSounds = new List<Sound>();
             public bool HasLaser;
+            public EnemySetup Setup; // to spawn the real enemy (Swarm)
             public AbilityType Ability => Abilities.For(this);
         }
 
@@ -84,7 +85,7 @@ namespace HideAndSeekMonster
                     if (Excluded.Any(x => name.ToLowerInvariant().Contains(x))) continue;
                     if (_entries.Any(e => e.Name == name)) continue;
 
-                    var entry = new Entry { Name = name, Prefab = prefab };
+                    var entry = new Entry { Name = name, Prefab = prefab, Setup = setup };
                     try { entry.HasLaser = prefab.GetComponentInChildren<SemiLaser>(true) != null; } catch { /* type changed */ }
                     CollectSounds(prefab, entry);
                     _entries.Add(entry);

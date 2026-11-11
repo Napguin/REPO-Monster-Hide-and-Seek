@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,10 +41,114 @@ namespace HideAndSeekMonster
         private bool MonsterIsBanger => (_monsterName ?? "").ToLowerInvariant().Contains("bang");
 
         /// <summary>Called on every client when the seeker uses Swarm (same order everywhere → same ids).</summary>
+        // ---- real game enemies (Gnome / Banger) ----
+        private static readonly HashSet<EnemyParent> _summoned = new HashSet<EnemyParent>();
+        internal static bool IsSummoned(EnemyParent p) => p != null && _summoned.Contains(p);
+        private readonly List<Vector3> _summonedLastPos = new List<Vector3>();
+
+        /// <summary>Gnome / Banger use the game's own enemy as minions (own vision + pathfinding).</summary>
+        private MonsterCatalog.Entry RealSwarmEntry()
+        {
+            var e = MonsterCatalog.Find(_monsterName);
+            if (e == null || e.Setup == null || LevelGenerator.Instance == null) return null;
+            string n = e.Name.ToLowerInvariant();
+            return n.Contains("gnome") || n.Contains("bang") ? e : null;
+        }
+
+        private IEnumerator HostSpawnRealSwarm(MonsterCatalog.Entry entry, Vector3 center, Vector3 fwd)
+        {
+            var dir = EnemyDirector.instance;
+            var before = new HashSet<EnemyParent>(Object.FindObjectsOfType<EnemyParent>());
+            if (dir != null && dir.enemiesSpawned != null) before.UnionWith(dir.enemiesSpawned.Where(x => x != null));
+            var directorsBefore = new HashSet<MonoBehaviour>(Object.FindObjectsOfType<MonoBehaviour>().Where(IsGroupDirector));
+
+            var fresh = new List<EnemyParent>();
+            for (int tries = 0; tries < 3 && fresh.Count < MinionCount; tries++)
+            {
+                try { LevelGenerator.Instance.EnemySpawn(entry.Setup, center); }
+                catch (System.Exception ex) { Plugin.Log.LogWarning("[Swarm] EnemySpawn failed: " + ex.Message); yield break; }
+                yield return new WaitForSeconds(0.3f);
+                var now = new HashSet<EnemyParent>(Object.FindObjectsOfType<EnemyParent>());
+                if (dir != null && dir.enemiesSpawned != null) now.UnionWith(dir.enemiesSpawned.Where(x => x != null));
+                fresh = now.Where(p => !before.Contains(p) && !_summoned.Contains(p)).ToList();
+            }
+            if (fresh.Count == 0) { Plugin.Log.LogWarning("[Swarm] no enemies appeared"); yield break; }
+
+            // the group's director (moves the whole group): put it on the monster
+            foreach (var d in Object.FindObjectsOfType<MonoBehaviour>().Where(IsGroupDirector).Where(d => !directorsBefore.Contains(d)))
+                Compat.Call(d, "SetPosition", center);
+
+            yield return new WaitForSeconds(0.3f);
+            for (int i = 0; i < fresh.Count; i++)
+            {
+                var p = fresh[i];
+                if (p == null) continue;
+                if (i >= MinionCount) { DestroyEnemy(p); continue; } // the game spawns groups – keep 5
+                Vector3 pos = center + Quaternion.Euler(0, -60f + i * 30f, 0) * fwd * 1.5f;
+                if (NavMesh.SamplePosition(pos, out var hit, 2f, NavMesh.AllAreas)) pos = hit.position;
+                _summoned.Add(p);
+                Compat.Set(p, "firstSpawnPointUsed", true);
+                Compat.Call(Compat.Get<Enemy>(p, "Enemy"), "EnemyTeleported", pos);
+                Compat.Call(p, "SpawnedTimerSet", MinionLife + 10f);
+                if (!Compat.Get(p, "Spawned", false)) Compat.Call(p, "Spawn");
+            }
+            Plugin.Log.LogInfo($"[Swarm] {Mathf.Min(fresh.Count, MinionCount)} real '{entry.Name}' spawned");
+            StartCoroutine(HostSwarmLifetime(fresh.Take(MinionCount).ToList()));
+        }
+
+        private static bool IsGroupDirector(MonoBehaviour m) =>
+            m != null && (m.GetType().Name == "EnemyGnomeDirector" || m.GetType().Name == "EnemyBangDirector");
+
+        private IEnumerator HostSwarmLifetime(List<EnemyParent> list)
+        {
+            float end = Time.time + MinionLife;
+            while (Time.time < end && RoundActive) yield return new WaitForSeconds(0.5f);
+            foreach (var p in list) KillSummoned(p);
+        }
+
+        private static void KillSummoned(EnemyParent p)
+        {
+            if (p == null) return;
+            _summoned.Remove(p);
+            var health = p.GetComponentInChildren<EnemyHealth>(true);
+            if (health == null || !Compat.Call(health, "Death", Vector3.up)) Compat.Call(p, "Despawn");
+        }
+
+        private static void DestroyEnemy(EnemyParent p)
+        {
+            if (p == null) return;
+            if (SemiFunc.IsMultiplayer() && Photon.Pun.PhotonNetwork.IsMasterClient)
+            {
+                var pv = p.GetComponentInParent<Photon.Pun.PhotonView>();
+                if (pv != null) { Photon.Pun.PhotonNetwork.Destroy(pv.gameObject); return; }
+            }
+            Object.Destroy(p.transform.root.gameObject);
+        }
+
+        /// <summary>Host: a hider died close to one of our real minions → counts for the monster.</summary>
+        private bool NearSummoned(Vector3 pos)
+        {
+            foreach (var p in _summoned)
+            {
+                if (p == null) continue;
+                var e = Compat.Get<Enemy>(p, "Enemy");
+                Vector3 ep = e != null ? e.transform.position : p.transform.position;
+                if (Vector3.Distance(ep, pos) < 6f) return true;
+            }
+            return false;
+        }
+
         private void OnSwarm(Vector3 origin)
         {
             Vector3 c = Seeker != null ? PlayerPos(Seeker) : origin;
             Vector3 fwd = MonsterForward();
+            var real = RealSwarmEntry();
+            if (real != null)
+            {
+                if (_monster != null) _monster.PlayRoar();
+                if (IsHost) StartCoroutine(HostSpawnRealSwarm(real, c, fwd));
+                return;
+            }
             bool banger = MonsterIsBanger;
             for (int i = 0; i < MinionCount; i++)
             {
@@ -249,6 +354,8 @@ namespace HideAndSeekMonster
 
         private void ClearMinions()
         {
+            if (IsHost) foreach (var p in _summoned.ToList()) KillSummoned(p);
+            _summoned.Clear();
             foreach (var m in _minions) if (m.Go != null) Object.Destroy(m.Go);
             _minions.Clear();
         }

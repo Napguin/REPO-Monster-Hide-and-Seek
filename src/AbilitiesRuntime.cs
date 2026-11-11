@@ -265,7 +265,7 @@ namespace HideAndSeekMonster
                     {
                         _dashType = ability;
                         _dashStart = Time.time + Abilities.DashWindup;
-                        _dashEnd = _dashStart + Abilities.DashTime;
+                        _dashEnd = _dashStart + Abilities.DashTime(_dashType);
                         _dashHit.Clear();
                         // Charge: flat. Lunge: exactly where the camera looks.
                         Vector3 d = dir;
@@ -918,7 +918,7 @@ namespace HideAndSeekMonster
             var slots = new List<(string key, string name, float readyAt, float total, Color color)>
             {
                 (BindName(_attackAction), L.Attack, AttackBlocked ? Mathf.Max(_attackReadyAt, AttackBlockedUntil) : _attackReadyAt,
-                    AttackBlocked ? (Charging ? Abilities.Duration(_chargeType) : Grabbing ? Abilities.Duration(_grabType) : Abilities.DashWindup + Abilities.DashTime) : Plugin.AttackCooldown.Value, new Color(1f, 0.35f, 0.3f)),
+                    AttackBlocked ? (Charging ? Abilities.Duration(_chargeType) : Grabbing ? Abilities.Duration(_grabType) : Abilities.DashWindup + Abilities.DashTime(_dashType)) : Plugin.AttackCooldown.Value, new Color(1f, 0.35f, 0.3f)),
                 (BindName(_roarAction), L.Roar, _roarReadyAt, Plugin.RoarCooldown.Value, new Color(1f, 0.6f, 0.3f)),
             };
             if (ability != AbilityType.None)

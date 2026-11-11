@@ -106,3 +106,37 @@ namespace HideAndSeekMonster
         }
     }
 }
+
+namespace HideAndSeekMonster
+{
+    /// <summary>Swarm minions (real game enemies) and other enemies don't see or target the monster player.</summary>
+    internal static class SeekerEnemyIgnore
+    {
+        public static bool IsSeeker(PlayerAvatar p)
+        {
+            var mgr = HideAndSeekManager.Instance;
+            return p != null && mgr != null && mgr.RoundActive && mgr.Seeker == p;
+        }
+    }
+
+    [HarmonyLib.HarmonyPatch(typeof(EnemyVision), "VisionTrigger")]
+    internal static class SeekerVisionPatch
+    {
+        private static bool Prefix(PlayerAvatar player) => !SeekerEnemyIgnore.IsSeeker(player);
+    }
+
+    [HarmonyLib.HarmonyPatch]
+    internal static class SeekerGroupTargetPatch
+    {
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            foreach (var t in new[] { typeof(EnemyGnomeDirector), typeof(EnemyBangDirector) })
+            {
+                var m = HarmonyLib.AccessTools.Method(t, "SetTarget", new[] { typeof(PlayerAvatar) });
+                if (m != null) yield return m;
+            }
+        }
+
+        private static bool Prefix(PlayerAvatar _player) => !SeekerEnemyIgnore.IsSeeker(_player);
+    }
+}

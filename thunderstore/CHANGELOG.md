@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.5.11 (beta)
+## 1.5.12 (beta)
+- **Swarm** now spawns the game's real Gnomes / Bangers: they use the game's own vision and pathfinding (no more
+  knowing where everyone is / walking through walls) and ignore the monster. Despawn after 30 s.
+- Charge goes further (~14 m instead of ~8 m). Lunge unchanged.
+- Clown laser: 50 damage per tick (was 25).
 - F8 menu: **map size (level 1–20)** + **Load new map** button. New maps (button or map vote) are generated for that
   level – higher level = bigger map and higher moon phase. "Keep current" leaves the level as it is.
 - F8 menu: **time recommendation by moon phase** (maps get bigger every phase) – moon 0: hide 30 s / hunt 3:00,

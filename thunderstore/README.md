@@ -45,11 +45,11 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 
 | Special | What it does | Monsters |
 |---|---|---|
-| Laser | 3 s beam, 25 damage every 0.5 s, walls block it; the Clown can't move while firing | Clown |
+| Laser | 3 s beam, 50 damage every 0.5 s, walls block it; the Clown can't move while firing | Clown |
 | Shot | one long-range shot, 60 damage to the first hider in the line of fire | Huntsman |
 | Rapid Charge | 1.5x speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Reaper, Animal |
 | Flying Charge | attack form, fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by | Apex Predator |
-| Charge | stops for a moment, then dashes forward very fast over a short distance (horizontal only) – 60 damage on contact | Robe, Headgrab |
+| Charge | stops for a moment, then dashes forward very fast (about 14 m, horizontal only) – 60 damage on contact | Robe, Headgrab |
 | Lunge | like Charge, but in the camera direction – also up/down and in the air – 60 damage on contact | Headman, Chef |
 | Leap attack | big jump forward, 40 damage to anyone hit | Upscream, Snatcher, Tick |
 | Radar Ping | position and distance of every hider within 30 m for 2 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom, Elsa |
@@ -61,7 +61,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Scream | hiders within 10 m are pushed away and slowed for 2.5 s | Bowtie, Bella |
 | Ground slam | wind-up, then 50 damage within 5 m and knock-back | Trudge |
 | Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) | Heart Hugger |
-| Swarm | summons 5 allies (copies of the monster) that hunt hiders on their own for 30 s – Gnomes hit again and again (10 damage), Bangers blow themselves up (35 damage, 3 m) | Gnome, Banger |
+| Swarm | summons 5 real Gnomes / Bangers of the game that hunt hiders on their own for 30 s (they have to spot them first, and they ignore the monster) | Gnome, Banger |
 | Gamble | a random special – any special of any monster (laser, bomb, gas, grabs, …) | Gambit |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.
