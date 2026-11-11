@@ -832,6 +832,14 @@ namespace HideAndSeekMonster
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
                         OnSpecial((AbilityType)(int)data[2], (Vector3)data[3], (Vector3)data[4], data.Length > 5 && data[5] is bool g && g);
                         break;
+                    case MsgMinionState:
+                        if (!SenderIsMaster(sender)) return;
+                        OnMinionState((float[])data[2]);
+                        break;
+                    case MsgMinionDie:
+                        if (!SenderIsMaster(sender)) return;
+                        OnMinionDie((int)data[2], (bool)data[3], (Vector3)data[4]);
+                        break;
                     case MsgDamage:
                         if (!SenderIsMaster(sender)) return;
                         OnDamage((int)data[2], (int)data[3], (int)data[4]);

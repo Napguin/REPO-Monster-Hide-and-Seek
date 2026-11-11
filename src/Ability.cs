@@ -22,7 +22,8 @@ namespace HideAndSeekMonster
         Gamble = 14,     // Gambit: random special
         FlyingGrab = 15, // Oogly: invisible bubble that stuns hiders around it
         ZeroGGrab = 16,  // Mentalist: stun bubble + zero gravity inside
-        NoxiousGas = 17  // Heart Hugger: 5 big lingering gas clouds that tranquilize hiders
+        NoxiousGas = 17, // Heart Hugger: 5 big lingering gas clouds that tranquilize hiders
+        Swarm = 18       // Gnome / Banger: summon 5 allies that hunt hiders on their own
     }
 
     internal static class Abilities
@@ -54,6 +55,8 @@ namespace HideAndSeekMonster
             { "bowtie", AbilityType.Shockwave },
             { "trudge", AbilityType.Slam },
             { "heart hugger", AbilityType.NoxiousGas },
+            { "gnome", AbilityType.Swarm },
+            { "banger", AbilityType.Swarm },
             { "gambit", AbilityType.Gamble },
             { "bella", AbilityType.Shockwave },
         };
@@ -83,6 +86,7 @@ namespace HideAndSeekMonster
                 case AbilityType.FlyingGrab: return 20f;
                 case AbilityType.ZeroGGrab: return 18f;
                 case AbilityType.NoxiousGas: return 25f;
+                case AbilityType.Swarm: return 40f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -170,6 +174,7 @@ namespace HideAndSeekMonster
                 case AbilityType.FlyingGrab: return "#7dff5a";
                 case AbilityType.ZeroGGrab: return "#9a6bff";
                 case AbilityType.NoxiousGas: return "#e070c0";
+                case AbilityType.Swarm: return "#5f6bff";
                 default: return "#a89a9c";
             }
         }

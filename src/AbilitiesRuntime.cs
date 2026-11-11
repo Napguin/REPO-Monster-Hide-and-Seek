@@ -250,6 +250,9 @@ namespace HideAndSeekMonster
                         }
                     });
                     break;
+                case AbilityType.Swarm:
+                    OnSwarm(origin);
+                    break;
                 case AbilityType.NoxiousGas:
                     {
                         Vector3 c = (Seeker != null ? PlayerPos(Seeker) : origin) + Vector3.up * 1.2f;
@@ -397,6 +400,7 @@ namespace HideAndSeekMonster
             RunLater();
             Safe("grab zone", GrabTick);
             Safe("gas", GasTick);
+            Safe("minions", MinionTick);
             if (Seeker != null && GameRefs.IsLocal(Seeker) && Phase == Phase.Hunting && Abilities.FreeFlight(_monsterName)
                 && !(Charging && _chargeType == AbilityType.FlyingCharge))
                 Safe("free flight", FlyTick);
@@ -753,6 +757,7 @@ namespace HideAndSeekMonster
             _lastMonsterHit.Clear();
             _later.Clear();
             _clouds.Clear();
+            ClearMinions();
             foreach (var g in _gas) g.Destroy();
             _gas.Clear();
             _tranqUntil = 0f;

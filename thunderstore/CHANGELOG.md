@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.6 (beta)
+## 1.5.7 (beta)
+- **Gnome and Banger are playable** – special **Swarm**: summons 5 allies that hunt hiders on their own for 30 s.
+  Gnomes hit again and again (10 damage), Bangers blow themselves up (35 damage, 3 m).
 - The monster can't open the map (Tab) during a round – an open map is closed when the round starts.
 - Flying monsters stop below the ceiling, and the third-person camera no longer looks through ceilings/walls
   when you're pressed against them.

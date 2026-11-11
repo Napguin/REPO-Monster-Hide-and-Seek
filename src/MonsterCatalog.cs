@@ -28,7 +28,7 @@ namespace HideAndSeekMonster
         private static List<Entry> _entries;
 
         // Enemies that are too tiny / have no real body to be fun as a player monster.
-        private static readonly string[] Excluded = { "gnome", "banger", "bang", "hidden", "shadow child" };
+        private static readonly string[] Excluded = { "hidden", "shadow child" };
 
         private static readonly string[] RoarWords = { "roar", "scream", "notice", "growl", "chase", "aggro", "yell", "shout", "hiss", "laugh" };
         private static readonly string[] AttackWords = { "attack", "bite", "slash", "hit", "swing", "stab", "kill", "grab", "eat" };

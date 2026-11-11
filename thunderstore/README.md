@@ -59,6 +59,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Scream | hiders within 10 m are pushed away and slowed for 2.5 s | Bowtie, Bella |
 | Ground slam | wind-up, then 50 damage within 5 m and knock-back | Trudge |
 | Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) | Heart Hugger |
+| Swarm | summons 5 allies (copies of the monster) that hunt hiders on their own for 30 s – Gnomes hit again and again (10 damage), Bangers blow themselves up (35 damage, 3 m) | Gnome, Banger |
 | Gamble | a random special – any special of any monster (laser, bomb, gas, grabs, …) | Gambit |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.

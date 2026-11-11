@@ -888,6 +888,28 @@ namespace HideAndSeekMonster
             ApplyVisibility();
         }
 
+        /// <summary>Swarm: an independent copy of the monster's body (keeps its animator).</summary>
+        public GameObject CloneBodyForMinion()
+        {
+            if (_body == null || IsFallback) return null;
+            // wrapper at the feet, the body keeps its grounding offset inside it (like on the monster)
+            var root = new GameObject("HNS_Minion");
+            var go = Instantiate(_body.gameObject, root.transform);
+            go.transform.localPosition = _body.localPosition;
+            go.transform.localRotation = _body.localRotation;
+            go.transform.localScale = _baseScale;
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = false;
+            foreach (var l in go.GetComponentsInChildren<Light>(true)) l.enabled = true;
+            var anim = go.GetComponentInChildren<Animator>();
+            if (anim != null)
+            {
+                anim.applyRootMotion = false;
+                anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                InitAnimator(anim, true);
+            }
+            return root;
+        }
+
         public void Remove() => Destroy(gameObject);
 
         private void OnDestroy()
