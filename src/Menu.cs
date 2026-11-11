@@ -184,6 +184,7 @@ namespace HideAndSeekMonster
             {
                 Plugin.HideTime.Value = MenuSlider(L.HideTime, Plugin.HideTime.Value, 5f, 120f, "s", 0, u);
                 Plugin.RoundTime.Value = MenuSlider(L.RoundTime, Plugin.RoundTime.Value, 30f, 900f, "s", 0, u);
+                DrawTimeRecommendation(u);
                 Plugin.AttackRange.Value = MenuSlider(L.AttackRange, Plugin.AttackRange.Value, 1f, 5f, "m", 1, u);
                 Plugin.SeekerSpeed.Value = MenuSlider(L.SeekerSpeed, Plugin.SeekerSpeed.Value, 0.5f, 2.5f, "x", 2, u);
                 Plugin.MonsterScale.Value = MenuSlider(L.MonsterSize, Plugin.MonsterScale.Value, 0.5f, 2f, "x", 2, u);
@@ -234,6 +235,47 @@ namespace HideAndSeekMonster
             GUILayout.Space(6 * u);
             if (decimals == 0) value = Mathf.Round(value);
             return value;
+        }
+
+        /// <summary>
+        /// Maps get bigger with every moon phase (more rooms), so the hunt / hide time should grow too.
+        /// Moon 0: 3:00 / 30 s, +1 min hunt and +10 s hiding per phase (max 8:00 / 75 s).
+        /// </summary>
+        private static int MoonPhase()
+        {
+            try { return Mathf.Max(0, SemiFunc.MoonLevel()); } catch { return 0; }
+        }
+
+        private static string MoonName(int phase)
+        {
+            try
+            {
+                var n = RunManager.instance != null ? RunManager.instance.MoonGetName(phase) : null;
+                return string.IsNullOrEmpty(n) ? null : n;
+            }
+            catch { return null; }
+        }
+
+        internal static float RecommendedHuntTime(int phase) => Mathf.Min(480f, 180f + 60f * phase);
+        internal static float RecommendedHideTime(int phase) => Mathf.Min(75f, 30f + 10f * phase);
+
+        private void DrawTimeRecommendation(float u)
+        {
+            int phase = MoonPhase();
+            float hunt = RecommendedHuntTime(phase), hide = RecommendedHideTime(phase);
+            string moon = MoonName(phase);
+            bool matches = Mathf.Abs(Plugin.RoundTime.Value - hunt) < 1f && Mathf.Abs(Plugin.HideTime.Value - hide) < 1f;
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"<color=#ffd34d>★</color> <color=#bfb3b5>{L.TimeRecommendation(phase, moon, hide, hunt)}</color>", _mSmall);
+            GUI.enabled = !matches;
+            if (GUILayout.Button(matches ? "✓" : L.Apply, _chBtn, GUILayout.Width(90 * u), GUILayout.Height(28 * u)))
+            {
+                Plugin.RoundTime.Value = hunt;
+                Plugin.HideTime.Value = hide;
+            }
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
+            GUILayout.Space(6 * u);
         }
 
         private bool MenuToggle(string label, bool value, float u)

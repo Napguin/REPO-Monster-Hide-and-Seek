@@ -12,7 +12,7 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 1. Start a run and enter a level.
 2. The **host** presses **F8** to open the Hide & Seek menu.
 3. Pick the **seeker** (a player or Random) and the **monster** (a monster or Random).
-4. Adjust times, attack range, speed and monster size if you like.
+4. Adjust times, attack range, speed and monster size if you like. Under the hunt time the menu recommends hide and hunt times for the current moon phase (maps get bigger every phase) – one click applies them.
 5. Press **Start round**.
 
 ### As the monster

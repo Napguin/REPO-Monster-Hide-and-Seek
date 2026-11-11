@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.9 (beta)
+## 1.5.10 (beta)
+- F8 menu: **time recommendation by moon phase** (maps get bigger every phase) – moon 0: hide 30 s / hunt 3:00,
+  +10 s / +1:00 per phase (max 75 s / 8:00). One click applies it.
 - **After a round** (issue #4): surviving hiders are shown to everyone for 6 s, then every dead player is revived and
   healed and everyone is teleported into the truck. Then a **vote**: volunteer to be the next monster and vote to stay
   on the map or switch to one of 3 other maps. Can be turned off in the F8 menu (`Round / AfterRound`).

@@ -153,6 +153,13 @@ namespace HideAndSeekMonster
             string m = string.IsNullOrEmpty(map) ? (De ? "Map bleibt" : "Same map") : (De ? $"Neue Map: {map}" : $"New map: {map}");
             return s + "  ·  " + m + (De ? "  –  Host startet mit F8" : "  –  host starts with F8");
         }
+        public static string TimeRecommendation(int phase, string moon, float hide, float hunt)
+        {
+            string m = string.IsNullOrEmpty(moon) ? (De ? $"Mondphase {phase}" : $"Moon phase {phase}") : $"{moon} ({phase})";
+            string t = $"{(int)(hunt / 60f)}:{(int)(hunt % 60f):00}";
+            return De ? $"Empfehlung für {m}: Verstecken {hide:0}s, Jagd {t} min" : $"Recommended for {m}: hide {hide:0}s, hunt {t} min";
+        }
+        public static string Apply => De ? "Übernehmen" : "Apply";
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";
