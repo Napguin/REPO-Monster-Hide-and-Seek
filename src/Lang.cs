@@ -159,6 +159,13 @@ namespace HideAndSeekMonster
             string t = $"{(int)(hunt / 60f)}:{(int)(hunt % 60f):00}";
             return De ? $"Empfehlung für {m}: Verstecken {hide:0}s, Jagd {t} min" : $"Recommended for {m}: hide {hide:0}s, hunt {t} min";
         }
+        public static string MapSize => De ? "Map-Größe (Level)" : "Map size (level)";
+        public static string MapSizeKeep(int cur) => De ? $"aktuell lassen (Level {cur})" : $"keep current (level {cur})";
+        public static string MapSizeLevel(int lv) => $"Level {lv}";
+        public static string MapSizeHint(int cur, int moon) => De
+            ? $"Gerade: Level {cur}, Mondphase {moon}. Gilt für die nächste neue Map (Knopf unten oder Map-Abstimmung). Höheres Level = größere Map."
+            : $"Now: level {cur}, moon phase {moon}. Used for the next new map (button below or map vote). Higher level = bigger map.";
+        public static string LoadNewMap(int lv) => De ? $"Neue Map laden (Level {lv})" : $"Load new map (level {lv})";
         public static string Apply => De ? "Übernehmen" : "Apply";
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";

@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.5.10";
+        public const string Version = "1.5.11";
 
         internal static ManualLogSource Log;
 
@@ -50,6 +50,7 @@ namespace HideAndSeekMonster
         internal static ConfigEntry<bool> SeekerChoosesMonster;
         internal static ConfigEntry<int> TestDummyCount;
         internal static ConfigEntry<bool> AfterRound;
+        internal static ConfigEntry<int> MapLevel;
 
         private Harmony _harmony;
 
@@ -117,6 +118,9 @@ namespace HideAndSeekMonster
 
             AfterRound = Config.Bind("Round", "AfterRound", true,
                 "After a round: show surviving hiders, revive + heal everyone, teleport all into the truck, then vote for the next seeker and the map (host setting).");
+            MapLevel = Config.Bind("Round", "MapLevel", 0,
+                new ConfigDescription("Level (map size) used when the host loads a new map from the Hide & Seek menu or the vote. 0 = keep the current level. Bigger level = bigger map (also moon phase).",
+                    new AcceptableValueRange<int>(0, 20)));
             TestMode = Config.Bind("Test", "TestMode", false,
                 "Solo test mode: start a round alone, training dummies act as hiders, debug overlay, F9 = next monster, F10 = spawn dummy, F11 = overlay.");
             TestDummyCount = Config.Bind("Test", "DummyCount", 4,

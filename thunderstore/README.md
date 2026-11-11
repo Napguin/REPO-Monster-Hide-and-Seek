@@ -99,6 +99,7 @@ The round settings of the **host** are used for everyone.
 | Round / HideTime | 30 | Seconds to hide |
 | Round / RoundTime | 300 | Seconds the monster has to hunt |
 | Round / DisableEnemies | true | Despawn normal enemies during a round |
+| Round / MapLevel | 0 | Level (map size) for new maps from the menu / map vote, 0 = keep current |
 | Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
 | Seeker / AttackRange | 2.8 | Reach of the attack in metres |
 | Seeker / AttackCooldown | 1.2 | Seconds between attacks |

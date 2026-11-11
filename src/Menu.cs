@@ -194,6 +194,7 @@ namespace HideAndSeekMonster
                 Plugin.BlindSeekerWhileHiding.Value = MenuToggle(L.Blind, Plugin.BlindSeekerWhileHiding.Value, u);
                 Plugin.MonsterCanGrab.Value = MenuToggle(L.CanGrab, Plugin.MonsterCanGrab.Value, u);
                 Plugin.AfterRound.Value = MenuToggle(L.AfterRoundToggle, Plugin.AfterRound.Value, u);
+                DrawMapSize(u);
                 Plugin.TestMode.Value = MenuToggle(L.TestMode, Plugin.TestMode.Value, u);
                 if (Plugin.TestMode.Value) GUILayout.Label($"<color=#a89a9c>{L.TestModeHint}</color>", _mSmall);
 
@@ -275,6 +276,26 @@ namespace HideAndSeekMonster
             }
             GUI.enabled = true;
             GUILayout.EndHorizontal();
+            GUILayout.Space(6 * u);
+        }
+
+        private void DrawMapSize(float u)
+        {
+            GUILayout.Space(6 * u);
+            int cur = CurrentLevelNumber();
+            int v = Plugin.MapLevel.Value;
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(L.MapSize, _mSmall);
+            GUILayout.FlexibleSpace();
+            GUILayout.Label(v <= 0 ? L.MapSizeKeep(cur) : L.MapSizeLevel(v), _mSmall);
+            GUILayout.EndHorizontal();
+            Plugin.MapLevel.Value = Mathf.RoundToInt(GUILayout.HorizontalSlider(v, 0f, 20f));
+            GUILayout.Label($"<color=#a89a9c>{L.MapSizeHint(cur, MoonPhase())}</color>", _mSmall);
+            if (GUILayout.Button(L.LoadNewMap(Plugin.MapLevel.Value > 0 ? Plugin.MapLevel.Value : cur), _chBtn, GUILayout.Height(34 * u)))
+            {
+                _menuOpen = false;
+                HostLoadMap(null);
+            }
             GUILayout.Space(6 * u);
         }
 

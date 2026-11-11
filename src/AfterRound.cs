@@ -158,12 +158,32 @@ namespace HideAndSeekMonster
             if (win > 0) StartCoroutine(HostChangeMap(_voteMapIds[win]));
         }
 
-        private IEnumerator HostChangeMap(string levelId)
+        /// <summary>Host: load a new map now (random or a given level asset), with the map size from the menu.</summary>
+        internal void HostLoadMap(string levelId)
         {
-            yield return new WaitForSeconds(3f);
+            if (!IsHost || RoundActive) return;
+            StartCoroutine(HostChangeMap(levelId, 0f));
+        }
+
+        private static int CurrentLevelNumber()
+        {
+            try { return RunManager.instance != null ? RunManager.instance.levelsCompleted + 1 : 1; } catch { return 1; }
+        }
+
+        private IEnumerator HostChangeMap(string levelId, float delay = 3f)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
             if (RoundActive) yield break;
             PendingLevel = levelId;
             var rm = RunManager.instance;
+            // Map size: the level generator builds bigger maps for higher levels (levels completed).
+            int want = Plugin.MapLevel.Value;
+            if (rm != null && want > 0)
+            {
+                Compat.Set(rm, "levelsCompleted", want - 1);
+                Compat.Call(rm, "UpdateMoonLevel");
+                Plugin.Log.LogInfo($"[AfterRound] map size set to level {want}");
+            }
             if (rm == null || !Compat.Call(rm, "ChangeLevel", false, false, RunManager.ChangeLevelType.RunLevel))
             {
                 PendingLevel = null;

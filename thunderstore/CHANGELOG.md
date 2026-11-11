@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.10 (beta)
+## 1.5.11 (beta)
+- F8 menu: **map size (level 1–20)** + **Load new map** button. New maps (button or map vote) are generated for that
+  level – higher level = bigger map and higher moon phase. "Keep current" leaves the level as it is.
 - F8 menu: **time recommendation by moon phase** (maps get bigger every phase) – moon 0: hide 30 s / hunt 3:00,
   +10 s / +1:00 per phase (max 75 s / 8:00). One click applies it.
 - **After a round** (issue #4): surviving hiders are shown to everyone for 6 s, then every dead player is revived and
