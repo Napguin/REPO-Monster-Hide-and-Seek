@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.13 (beta)
+## 1.5.14 (beta)
+- Swarm: real Gnomes / Bangers are spawned first and then moved next to the monster (they appeared somewhere in the
+  level before). Extra log lines show where they are.
 - Swarm: the real Gnomes / Bangers now really spawn when "Disable normal enemies" is on.
 - Flying (Oogly, Spewer, Flying Charge) uses your own jump / crouch keys from the game settings to go up / down.
 - **Swarm** now spawns the game's real Gnomes / Bangers: they use the game's own vision and pathfinding (no more

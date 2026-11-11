@@ -82,6 +82,8 @@ namespace HideAndSeekMonster
                 Compat.Call(d, "SetPosition", center);
 
             yield return new WaitForSeconds(0.3f);
+            var kept = new List<EnemyParent>();
+            var spots = new List<Vector3>();
             for (int i = 0; i < fresh.Count; i++)
             {
                 var p = fresh[i];
@@ -90,14 +92,46 @@ namespace HideAndSeekMonster
                 Vector3 pos = center + Quaternion.Euler(0, -60f + i * 30f, 0) * fwd * 1.5f;
                 if (NavMesh.SamplePosition(pos, out var hit, 2f, NavMesh.AllAreas)) pos = hit.position;
                 _summoned.Add(p);
+                kept.Add(p);
+                spots.Add(pos);
                 Compat.Set(p, "firstSpawnPointUsed", true);
-                Compat.Call(Compat.Get<Enemy>(p, "Enemy"), "EnemyTeleported", pos);
-                Compat.Call(p, "SpawnedTimerSet", MinionLife + 10f);
+                Compat.Set(p, "DespawnedTimer", 0f);
+                // spawn first – the game's spawn puts the enemy on a level spawn point ...
                 if (!Compat.Get(p, "Spawned", false)) Compat.Call(p, "Spawn");
+                Compat.Call(p, "SpawnedTimerSet", MinionLife + 10f);
+            }
+            // ... then move them next to the monster (twice, the spawn can take a moment)
+            for (int round = 0; round < 3; round++)
+            {
+                yield return new WaitForSeconds(round == 0 ? 0.4f : 0.6f);
+                foreach (var d in Object.FindObjectsOfType<MonoBehaviour>().Where(IsGroupDirector).Where(d => !directorsBefore.Contains(d)))
+                    Compat.Call(d, "SetPosition", center);
+                for (int i = 0; i < kept.Count; i++)
+                {
+                    var p = kept[i];
+                    if (p == null) continue;
+                    if (!Compat.Get(p, "Spawned", false)) Compat.Call(p, "Spawn");
+                    var e = Compat.Get<Enemy>(p, "Enemy");
+                    if (e != null && Vector3.Distance(e.transform.position, spots[i]) > 2f) Compat.Call(e, "EnemyTeleported", spots[i]);
+                }
             }
             _despawnPauseUntil = 0f;
-            Plugin.Log.LogInfo($"[Swarm] {Mathf.Min(fresh.Count, MinionCount)} real '{entry.Name}' spawned");
-            StartCoroutine(HostSwarmLifetime(fresh.Take(MinionCount).ToList()));
+            Plugin.Log.LogInfo($"[Swarm] {kept.Count} real '{entry.Name}' spawned");
+            LogSwarm(kept, center);
+            StartCoroutine(HostSwarmLifetime(kept));
+        }
+
+        private void LogSwarm(List<EnemyParent> list, Vector3 center)
+        {
+            foreach (var p in list)
+            {
+                if (p == null) { Plugin.Log.LogInfo("[Swarm]  - (destroyed)"); continue; }
+                var e = Compat.Get<Enemy>(p, "Enemy");
+                Vector3 ep = e != null ? e.transform.position : p.transform.position;
+                var enable = p.transform.Find("Enable");
+                Plugin.Log.LogInfo($"[Swarm]  - {p.name}: spawned={Compat.Get(p, "Spawned", false)} enable={(enable != null ? enable.gameObject.activeInHierarchy.ToString() : "?")} " +
+                                   $"dist to monster={Vector3.Distance(ep, center):0.0}m state={(e != null ? Compat.Get<object>(e, "CurrentState")?.ToString() : "?")}");
+            }
         }
 
         private static bool IsGroupDirector(MonoBehaviour m) =>
@@ -126,7 +160,7 @@ namespace HideAndSeekMonster
                 var pv = p.GetComponentInParent<Photon.Pun.PhotonView>();
                 if (pv != null) { Photon.Pun.PhotonNetwork.Destroy(pv.gameObject); return; }
             }
-            Object.Destroy(p.transform.root.gameObject);
+            Object.Destroy(p.gameObject);
         }
 
         /// <summary>Host: a hider died close to one of our real minions → counts for the monster.</summary>
