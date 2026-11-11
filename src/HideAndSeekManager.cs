@@ -866,6 +866,10 @@ namespace HideAndSeekMonster
                         if (!SenderIsMaster(sender)) return;
                         OnVoteResult((string)data[2], (int)data[3]);
                         break;
+                    case MsgItem:
+                        if (!SenderIsMaster(sender)) return;
+                        OnItemState((int)data[2]);
+                        break;
                     case MsgMinionState:
                         if (!SenderIsMaster(sender)) return;
                         OnMinionState((float[])data[2]);

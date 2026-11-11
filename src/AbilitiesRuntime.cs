@@ -137,7 +137,7 @@ namespace HideAndSeekMonster
             var ability = CurrentAbility;
             if (ability == AbilityType.None) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
             if (Time.time < _specialReadyAt) return;
-            _specialReadyAt = Time.time + Cd(Abilities.Cooldown(ability));
+            _specialReadyAt = Time.time + Cd(ability == AbilityType.ItemThrow && !_holdingItem ? 1f : Abilities.Cooldown(ability));
             Plugin.Log.LogInfo($"[Monster] special pressed: {ability}");
 
             bool gambled = false;
@@ -260,6 +260,13 @@ namespace HideAndSeekMonster
                 case AbilityType.Swarm:
                     OnSwarm(origin);
                     break;
+                case AbilityType.ItemThrow:
+                    {
+                        // throw direction: where the monster's camera looked when pressing
+                        if (IsHost) HostItemThrow(dir);
+                        if (_holdingItem && _monster != null) _monster.PlayAttack();
+                        break;
+                    }
                 case AbilityType.Charge:
                 case AbilityType.Lunge:
                     {
@@ -424,6 +431,7 @@ namespace HideAndSeekMonster
             Safe("gas", GasTick);
             Safe("minions", MinionTick);
             Safe("dash", DashTick);
+            Safe("item", ItemTick);
             if (Seeker != null && GameRefs.IsLocal(Seeker) && Phase == Phase.Hunting && Abilities.FreeFlight(_monsterName)
                 && !(Charging && _chargeType == AbilityType.FlyingCharge))
                 Safe("free flight", FlyTick);
@@ -833,6 +841,7 @@ namespace HideAndSeekMonster
             _later.Clear();
             _clouds.Clear();
             ClearMinions();
+            ClearItem();
             foreach (var g in _gas) g.Destroy();
             _gas.Clear();
             _tranqUntil = 0f;

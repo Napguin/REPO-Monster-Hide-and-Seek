@@ -1,0 +1,114 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+namespace HideAndSeekMonster
+{
+    /// <summary>
+    /// Rugrat – Item Throw: first use picks up the nearest valuable, the next use throws it very fast.
+    /// The host moves the item (it owns the map's physics objects), so everybody sees the same thing.
+    /// The flying item hurts hiders depending on speed and weight.
+    /// </summary>
+    public partial class HideAndSeekManager
+    {
+        private const int MsgItem = 20;
+        private const float ItemPickRange = 4f, ItemThrowSpeed = 32f, ItemFlyTime = 2.5f;
+
+        // host
+        private Rigidbody _heldItem, _thrownItem;
+        private float _thrownUntil;
+        private readonly HashSet<int> _itemHit = new HashSet<int>();
+        // all clients
+        private bool _holdingItem;
+
+        private bool LocalSeekerHoldsItem => _holdingItem;
+
+        /// <summary>Host, on every Item Throw press.</summary>
+        private void HostItemThrow(Vector3 dir)
+        {
+            if (!IsHost || Seeker == null) return;
+            if (_heldItem == null)
+            {
+                Vector3 sp = PlayerPos(Seeker) + Vector3.up;
+                Rigidbody best = null;
+                float bestD = ItemPickRange;
+                foreach (var v in Object.FindObjectsOfType<ValuableObject>())
+                {
+                    if (v == null) continue;
+                    var rb = v.GetComponent<Rigidbody>() ?? v.GetComponentInParent<Rigidbody>();
+                    if (rb == null || rb == _thrownItem) continue;
+                    float d = Vector3.Distance(rb.worldCenterOfMass, sp);
+                    if (d < bestD) { bestD = d; best = rb; }
+                }
+                if (best == null) { Send(MsgItem, 0); return; }
+                _heldItem = best;
+                _heldItem.useGravity = false;
+                Plugin.Log.LogInfo($"[Rugrat] picked up '{best.name}' ({best.mass:0.0} kg)");
+                Send(MsgItem, 1);
+                return;
+            }
+
+            // throw
+            var item = _heldItem;
+            _heldItem = null;
+            item.useGravity = true;
+            dir = dir.sqrMagnitude > 0.001f ? dir.normalized : MonsterForward();
+            item.velocity = dir * ItemThrowSpeed;
+            item.angularVelocity = Random.insideUnitSphere * 10f;
+            _thrownItem = item;
+            _thrownUntil = Time.time + ItemFlyTime;
+            _itemHit.Clear();
+            Plugin.Log.LogInfo($"[Rugrat] threw '{item.name}'");
+            Send(MsgItem, 2);
+        }
+
+        private Vector3 HoldPoint()
+        {
+            float h = _monster != null ? Mathf.Clamp(_monster.BodyHeight * 0.8f, 0.6f, 2.5f) : 1.2f;
+            return PlayerPos(Seeker) + Vector3.up * h + MonsterForward() * 1.2f;
+        }
+
+        /// <summary>Per frame: host keeps the held item in front of the monster and checks hits of a thrown one.</summary>
+        private void ItemTick()
+        {
+            if (!IsHost) return;
+            if (_heldItem != null)
+            {
+                if (Seeker == null || Phase != Phase.Hunting) { _heldItem.useGravity = true; _heldItem = null; return; }
+                Vector3 to = HoldPoint() - _heldItem.worldCenterOfMass;
+                if (to.magnitude > 6f) { _heldItem.position += to; to = Vector3.zero; } // got stuck – snap back
+                _heldItem.velocity = to * 12f;
+                _heldItem.angularVelocity *= 0.8f;
+                Compat.Call(_heldItem.GetComponent<PhysGrabObject>(), "OverrideIndestructible", 0.2f);
+            }
+
+            if (_thrownItem == null || Time.time >= _thrownUntil || Phase != Phase.Hunting) { _thrownItem = null; return; }
+            float speed = _thrownItem.velocity.magnitude;
+            if (speed < 5f) return;
+            Vector3 c = _thrownItem.worldCenterOfMass;
+            int dmg = Mathf.Clamp(Mathf.RoundToInt(15f + speed * 1.2f + _thrownItem.mass * 6f), 20, 90);
+            foreach (var h in AliveHiders())
+                if (Vector3.Distance(PlayerPos(h) + Vector3.up * 0.9f, c) < 1.2f && _itemHit.Add(h.photonView.ViewID))
+                    HostDamage(h, dmg, "thrown item");
+            foreach (var d in AliveDummies())
+                if (Vector3.Distance(d.transform.position + Vector3.up * 0.9f, c) < 1.2f && _itemHit.Add(-1000 - d.GetInstanceID()))
+                    HostDamageDummy(d, dmg, c, "thrown item");
+        }
+
+        private void OnItemState(int state)
+        {
+            _holdingItem = state == 1;
+            if (Seeker == null || !GameRefs.IsLocal(Seeker)) return;
+            var col = Abilities.UnityColor(AbilityType.ItemThrow);
+            if (state == 0) Banner(L.ItemNone, col, 1.5f);
+            else if (state == 1) { Banner(L.ItemPicked, col, 1.5f); _specialReadyAt = Time.time + 0.3f; } // throw right away
+        }
+
+        private void ClearItem()
+        {
+            if (_heldItem != null) _heldItem.useGravity = true;
+            _heldItem = _thrownItem = null;
+            _holdingItem = false;
+        }
+    }
+}

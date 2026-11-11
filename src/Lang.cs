@@ -76,6 +76,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Swarm: return De ? "Schwarm" : "Swarm";
                 case AbilityType.Charge: return "Charge";
                 case AbilityType.Lunge: return "Lunge";
+                case AbilityType.ItemThrow: return De ? "Gegenstand werfen" : "Item Throw";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
@@ -103,6 +104,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Pull: return De ? "Herzgas: Hider in 12 m werden 3 s lang zum Monster gezogen." : "Heart gas: hiders within 12 m are pulled towards the monster for 3 s.";
                 case AbilityType.Gamble: return De ? "Dreht am Rad: eine zufällige Spezialfähigkeit." : "Spins the wheel: a random special ability.";
                 case AbilityType.Charge: return De ? "Kurz stehen bleiben, dann blitzschnell ein Stück geradeaus nach vorn (nur waagerecht). 60 Schaden bei Kontakt." : "Stops for a moment, then dashes forward very fast over a short distance (horizontal only). 60 damage on contact.";
+                case AbilityType.ItemThrow: return De ? "Schnappt sich ein Wertobjekt in der Nähe (4 m). Nochmal drücken: mit voller Wucht werfen – Schaden je nach Tempo und Gewicht." : "Grabs a nearby valuable (4 m). Use again to throw it really fast – damage depends on speed and weight.";
                 case AbilityType.Lunge: return De ? "Wie Charge, aber in Blickrichtung – auch nach oben/unten und in der Luft. 60 Schaden bei Kontakt." : "Like Charge, but in the camera direction – also up/down and in the air. 60 damage on contact.";
                 case AbilityType.Swarm: return De ? "Ruft 5 echte Gnome/Banger des Spiels, die 30 s lang selbst nach Hidern suchen – sie müssen sie erst sehen. Dich greifen sie nicht an." : "Summons 5 real Gnomes/Bangers of the game that hunt hiders on their own for 30 s – they have to spot them first. They ignore you.";
                 case AbilityType.NoxiousGas: return De ? "Stößt 5 große Gaswolken aus, die 10 s liegen bleiben. Hider im Gas werden betäubt: sehr langsam, träge Kamera." : "Spews 5 large gas clouds that linger for 10 s. Hiders in the gas are tranquilized: very slow, sluggish camera.";
@@ -167,6 +169,8 @@ namespace HideAndSeekMonster
             : $"Now: level {cur}, moon phase {moon}. Used for the next new map (button below or map vote). Higher level = bigger map.";
         public static string LoadNewMap(int lv) => De ? $"Neue Map laden (Level {lv})" : $"Load new map (level {lv})";
         public static string Apply => De ? "Übernehmen" : "Apply";
+        public static string ItemNone => De ? "Kein Wertobjekt in der Nähe!" : "No valuable nearby!";
+        public static string ItemPicked => De ? "Geschnappt! Nochmal drücken zum Werfen." : "Grabbed! Press again to throw.";
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";

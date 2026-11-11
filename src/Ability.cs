@@ -25,7 +25,8 @@ namespace HideAndSeekMonster
         NoxiousGas = 17, // Heart Hugger: 5 big lingering gas clouds that tranquilize hiders
         Swarm = 18,      // Gnome / Banger: summon 5 allies that hunt hiders on their own
         Charge = 19,     // Robe / Headgrab: freeze, then dash forward horizontally (60 damage on contact)
-        Lunge = 20       // Headman / Chef: like Charge, but in the camera direction (also up / in the air)
+        Lunge = 20,      // Headman / Chef: like Charge, but in the camera direction (also up / in the air)
+        ItemThrow = 21   // Rugrat: pick up a valuable, use again to throw it very fast
     }
 
     internal static class Abilities
@@ -50,7 +51,7 @@ namespace HideAndSeekMonster
             { "loom", AbilityType.Reveal },
             { "oogly", AbilityType.FlyingGrab },
             { "elsa", AbilityType.Reveal },
-            { "rugrat", AbilityType.Throw },
+            { "rugrat", AbilityType.ItemThrow },
             { "cleanup crew", AbilityType.Bomb },
             { "spewer", AbilityType.Puke },
             { "birthday boy", AbilityType.Throw },
@@ -91,6 +92,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Swarm: return 40f;
                 case AbilityType.Charge: return 10f;
                 case AbilityType.Lunge: return 10f;
+                case AbilityType.ItemThrow: return 6f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -135,7 +137,7 @@ namespace HideAndSeekMonster
         /// <summary>Abilities Gambit can roll: every special in the mod (new ones are included automatically).</summary>
         public static readonly AbilityType[] GambleTable =
             ((AbilityType[])System.Enum.GetValues(typeof(AbilityType)))
-            .Where(a => a != AbilityType.None && a != AbilityType.Gamble).ToArray();
+            .Where(a => a != AbilityType.None && a != AbilityType.Gamble && a != AbilityType.ItemThrow).ToArray(); // item throw needs two presses
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
         public const int DashDamage = 60;
@@ -186,6 +188,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Swarm: return "#5f6bff";
                 case AbilityType.Charge: return "#9dff5a";
                 case AbilityType.Lunge: return "#ffee44";
+                case AbilityType.ItemThrow: return "#e0a030";
                 default: return "#a89a9c";
             }
         }

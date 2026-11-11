@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.14 (beta)
+## 1.5.15 (beta)
+- **Rugrat: Item Throw** – grab a nearby valuable, use again to throw it really fast (real physics; 20–90 damage
+  to hiders depending on speed and weight).
 - Swarm: real Gnomes / Bangers are spawned first and then moved next to the monster (they appeared somewhere in the
   level before). Extra log lines show where they are.
 - Swarm: the real Gnomes / Bangers now really spawn when "Disable normal enemies" is on.
