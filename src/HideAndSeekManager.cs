@@ -150,10 +150,13 @@ namespace HideAndSeekMonster
         {
             var kb = Keyboard.current;
             if (kb != null && kb[Plugin.MenuKey.Value].wasPressedThisFrame)
+            {
                 _menuOpen = !_menuOpen;
+                if (_menuOpen && IsHost) ResolveNextSeeker();
+            }
 
             bool choiceVisible = _choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker);
-            if (_menuOpen || choiceVisible)
+            if (_menuOpen || choiceVisible || VoteVisible)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
@@ -833,6 +836,29 @@ namespace HideAndSeekMonster
                         if (!SenderIsSeeker(sender) || Phase != Phase.Hunting) return;
                         OnSpecial((AbilityType)(int)data[2], (Vector3)data[3], (Vector3)data[4], data.Length > 5 && data[5] is bool g && g);
                         break;
+                    case MsgReveal:
+                        if (!SenderIsMaster(sender)) return;
+                        OnReveal((int[])data[2], (float)data[3]);
+                        break;
+                    case MsgRegroup:
+                        if (!SenderIsMaster(sender)) return;
+                        OnRegroup((Vector3)data[2]);
+                        break;
+                    case MsgVoteStart:
+                        if (!SenderIsMaster(sender)) return;
+                        OnVoteStart((string[])data[2], (float)data[3]);
+                        break;
+                    case MsgVote:
+                        if (IsHost) HostOnVote(sender, (int)data[2], (int)data[3]);
+                        break;
+                    case MsgVoteState:
+                        if (!SenderIsMaster(sender)) return;
+                        OnVoteState((string[])data[2], (int[])data[3], (float)data[4]);
+                        break;
+                    case MsgVoteResult:
+                        if (!SenderIsMaster(sender)) return;
+                        OnVoteResult((string)data[2], (int)data[3]);
+                        break;
                     case MsgMinionState:
                         if (!SenderIsMaster(sender)) return;
                         OnMinionState((float[])data[2]);
@@ -946,6 +972,9 @@ namespace HideAndSeekMonster
             bool invincible, bool blind, float scale, int[] hiders, string monster, float attackRange, bool seekerChooses)
         {
             if (RoundActive) EndRoundLocal(Winner.Aborted, false);
+            _voteOpen = false;
+            _revealIds = new int[0];
+            if (_afterRound != null) { StopCoroutine(_afterRound); _afterRound = null; }
 
             var seeker = FindByViewId(seekerId);
             if (seeker == null)
@@ -1023,6 +1052,11 @@ namespace HideAndSeekMonster
         {
             if (!RoundActive) return;
             string seekerName = NameOf(Seeker);
+            if (IsHost && showBanner && winner != Winner.Aborted && !_roundTest && Plugin.AfterRound.Value)
+            {
+                var survivors = AliveHiders().Select(h => h.photonView.ViewID).ToList();
+                HostBeginAfterRound(survivors);
+            }
 
             _laserEndTime = -1f;
             ClearAbilities();
@@ -1140,6 +1174,12 @@ namespace HideAndSeekMonster
             }
 
             if (Time.time < _resultsUntil && _sbNames.Length > 0) DrawResults(sw, sh, u);
+            try { DrawRevealSurvivors(u); } catch (System.Exception ex) { _lastError = "reveal: " + ex.Message; }
+            if (!_menuOpen)
+            {
+                try { DrawVote(sw, sh, u); }
+                catch (System.Exception ex) { if (ex is ExitGUIException) throw; _lastError = "vote: " + ex.Message; }
+            }
 
             if (_choiceOpen && RoundActive && Phase == Phase.Hiding && localIsSeeker)
             {

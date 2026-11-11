@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.5.8 (beta)
+## 1.5.9 (beta)
+- **After a round** (issue #4): surviving hiders are shown to everyone for 6 s, then every dead player is revived and
+  healed and everyone is teleported into the truck. Then a **vote**: volunteer to be the next monster and vote to stay
+  on the map or switch to one of 3 other maps. Can be turned off in the F8 menu (`Round / AfterRound`).
 - **Charge** (Robe, Headgrab): short wind-up, then a fast horizontal dash – 60 damage on contact.
 - **Lunge** (Headman, Chef): the same, but in the camera direction (also up/down and in the air).
 - **Gnome and Banger are playable** – special **Swarm**: summons 5 allies that hunt hiders on their own for 30 s.

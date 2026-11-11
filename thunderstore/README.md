@@ -82,6 +82,12 @@ Points add up over all rounds. They are shown after each round and in the F8 men
 
 Normal enemies are despawned while a round is running (can be turned off).
 
+### After the round
+Surviving hiders are shown to everyone for a few seconds. Then all dead players are revived and healed and everyone
+is teleported back into the truck. A vote follows: volunteer to be the next monster (a random volunteer gets it)
+and vote whether to stay on this map or switch to one of three other maps. The host then starts the next round with F8.
+Can be turned off in the F8 menu.
+
 ## Configuration
 `BepInEx/config/HideAndSeekMonster.cfg` (created after the first start).
 The round settings of the **host** are used for everyone.
@@ -93,6 +99,7 @@ The round settings of the **host** are used for everyone.
 | Round / HideTime | 30 | Seconds to hide |
 | Round / RoundTime | 300 | Seconds the monster has to hunt |
 | Round / DisableEnemies | true | Despawn normal enemies during a round |
+| Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
 | Seeker / AttackRange | 2.8 | Reach of the attack in metres |
 | Seeker / AttackCooldown | 1.2 | Seconds between attacks |
 | Seeker / AttackDamage | 40 | Damage of the main attack |

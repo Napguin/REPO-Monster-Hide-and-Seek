@@ -138,6 +138,21 @@ namespace HideAndSeekMonster
         public static string Gambled(string ability) => De ? $"GLÜCKSSPIEL: {ability}!" : $"GAMBLE: {ability}!";
         public static string GrabCaught(string ability, int n) => De ? $"{ability}: {n} Hider in der Blase" : $"{ability}: {n} hider(s) in the bubble";
         public static string Tranquilized => De ? "Betäubt vom Gas..." : "Tranquilized by the gas...";
+        public static string RevealSurvivors(int n) => De ? $"Hier haben sich {n} Hider versteckt!" : $"This is where {n} hider(s) were hiding!";
+        public static string Regrouped => De ? "Alle zurück im Truck – gleich wird abgestimmt." : "Everyone back in the truck – voting starts in a moment.";
+        public static string VoteTitle => De ? "Nächste Runde" : "Next round";
+        public static string VoteWantSeeker => De ? "Ich will das Monster sein" : "I want to be the monster";
+        public static string VoteNoVolunteers => De ? "Noch keine Freiwilligen – sonst entscheidet der Zufall." : "No volunteers yet – otherwise it's random.";
+        public static string VoteMap => De ? "Map" : "Map";
+        public static string VoteStay => De ? "Auf dieser Map bleiben" : "Stay on this map";
+        public static string VoteFinish => De ? "Abstimmung beenden" : "Finish vote";
+        public static string AfterRoundToggle => De ? "Nach der Runde: wiederbeleben, Truck, Abstimmung" : "After round: revive, truck, vote";
+        public static string VoteResult(string seeker, string map)
+        {
+            string s = string.IsNullOrEmpty(seeker) ? (De ? "Monster: Zufall" : "Monster: random") : (De ? $"Nächstes Monster: {seeker}" : $"Next monster: {seeker}");
+            string m = string.IsNullOrEmpty(map) ? (De ? "Map bleibt" : "Same map") : (De ? $"Neue Map: {map}" : $"New map: {map}");
+            return s + "  ·  " + m + (De ? "  –  Host startet mit F8" : "  –  host starts with F8");
+        }
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";

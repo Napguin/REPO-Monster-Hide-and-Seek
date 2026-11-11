@@ -192,6 +192,7 @@ namespace HideAndSeekMonster
                 Plugin.DisableEnemies.Value = MenuToggle(L.DisableEnemies, Plugin.DisableEnemies.Value, u);
                 Plugin.BlindSeekerWhileHiding.Value = MenuToggle(L.Blind, Plugin.BlindSeekerWhileHiding.Value, u);
                 Plugin.MonsterCanGrab.Value = MenuToggle(L.CanGrab, Plugin.MonsterCanGrab.Value, u);
+                Plugin.AfterRound.Value = MenuToggle(L.AfterRoundToggle, Plugin.AfterRound.Value, u);
                 Plugin.TestMode.Value = MenuToggle(L.TestMode, Plugin.TestMode.Value, u);
                 if (Plugin.TestMode.Value) GUILayout.Label($"<color=#a89a9c>{L.TestModeHint}</color>", _mSmall);
 
