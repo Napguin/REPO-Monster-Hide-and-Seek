@@ -48,7 +48,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Laser | 3 s beam, 50 damage every 0.5 s, walls block it; the Clown can't move while firing | Clown |
 | Shot | one long-range shot, 60 damage to the first hider in the line of fire | Huntsman |
 | Rapid Charge | 1.5x speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Reaper, Animal |
-| Flying Charge | attack form, fly for 6 s (space up, ctrl down), 10 damage every 0.5 s to hiders close by | Apex Predator |
+| Flying Charge | attack form, fly for 6 s (jump = up, crouch = down), 10 damage every 0.5 s to hiders close by | Apex Predator |
 | Charge | stops for a moment, then dashes forward very fast (about 14 m, horizontal only) – 60 damage on contact | Robe, Headgrab |
 | Lunge | like Charge, but in the camera direction – also up/down and in the air – 60 damage on contact | Headman, Chef |
 | Leap attack | big jump forward, 40 damage to anyone hit | Upscream, Snatcher, Tick |

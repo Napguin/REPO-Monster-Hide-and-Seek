@@ -411,7 +411,7 @@ namespace HideAndSeekMonster
                 }
             }
 
-            // local seeker: flying during Flying Charge (space = up, ctrl = down)
+            // local seeker: flying during Flying Charge (jump = up, crouch = down)
             if (Charging && _chargeType == AbilityType.FlyingCharge && Seeker != null && GameRefs.IsLocal(Seeker))
                 Safe("fly", FlyTick);
 
@@ -756,15 +756,26 @@ namespace HideAndSeekMonster
             }
         }
 
+        private static bool GameKey(InputKey key)
+        {
+            try { return SemiFunc.InputHold(key); }
+            catch
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb == null) return false;
+                return key == InputKey.Jump ? kb.spaceKey.isPressed : key == InputKey.Crouch && kb.leftCtrlKey.isPressed;
+            }
+        }
+
         private void FlyTick()
         {
             var pc = PlayerController.instance;
             if (pc == null) return;
             Compat.Call(pc, "AntiGravity", 0.25f);
-            var kb = UnityEngine.InputSystem.Keyboard.current;
+            // The player's own jump / crouch keys from the game settings (rebinding works).
             float up = 0f;
-            if (kb != null && kb.spaceKey.isPressed) up += 1f;
-            if (kb != null && (kb.leftCtrlKey.isPressed || kb.cKey.isPressed)) up -= 1f;
+            if (GameKey(InputKey.Jump)) up += 1f;
+            if (GameKey(InputKey.Crouch)) up -= 1f;
             // Don't fly into the ceiling (the camera would end up inside it).
             var head = GameRefs.MainCamera != null ? GameRefs.MainCamera.transform.position : pc.transform.position + Vector3.up * 1.6f;
             if (up > 0f && Physics.SphereCast(head, 0.3f, Vector3.up, out var ceil, 1.2f, ~0, QueryTriggerInteraction.Ignore)

@@ -103,6 +103,7 @@ namespace HideAndSeekMonster
         // ---- host only ----
         private readonly Dictionary<int, float> _killCooldown = new Dictionary<int, float>();
         private float _enemyTick;
+        private float _despawnPauseUntil;
 
         // ---- UI ----
         private bool _menuOpen;
@@ -364,6 +365,7 @@ namespace HideAndSeekMonster
             if (Plugin.DisableEnemies.Value)
             {
                 _enemyTick -= Time.deltaTime;
+                if (Time.time < _despawnPauseUntil) _enemyTick = Mathf.Max(_enemyTick, 0.2f); // Swarm is spawning
                 if (_enemyTick <= 0f)
                 {
                     _enemyTick = 1f;

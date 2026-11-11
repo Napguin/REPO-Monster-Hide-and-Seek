@@ -57,6 +57,8 @@ namespace HideAndSeekMonster
 
         private IEnumerator HostSpawnRealSwarm(MonsterCatalog.Entry entry, Vector3 center, Vector3 fwd)
         {
+            // "Disable normal enemies" would despawn the new ones before we know they are ours
+            _despawnPauseUntil = Time.time + 4f;
             var dir = EnemyDirector.instance;
             var before = new HashSet<EnemyParent>(Object.FindObjectsOfType<EnemyParent>());
             if (dir != null && dir.enemiesSpawned != null) before.UnionWith(dir.enemiesSpawned.Where(x => x != null));
@@ -70,9 +72,10 @@ namespace HideAndSeekMonster
                 yield return new WaitForSeconds(0.3f);
                 var now = new HashSet<EnemyParent>(Object.FindObjectsOfType<EnemyParent>());
                 if (dir != null && dir.enemiesSpawned != null) now.UnionWith(dir.enemiesSpawned.Where(x => x != null));
-                fresh = now.Where(p => !before.Contains(p) && !_summoned.Contains(p)).ToList();
+                fresh = now.Where(p => !before.Contains(p)).ToList();
+                foreach (var p in fresh.Take(MinionCount)) _summoned.Add(p);
             }
-            if (fresh.Count == 0) { Plugin.Log.LogWarning("[Swarm] no enemies appeared"); yield break; }
+            if (fresh.Count == 0) { _despawnPauseUntil = 0f; Plugin.Log.LogWarning("[Swarm] no enemies appeared"); yield break; }
 
             // the group's director (moves the whole group): put it on the monster
             foreach (var d in Object.FindObjectsOfType<MonoBehaviour>().Where(IsGroupDirector).Where(d => !directorsBefore.Contains(d)))
@@ -83,7 +86,7 @@ namespace HideAndSeekMonster
             {
                 var p = fresh[i];
                 if (p == null) continue;
-                if (i >= MinionCount) { DestroyEnemy(p); continue; } // the game spawns groups – keep 5
+                if (i >= MinionCount) { _summoned.Remove(p); DestroyEnemy(p); continue; } // the game spawns groups – keep 5
                 Vector3 pos = center + Quaternion.Euler(0, -60f + i * 30f, 0) * fwd * 1.5f;
                 if (NavMesh.SamplePosition(pos, out var hit, 2f, NavMesh.AllAreas)) pos = hit.position;
                 _summoned.Add(p);
@@ -92,6 +95,7 @@ namespace HideAndSeekMonster
                 Compat.Call(p, "SpawnedTimerSet", MinionLife + 10f);
                 if (!Compat.Get(p, "Spawned", false)) Compat.Call(p, "Spawn");
             }
+            _despawnPauseUntil = 0f;
             Plugin.Log.LogInfo($"[Swarm] {Mathf.Min(fresh.Count, MinionCount)} real '{entry.Name}' spawned");
             StartCoroutine(HostSwarmLifetime(fresh.Take(MinionCount).ToList()));
         }

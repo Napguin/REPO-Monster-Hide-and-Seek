@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5.12 (beta)
+## 1.5.13 (beta)
+- Swarm: the real Gnomes / Bangers now really spawn when "Disable normal enemies" is on.
+- Flying (Oogly, Spewer, Flying Charge) uses your own jump / crouch keys from the game settings to go up / down.
 - **Swarm** now spawns the game's real Gnomes / Bangers: they use the game's own vision and pathfinding (no more
   knowing where everyone is / walking through walls) and ignore the monster. Despawn after 30 s.
 - Charge goes further (~14 m instead of ~8 m). Lunge unchanged.

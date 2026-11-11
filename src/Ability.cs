@@ -149,7 +149,7 @@ namespace HideAndSeekMonster
         public static bool IsGrab(AbilityType a) => a == AbilityType.FlyingGrab || a == AbilityType.ZeroGGrab;
         public static float GrabRadius(AbilityType a) => a == AbilityType.ZeroGGrab ? 6f : 4f;
 
-        /// <summary>Monsters that can always fly (space = up, ctrl = down).</summary>
+        /// <summary>Monsters that can always fly (jump = up, crouch = down).</summary>
         public static bool FreeFlight(string monster)
         {
             var n = (monster ?? "").ToLowerInvariant();
