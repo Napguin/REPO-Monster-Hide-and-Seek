@@ -60,7 +60,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Head bomb | throws its head – it bounces off walls and explodes after 4 s: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | Cleanup Crew |
 | Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | Spewer |
 | Tornado | a small tornado wanders forward for 7 s, sucks in items and valuables and whirls them around, then flings everything away – flying items hurt hiders (20–90 damage). Hiders nearby are pulled in a little | Bowtie |
-| Launch | the closest hider within 4.5 m tumbles and gets launched in the camera direction (25 damage) | Upscream |
+| Launch | the closest hider within 6 m tumbles and gets launched in the camera direction (25 damage) | Upscream |
 | Impulse | hiders within 9 m tumble and get sucked towards the monster, then a shockwave blasts them away (40 damage) | Trudge |
 | Scream / Ground slam | hiders within 10 m are pushed away and slowed / wind-up, 50 damage within 5 m | Gambit only |
 | Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) | Heart Hugger |

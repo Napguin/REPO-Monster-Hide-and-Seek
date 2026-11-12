@@ -155,7 +155,7 @@ namespace HideAndSeekMonster
 
         public const float TornadoSpeed = 2.2f, TornadoCatchRange = 5f, TornadoPullRange = 6f, TornadoFlingSpeed = 18f;
         public const int TornadoMaxItems = 10;
-        public const float LaunchRange = 4.5f, LaunchSpeed = 22f;
+        public const float LaunchRange = 6f, LaunchSpeed = 22f;
         public const int LaunchDamage = 25;
         public const float ImpulseRange = 9f, ImpulseBlastSpeed = 15f;
         public const int ImpulseDamage = 40;

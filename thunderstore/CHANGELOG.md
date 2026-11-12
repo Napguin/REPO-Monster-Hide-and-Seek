@@ -1,10 +1,14 @@
 # Changelog
 
+## 1.5.17 (beta)
+- Upscream Launch fixed: the hider now really flies – the push waits until the ragdoll has started and is applied
+  over a few frames (before, the ragdoll starting a moment later swallowed it). Range 6 m (was 4.5 m).
+
 ## 1.5.16 (beta)
 - **Bowtie: Tornado** – a small tornado wanders forward for 7 s, sucks in items and valuables (up to 10) and whirls
   them around, then flings everything away. Flung items hurt hiders like Item Throw. Hiders nearby are pulled in a
   little and slowed, but not trapped.
-- **Upscream: Launch** – the closest hider within 4.5 m tumbles and is launched where the monster looks (25 damage).
+- **Upscream: Launch** – the closest hider within 6 m tumbles and is launched where the monster looks (25 damage).
 - **Trudge: Impulse** – hiders within 9 m tumble and are sucked towards the Trudge for 1.2 s, then a shockwave blasts
   them away (40 damage).
 - **Elsa (dog) and Bella (tricycle)** now have Rapid Charge.

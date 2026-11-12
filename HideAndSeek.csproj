@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>HideAndSeekMonster</AssemblyName>
     <RootNamespace>HideAndSeekMonster</RootNamespace>
-    <Version>1.5.16</Version>
+    <Version>1.5.17</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <!-- REQUIRED: the game DLLs are publicized (private members made public). Mono only skips its access
