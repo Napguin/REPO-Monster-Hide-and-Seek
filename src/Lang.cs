@@ -77,6 +77,9 @@ namespace HideAndSeekMonster
                 case AbilityType.Charge: return "Charge";
                 case AbilityType.Lunge: return "Lunge";
                 case AbilityType.ItemThrow: return De ? "Gegenstand werfen" : "Item Throw";
+                case AbilityType.Tornado: return "Tornado";
+                case AbilityType.Launch: return De ? "Wegschleudern" : "Launch";
+                case AbilityType.Impulse: return "Impulse";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
@@ -105,6 +108,9 @@ namespace HideAndSeekMonster
                 case AbilityType.Gamble: return De ? "Dreht am Rad: eine zufällige Spezialfähigkeit." : "Spins the wheel: a random special ability.";
                 case AbilityType.Charge: return De ? "Kurz stehen bleiben, dann blitzschnell ein Stück geradeaus nach vorn (nur waagerecht). 60 Schaden bei Kontakt." : "Stops for a moment, then dashes forward very fast over a short distance (horizontal only). 60 damage on contact.";
                 case AbilityType.ItemThrow: return De ? "Schnappt sich ein Wertobjekt in der Nähe (4 m). Nochmal drücken: mit voller Wucht werfen – Schaden je nach Tempo und Gewicht." : "Grabs a nearby valuable (4 m). Use again to throw it really fast – damage depends on speed and weight.";
+                case AbilityType.Tornado: return De ? "Erzeugt einen kleinen Tornado, der 7 s nach vorn wandert, Gegenstände und Wertobjekte einsaugt und herumwirbelt und am Ende alles wegschleudert – fliegende Teile verletzen Hider. Hider in der Nähe werden leicht angezogen." : "Spawns a small tornado that wanders forward for 7 s, sucks in items and valuables and whirls them around, then flings everything away – flying items hurt hiders. Hiders nearby are pulled in a little.";
+                case AbilityType.Launch: return De ? $"Der nächste Hider in {HideAndSeekMonster.Abilities.LaunchRange:0.#} m fällt um und wird in Blickrichtung weggeschleudert ({HideAndSeekMonster.Abilities.LaunchDamage} Schaden)." : $"The closest hider within {HideAndSeekMonster.Abilities.LaunchRange:0.#} m tumbles and gets launched in your camera direction ({HideAndSeekMonster.Abilities.LaunchDamage} damage).";
+                case AbilityType.Impulse: return De ? $"Hider in {HideAndSeekMonster.Abilities.ImpulseRange:0} m fallen um und werden zum Monster gesaugt, dann von einer Druckwelle weggeschleudert ({HideAndSeekMonster.Abilities.ImpulseDamage} Schaden)." : $"Hiders within {HideAndSeekMonster.Abilities.ImpulseRange:0} m tumble and get sucked towards you, then blasted away by a shockwave ({HideAndSeekMonster.Abilities.ImpulseDamage} damage).";
                 case AbilityType.Lunge: return De ? "Wie Charge, aber in Blickrichtung – auch nach oben/unten und in der Luft. 60 Schaden bei Kontakt." : "Like Charge, but in the camera direction – also up/down and in the air. 60 damage on contact.";
                 case AbilityType.Swarm: return De ? "Ruft 5 echte Gnome/Banger des Spiels, die 30 s lang selbst nach Hidern suchen – sie müssen sie erst sehen. Dich greifen sie nicht an." : "Summons 5 real Gnomes/Bangers of the game that hunt hiders on their own for 30 s – they have to spot them first. They ignore you.";
                 case AbilityType.NoxiousGas: return De ? "Stößt 5 große Gaswolken aus, die 10 s liegen bleiben. Hider im Gas werden betäubt: sehr langsam, träge Kamera." : "Spews 5 large gas clouds that linger for 10 s. Hiders in the gas are tranquilized: very slow, sluggish camera.";
@@ -133,6 +139,8 @@ namespace HideAndSeekMonster
                 case AbilityType.FlyingGrab: return De ? "FLYING GRAB! Weg vom Monster!" : "FLYING GRAB! Get away from the monster!";
                 case AbilityType.ZeroGGrab: return De ? "ZERO-G GRAB! Weg vom Monster!" : "ZERO-G GRAB! Get away from the monster!";
                 case AbilityType.Leap: return De ? "Das Monster springt!" : "The monster leaps!";
+                case AbilityType.Tornado: return De ? "TORNADO! Pass auf fliegende Teile auf!" : "TORNADO! Watch out for flying items!";
+                case AbilityType.Impulse: return De ? "IMPULSE! Du wirst eingesaugt!" : "IMPULSE! You're being sucked in!";
                 default: return "";
             }
         }
@@ -171,6 +179,8 @@ namespace HideAndSeekMonster
         public static string Apply => De ? "Übernehmen" : "Apply";
         public static string ItemNone => De ? "Kein Wertobjekt in der Nähe!" : "No valuable nearby!";
         public static string ItemPicked => De ? "Geschnappt! Nochmal drücken zum Werfen." : "Grabbed! Press again to throw.";
+        public static string LaunchNone => De ? "Kein Hider nah genug!" : "No hider close enough!";
+        public static string Launched => De ? "WEGGESCHLEUDERT!" : "LAUNCHED!";
         public static string Stunned => De ? "Betäubt!" : "Stunned!";
         public static string Ready => De ? "bereit" : "ready";
         public static string Special => De ? "Spezial" : "Special";

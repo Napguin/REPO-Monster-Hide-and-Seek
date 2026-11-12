@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.16 (beta)
+- **Bowtie: Tornado** – a small tornado wanders forward for 7 s, sucks in items and valuables (up to 10) and whirls
+  them around, then flings everything away. Flung items hurt hiders like Item Throw. Hiders nearby are pulled in a
+  little and slowed, but not trapped.
+- **Upscream: Launch** – the closest hider within 4.5 m tumbles and is launched where the monster looks (25 damage).
+- **Trudge: Impulse** – hiders within 9 m tumble and are sucked towards the Trudge for 1.2 s, then a shockwave blasts
+  them away (40 damage).
+- **Elsa (dog) and Bella (tricycle)** now have Rapid Charge.
+- Scream and Ground slam are still in the Gambit's pool.
+
 ## 1.5.15 (beta)
 - **Rugrat: Item Throw** – grab a nearby valuable, use again to throw it really fast (real physics; 20–90 damage
   to hiders depending on speed and weight).

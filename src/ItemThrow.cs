@@ -15,9 +15,15 @@ namespace HideAndSeekMonster
         private const float ItemPickRange = 4f, ItemThrowSpeed = 32f, ItemFlyTime = 2.5f;
 
         // host
-        private Rigidbody _heldItem, _thrownItem;
-        private float _thrownUntil;
-        private readonly HashSet<int> _itemHit = new HashSet<int>();
+        private Rigidbody _heldItem;
+        // items flying after a throw / a tornado fling: each hurts every hider once
+        private readonly List<(Rigidbody rb, float until, HashSet<int> hit)> _flying = new List<(Rigidbody, float, HashSet<int>)>();
+
+        private void TrackFlyingItem(Rigidbody rb, float time)
+        {
+            _flying.RemoveAll(f => f.rb == rb);
+            _flying.Add((rb, Time.time + time, new HashSet<int>()));
+        }
         // all clients
         private bool _holdingItem;
 
@@ -36,7 +42,7 @@ namespace HideAndSeekMonster
                 {
                     if (v == null) continue;
                     var rb = v.GetComponent<Rigidbody>() ?? v.GetComponentInParent<Rigidbody>();
-                    if (rb == null || rb == _thrownItem) continue;
+                    if (rb == null || _flying.Any(f => f.rb == rb) || InAnyTornado(rb)) continue;
                     float d = Vector3.Distance(rb.worldCenterOfMass, sp);
                     if (d < bestD) { bestD = d; best = rb; }
                 }
@@ -55,9 +61,7 @@ namespace HideAndSeekMonster
             dir = dir.sqrMagnitude > 0.001f ? dir.normalized : MonsterForward();
             item.velocity = dir * ItemThrowSpeed;
             item.angularVelocity = Random.insideUnitSphere * 10f;
-            _thrownItem = item;
-            _thrownUntil = Time.time + ItemFlyTime;
-            _itemHit.Clear();
+            TrackFlyingItem(item, ItemFlyTime);
             Plugin.Log.LogInfo($"[Rugrat] threw '{item.name}'");
             Send(MsgItem, 2);
         }
@@ -82,17 +86,22 @@ namespace HideAndSeekMonster
                 Compat.Call(_heldItem.GetComponent<PhysGrabObject>(), "OverrideIndestructible", 0.2f);
             }
 
-            if (_thrownItem == null || Time.time >= _thrownUntil || Phase != Phase.Hunting) { _thrownItem = null; return; }
-            float speed = _thrownItem.velocity.magnitude;
-            if (speed < 5f) return;
-            Vector3 c = _thrownItem.worldCenterOfMass;
-            int dmg = Mathf.Clamp(Mathf.RoundToInt(15f + speed * 1.2f + _thrownItem.mass * 6f), 20, 90);
-            foreach (var h in AliveHiders())
-                if (Vector3.Distance(PlayerPos(h) + Vector3.up * 0.9f, c) < 1.2f && _itemHit.Add(h.photonView.ViewID))
-                    HostDamage(h, dmg, "thrown item");
-            foreach (var d in AliveDummies())
-                if (Vector3.Distance(d.transform.position + Vector3.up * 0.9f, c) < 1.2f && _itemHit.Add(-1000 - d.GetInstanceID()))
-                    HostDamageDummy(d, dmg, c, "thrown item");
+            if (Phase != Phase.Hunting) { _flying.Clear(); return; }
+            for (int i = _flying.Count - 1; i >= 0; i--)
+            {
+                var (rb, until, hit) = _flying[i];
+                if (rb == null || Time.time >= until) { _flying.RemoveAt(i); continue; }
+                float speed = rb.velocity.magnitude;
+                if (speed < 5f) continue;
+                Vector3 c = rb.worldCenterOfMass;
+                int dmg = Mathf.Clamp(Mathf.RoundToInt(15f + speed * 1.2f + rb.mass * 6f), 20, 90);
+                foreach (var h in AliveHiders())
+                    if (Vector3.Distance(PlayerPos(h) + Vector3.up * 0.9f, c) < 1.2f && hit.Add(h.photonView.ViewID))
+                        HostDamage(h, dmg, "thrown item");
+                foreach (var d in AliveDummies())
+                    if (Vector3.Distance(d.transform.position + Vector3.up * 0.9f, c) < 1.2f && hit.Add(-1000 - d.GetInstanceID()))
+                        HostDamageDummy(d, dmg, c, "thrown item");
+            }
         }
 
         private void OnItemState(int state)
@@ -107,7 +116,8 @@ namespace HideAndSeekMonster
         private void ClearItem()
         {
             if (_heldItem != null) _heldItem.useGravity = true;
-            _heldItem = _thrownItem = null;
+            _heldItem = null;
+            _flying.Clear();
             _holdingItem = false;
         }
     }

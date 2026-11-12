@@ -267,6 +267,15 @@ namespace HideAndSeekMonster
                         if (_holdingItem && _monster != null) _monster.PlayAttack();
                         break;
                     }
+                case AbilityType.Tornado:
+                    SpawnTornado(origin);
+                    break;
+                case AbilityType.Launch:
+                    if (IsHost) HostLaunch(dir);
+                    break;
+                case AbilityType.Impulse:
+                    OnImpulse(origin);
+                    break;
                 case AbilityType.Charge:
                 case AbilityType.Lunge:
                     {
@@ -432,6 +441,9 @@ namespace HideAndSeekMonster
             Safe("minions", MinionTick);
             Safe("dash", DashTick);
             Safe("item", ItemTick);
+            Safe("tornado", TornadoTick);
+            Safe("launch", LaunchTick);
+            Safe("impulse", ImpulseTick);
             if (Seeker != null && GameRefs.IsLocal(Seeker) && Phase == Phase.Hunting && Abilities.FreeFlight(_monsterName)
                 && !(Charging && _chargeType == AbilityType.FlyingCharge))
                 Safe("free flight", FlyTick);
@@ -842,6 +854,8 @@ namespace HideAndSeekMonster
             _clouds.Clear();
             ClearMinions();
             ClearItem();
+            ClearTornados();
+            ClearTumbleSpecials();
             foreach (var g in _gas) g.Destroy();
             _gas.Clear();
             _tranqUntil = 0f;

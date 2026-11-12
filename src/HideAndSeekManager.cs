@@ -870,6 +870,10 @@ namespace HideAndSeekMonster
                         if (!SenderIsMaster(sender)) return;
                         OnItemState((int)data[2]);
                         break;
+                    case MsgLaunch:
+                        if (!SenderIsMaster(sender)) return;
+                        OnLaunch((int)data[2], (Vector3)data[3]);
+                        break;
                     case MsgMinionState:
                         if (!SenderIsMaster(sender)) return;
                         OnMinionState((float[])data[2]);

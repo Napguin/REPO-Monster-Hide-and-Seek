@@ -26,7 +26,10 @@ namespace HideAndSeekMonster
         Swarm = 18,      // Gnome / Banger: summon 5 allies that hunt hiders on their own
         Charge = 19,     // Robe / Headgrab: freeze, then dash forward horizontally (60 damage on contact)
         Lunge = 20,      // Headman / Chef: like Charge, but in the camera direction (also up / in the air)
-        ItemThrow = 21   // Rugrat: pick up a valuable, use again to throw it very fast
+        ItemThrow = 21,  // Rugrat: pick up a valuable, use again to throw it very fast
+        Tornado = 22,    // Bowtie: wandering tornado that whirls items around and flings them out
+        Launch = 23,     // Upscream: the closest hider tumbles and is launched in the camera direction
+        Impulse = 24     // Trudge: hiders around tumble, get sucked in, then blasted away
     }
 
     internal static class Abilities
@@ -41,7 +44,7 @@ namespace HideAndSeekMonster
             { "animal", AbilityType.Sprint },
             { "headman", AbilityType.Lunge },
             { "headgrab", AbilityType.Charge },
-            { "upscream", AbilityType.Leap },
+            { "upscream", AbilityType.Launch },
             { "snatcher", AbilityType.Leap },
             { "chef", AbilityType.Lunge },
             { "tick", AbilityType.Leap },
@@ -50,18 +53,18 @@ namespace HideAndSeekMonster
             { "mentalist", AbilityType.ZeroGGrab },
             { "loom", AbilityType.Reveal },
             { "oogly", AbilityType.FlyingGrab },
-            { "elsa", AbilityType.Reveal },
+            { "elsa", AbilityType.Sprint },
             { "rugrat", AbilityType.ItemThrow },
             { "cleanup crew", AbilityType.Bomb },
             { "spewer", AbilityType.Puke },
             { "birthday boy", AbilityType.Throw },
-            { "bowtie", AbilityType.Shockwave },
-            { "trudge", AbilityType.Slam },
+            { "bowtie", AbilityType.Tornado },
+            { "trudge", AbilityType.Impulse },
             { "heart hugger", AbilityType.NoxiousGas },
             { "gnome", AbilityType.Swarm },
             { "banger", AbilityType.Swarm },
             { "gambit", AbilityType.Gamble },
-            { "bella", AbilityType.Shockwave },
+            { "bella", AbilityType.Sprint },
         };
 
         public static AbilityType For(MonsterCatalog.Entry e)
@@ -93,6 +96,9 @@ namespace HideAndSeekMonster
                 case AbilityType.Charge: return 10f;
                 case AbilityType.Lunge: return 10f;
                 case AbilityType.ItemThrow: return 6f;
+                case AbilityType.Tornado: return 20f;
+                case AbilityType.Launch: return 10f;
+                case AbilityType.Impulse: return 14f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -113,6 +119,8 @@ namespace HideAndSeekMonster
                 case AbilityType.Slam: return 0.6f;      // wind-up
                 case AbilityType.Pull: return 3f;
                 case AbilityType.FlyingGrab: return 8f;
+                case AbilityType.Tornado: return 7f;
+                case AbilityType.Impulse: return 1.2f;   // suck-in time before the blast
                 case AbilityType.ZeroGGrab: return 4f;
                 case AbilityType.Leap: return 1.2f;
                 case AbilityType.Reveal: return 2f;
@@ -144,6 +152,13 @@ namespace HideAndSeekMonster
         public const float DashWindup = 0.5f, DashSpeed = 24f, DashHitRadius = 1.8f;
         public static float DashTime(AbilityType a) => a == AbilityType.Charge ? 0.6f : 0.35f; // Charge ~14 m, Lunge ~8 m
         public static bool IsDash(AbilityType a) => a == AbilityType.Charge || a == AbilityType.Lunge;
+
+        public const float TornadoSpeed = 2.2f, TornadoCatchRange = 5f, TornadoPullRange = 6f, TornadoFlingSpeed = 18f;
+        public const int TornadoMaxItems = 10;
+        public const float LaunchRange = 4.5f, LaunchSpeed = 22f;
+        public const int LaunchDamage = 25;
+        public const float ImpulseRange = 9f, ImpulseBlastSpeed = 15f;
+        public const int ImpulseDamage = 40;
 
         public const int GasClouds = 5;
         public const float GasTime = 10f, GasRadius = 1.8f, GasSpread = 4f;
@@ -189,6 +204,9 @@ namespace HideAndSeekMonster
                 case AbilityType.Charge: return "#9dff5a";
                 case AbilityType.Lunge: return "#ffee44";
                 case AbilityType.ItemThrow: return "#e0a030";
+                case AbilityType.Tornado: return "#a8d8ff";
+                case AbilityType.Launch: return "#ff8a3d";
+                case AbilityType.Impulse: return "#c07a40";
                 default: return "#a89a9c";
             }
         }
