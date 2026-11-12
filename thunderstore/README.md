@@ -122,3 +122,10 @@ The round settings of the **host** are used for everyone.
 | Test / TestMode | false | Solo test mode with training dummies |
 | Test / DummyCount | 4 | Dummies spawned around you in test mode |
 | Controls / Attack, Roar, ToggleView | mouse L / mouse R / V | Input System paths, e.g. `<Keyboard>/f` |
+
+## Coming soon
+- More monsters and specials
+- A **How to Play** with hand-drawn animations
+- More features – stay tuned!
+
+Found a bug or have an idea? Open an issue on [GitHub](https://github.com/Napguin/REPO-Monster-Hide-and-Seek/issues).

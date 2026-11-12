@@ -1,62 +1,48 @@
 # Changelog
 
-## 1.5.20 (beta)
-- Charge / Lunge: WASD is disabled for the whole wind-up and dash (pressing a direction shortened it), and the dash
-  now runs until its full distance is covered, so every charge goes the same distance (~14 m Charge, ~8 m Lunge).
+## 1.5.20
 
-## 1.5.19 (beta)
-- Upscream Launch: the **host** now pushes the knocked-over hider (the host runs the ragdoll physics – the hider's
-  own push was overwritten). Log lines `[Launch] host tick: ...` on the host.
+### After the round – revive, truck & vote (GitHub issue #4)
+Requested in [issue #4](https://github.com/Napguin/REPO-Monster-Hide-and-Seek/issues/4): dead players should come
+back between rounds. Now, when a round ends:
+- Surviving hiders are **shown to everyone** for 6 s, so you see where they were hiding.
+- **Every dead player is revived and healed**, and everyone is **teleported back into the truck**.
+- A **vote** follows: volunteer to be the next monster (a random volunteer gets it), and vote to stay on this map
+  or switch to one of 3 other maps.
+- Can be turned off in the F8 menu (`Round / AfterRound`).
 
-## 1.5.18 (beta)
-- Upscream Launch: the push is now applied every frame while the ragdoll can move (like the Trudge pull) and always
-  goes a bit upwards. More `[Launch]` log lines.
+### New and reworked specials
+- **Bowtie – Tornado:** a small tornado wanders forward for 7 s, sucks in items and valuables, whirls them around
+  and flings everything away at the end – flying items hurt hiders. Hiders nearby are pulled in a little.
+- **Upscream – Launch:** the closest hider (6 m) tumbles and is launched where the monster looks (25 damage).
+- **Trudge – Impulse:** hiders within 9 m tumble, get sucked towards the Trudge, then a shockwave blasts them away
+  (40 damage).
+- **Rugrat – Item Throw:** grab a nearby valuable, use again to throw it really fast – real physics, 20–90 damage
+  depending on speed and weight.
+- **Heart Hugger – Noxious Gas:** 5 gas clouds that drift out and linger for 10 s; hiders inside are tranquilized
+  (very slow, sluggish camera).
+- **Gnome & Banger are playable – Swarm:** summons 5 of the game's real Gnomes / Bangers that hunt hiders on their own
+  for 30 s (they have to spot them first and ignore the monster).
+- **Robe & Headgrab – Charge:** short wind-up, then a fast horizontal dash (~14 m), 60 damage on contact.
+  WASD is locked during the charge and it always goes the full distance.
+- **Headman & Chef – Lunge:** like Charge, but in the camera direction (also up/down and in the air).
+- **Elsa & Bella** now have Rapid Charge.
+- **Flying Grab / Zero-G Grab:** caught hiders now tumble and can't get up, so the monster can grab and carry them.
+  Flying Grab lasts 8 s.
+- **Gambit** can roll every special in the mod – new specials are added automatically.
+- Clown laser: 50 damage per tick. Radar Ping shows hiders for 2 s.
 
-## 1.5.17 (beta)
-- Upscream Launch fixed: the hider now really flies – the push waits until the ragdoll has started and is applied
-  over a few frames (before, the ragdoll starting a moment later swallowed it). Range 6 m (was 4.5 m).
+### Maps & menu
+- F8 menu: **map size (level 1–20)** and a **Load new map** button – higher level = bigger map and higher moon phase.
+- F8 menu: **hide / hunt time recommendation by moon phase** (maps get bigger every phase), applied with one click.
 
-## 1.5.16 (beta)
-- **Bowtie: Tornado** – a small tornado wanders forward for 7 s, sucks in items and valuables (up to 10) and whirls
-  them around, then flings everything away. Flung items hurt hiders like Item Throw. Hiders nearby are pulled in a
-  little and slowed, but not trapped.
-- **Upscream: Launch** – the closest hider within 6 m tumbles and is launched where the monster looks (25 damage).
-- **Trudge: Impulse** – hiders within 9 m tumble and are sucked towards the Trudge for 1.2 s, then a shockwave blasts
-  them away (40 damage).
-- **Elsa (dog) and Bella (tricycle)** now have Rapid Charge.
-- Scream and Ground slam are still in the Gambit's pool.
+### Fixes & polish
+- The monster can't open the map (Tab) during a round.
+- Flying monsters use your own jump / crouch keys, stop below the ceiling, and the third-person camera no longer
+  looks through ceilings or walls.
 
-## 1.5.15 (beta)
-- **Rugrat: Item Throw** – grab a nearby valuable, use again to throw it really fast (real physics; 20–90 damage
-  to hiders depending on speed and weight).
-- Swarm: real Gnomes / Bangers are spawned first and then moved next to the monster (they appeared somewhere in the
-  level before). Extra log lines show where they are.
-- Swarm: the real Gnomes / Bangers now really spawn when "Disable normal enemies" is on.
-- Flying (Oogly, Spewer, Flying Charge) uses your own jump / crouch keys from the game settings to go up / down.
-- **Swarm** now spawns the game's real Gnomes / Bangers: they use the game's own vision and pathfinding (no more
-  knowing where everyone is / walking through walls) and ignore the monster. Despawn after 30 s.
-- Charge goes further (~14 m instead of ~8 m). Lunge unchanged.
-- Clown laser: 50 damage per tick (was 25).
-- F8 menu: **map size (level 1–20)** + **Load new map** button. New maps (button or map vote) are generated for that
-  level – higher level = bigger map and higher moon phase. "Keep current" leaves the level as it is.
-- F8 menu: **time recommendation by moon phase** (maps get bigger every phase) – moon 0: hide 30 s / hunt 3:00,
-  +10 s / +1:00 per phase (max 75 s / 8:00). One click applies it.
-- **After a round** (issue #4): surviving hiders are shown to everyone for 6 s, then every dead player is revived and
-  healed and everyone is teleported into the truck. Then a **vote**: volunteer to be the next monster and vote to stay
-  on the map or switch to one of 3 other maps. Can be turned off in the F8 menu (`Round / AfterRound`).
-- **Charge** (Robe, Headgrab): short wind-up, then a fast horizontal dash – 60 damage on contact.
-- **Lunge** (Headman, Chef): the same, but in the camera direction (also up/down and in the air).
-- **Gnome and Banger are playable** – special **Swarm**: summons 5 allies that hunt hiders on their own for 30 s.
-  Gnomes hit again and again (10 damage), Bangers blow themselves up (35 damage, 3 m).
-- The monster can't open the map (Tab) during a round – an open map is closed when the round starts.
-- Flying monsters stop below the ceiling, and the third-person camera no longer looks through ceilings/walls
-  when you're pressed against them.
-- **Flying Grab / Zero-G Grab:** caught hiders now tumble (ragdoll) and can't get up while the ability lasts,
-  so the monster can grab and carry them. Flying Grab lasts 8 s (cooldown 20 s).
-- **Heart Hugger: Noxious Gas** – spews 5 gas clouds (1.8 m radius) that drift out and linger for 10 s.
-  Hiders inside are tranquilized: very slow, sluggish camera, pink haze. (Heart gas pull is now only a Gambit roll.)
-- **Gambit** can roll every special in the mod (incl. Flying Charge, Flying Grab, Zero-G Grab, Noxious Gas) – new specials are added automatically.
-- Radar Ping shows the hiders for 2 s instead of 1 s.
+### Coming soon
+More monsters are being worked on, plus a **How to Play** with hand-drawn animations. More features are on the way!
 
 ## 1.5.0
 - **Damage instead of instant kills:** the main attack does 40 damage (players have 100 HP, config `AttackDamage`).
