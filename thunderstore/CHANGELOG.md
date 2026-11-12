@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.18 (beta)
+- Upscream Launch: the push is now applied every frame while the ragdoll can move (like the Trudge pull) and always
+  goes a bit upwards. More `[Launch]` log lines.
+
 ## 1.5.17 (beta)
 - Upscream Launch fixed: the hider now really flies – the push waits until the ragdoll has started and is applied
   over a few frames (before, the ragdoll starting a moment later swallowed it). Range 6 m (was 4.5 m).

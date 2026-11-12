@@ -71,45 +71,45 @@ namespace HideAndSeekMonster
             _launchDir = dir.normalized;
             _launchStart = Time.time;
             _launchAt = Time.time + 0.15f;
-            _launchApplyEnd = 0f;
+            _launchPushed = 0f;
             _launchRetryAt = Time.time + 0.3f;
             Plugin.Log.LogInfo($"[Launch] I'm launched (tumble component {(tumble != null ? "found" : "MISSING")})");
             Banner(L.Launched, Abilities.UnityColor(AbilityType.Launch), 1.5f);
         }
 
-        private float _launchStart, _launchApplyEnd, _launchRetryAt;
+        private float _launchStart, _launchApplyEnd, _launchRetryAt, _launchPushed, _launchLogAt;
 
         /// <summary>
-        /// The ragdoll takes a moment to start (request goes over the host). A single velocity set gets lost when the
-        /// ragdoll starts afterwards, so: wait until it really tumbles, then keep pushing for a few frames.
+        /// Like the Trudge pull (which works): keep setting the ragdoll's velocity every frame, but only count frames in
+        /// which the ragdoll body can actually move (not kinematic). Done after 0.3 s of real pushing or 2 s timeout.
         /// </summary>
         private void LaunchTick()
         {
             if (_launchAt <= 0f || Time.time < _launchAt) return;
-            var me = GameRefs.LocalAvatar;
+            if (Time.time > _launchStart + 2f) { Plugin.Log.LogInfo($"[Launch] timeout, pushed {_launchPushed:0.00}s"); _launchAt = 0f; return; }
             var tumble = LocalTumble(out var rb);
-            bool tumbling = me != null && (Compat.Get<bool>(me, "isTumbling") || (tumble != null && Compat.Get<bool>(tumble, "isTumbling")));
-            Vector3 v = _launchDir * Abilities.LaunchSpeed + Vector3.up * 3f;
-
-            if (_launchApplyEnd <= 0f)
-            {
-                if (tumble == null) { LocalPush(v * 0.6f); _launchAt = 0f; return; } // no ragdoll available – plain push
-                bool waitedLong = Time.time > _launchStart + 0.8f;
-                if (!tumbling && !waitedLong)
-                {
-                    if (Time.time >= _launchRetryAt) { _launchRetryAt = Time.time + 0.3f; Compat.Call(tumble, "TumbleRequest", true, false); }
-                    return;
-                }
-                _launchApplyEnd = Time.time + 0.25f;
-                Plugin.Log.LogInfo($"[Launch] applying: tumbling={tumbling} kinematic={(rb != null ? rb.isKinematic.ToString() : "-")}");
-            }
+            Vector3 v = _launchDir * Abilities.LaunchSpeed;
+            v.y = Mathf.Max(v.y + 3f, 5f); // always a bit up, so looking down doesn't push them into the floor
+            if (tumble == null) { LocalPush(v * 0.6f); _launchAt = 0f; return; } // no ragdoll available – plain push
 
             Compat.Call(tumble, "TumbleOverrideTime", 1.2f); // stay a ragdoll while flying
-            if (rb != null && !rb.isKinematic) rb.velocity = v;
-            else LocalPush(v * 0.15f);
-            if (Time.time >= _launchApplyEnd)
+            bool movable = rb != null && !rb.isKinematic;
+            if (Time.time >= _launchLogAt)
             {
-                if (rb != null && !rb.isKinematic) rb.angularVelocity = Random.insideUnitSphere * 6f;
+                _launchLogAt = Time.time + 0.2f;
+                Plugin.Log.LogInfo($"[Launch] tick: rb={(rb != null)} kinematic={(rb != null ? rb.isKinematic.ToString() : "-")} speed={(rb != null ? rb.velocity.magnitude : 0f):0.0} pushed={_launchPushed:0.00}s");
+            }
+            if (!movable)
+            {
+                if (Time.time >= _launchRetryAt) { _launchRetryAt = Time.time + 0.3f; Compat.Call(tumble, "TumbleRequest", true, false); }
+                return;
+            }
+            rb.velocity = v;
+            _launchPushed += Time.deltaTime;
+            if (_launchPushed >= 0.3f)
+            {
+                rb.angularVelocity = Random.insideUnitSphere * 6f;
+                Plugin.Log.LogInfo("[Launch] done");
                 _launchAt = 0f;
             }
         }
