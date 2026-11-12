@@ -283,6 +283,8 @@ namespace HideAndSeekMonster
                         _dashStart = Time.time + Abilities.DashWindup;
                         _dashEnd = _dashStart + Abilities.DashTime(_dashType);
                         _dashHit.Clear();
+                        _dashLocalDone = _dashFromSet = false;
+                        _dashDoneAt = 0f;
                         // Charge: flat. Lunge: exactly where the camera looks.
                         Vector3 d = dir;
                         if (localSeeker) { var v = GameRefs.ViewTransform(Seeker); if (v != null) d = v.forward; }
@@ -630,14 +632,27 @@ namespace HideAndSeekMonster
                 Effects.Blob(c + Vector3.up * Random.Range(0.2f, h) + Random.insideUnitSphere * 0.5f, back * 4f + Vector3.up, col, 0.4f, false);
         }
 
+        // local seeker: the dash runs until the planned distance is covered (not just for a fixed time), so the
+        // distance is the same every time – frame rate or walls slowing it down a bit don't shorten it.
+        private bool _dashLocalDone, _dashFromSet;
+        private Vector3 _dashFrom;
+        private float _dashDoneAt;
+
         private void DashTick()
         {
-            if (Seeker == null || Time.time >= _dashEnd + 0.1f) return;
+            if (Seeker == null || Time.time >= _dashEnd + 0.6f) return;
             bool localSeeker = GameRefs.IsLocal(Seeker);
             var pc = PlayerController.instance;
             if (localSeeker && pc != null)
             {
                 var rb = Compat.Get<Rigidbody>(pc, "rb");
+                bool active = !_dashLocalDone && Time.time < _dashEnd + 0.4f; // a little extra time if something slowed it down
+                // no WASD for the whole charge – walking input fought the dash and shortened it
+                if (active || Time.time < _dashDoneAt + 0.15f)
+                {
+                    Compat.Call(InputManager.instance, "DisableMovement", 0.2f);
+                    Compat.Call(pc, "InputDisable", 0.1f);
+                }
                 if (DashWindup)
                 {
                     // frozen while winding up
@@ -645,14 +660,27 @@ namespace HideAndSeekMonster
                     if (rb != null) rb.velocity = new Vector3(0f, _dashType == AbilityType.Lunge ? 0f : rb.velocity.y, 0f);
                     if (_dashType == AbilityType.Lunge) Compat.Call(pc, "AntiGravity", 0.2f);
                 }
-                else if (Dashing && rb != null)
+                else if (active && rb != null)
                 {
-                    Vector3 v = _dashDir * Abilities.DashSpeed;
-                    if (_dashType == AbilityType.Charge) v.y = rb.velocity.y; // stays on the ground
-                    else Compat.Call(pc, "AntiGravity", 0.2f);
-                    rb.velocity = v;
+                    if (!_dashFromSet) { _dashFrom = rb.position; _dashFromSet = true; }
+                    Vector3 moved = rb.position - _dashFrom;
+                    if (_dashType == AbilityType.Charge) moved.y = 0f;
+                    float target = Abilities.DashSpeed * Abilities.DashTime(_dashType);
+                    if (moved.magnitude >= target)
+                    {
+                        _dashLocalDone = true;
+                        _dashDoneAt = Time.time;
+                        Plugin.Log.LogInfo($"[Dash] {_dashType} done: {moved.magnitude:0.0} m in {Time.time - _dashStart:0.00}s");
+                    }
+                    else
+                    {
+                        Vector3 v = _dashDir * Abilities.DashSpeed;
+                        if (_dashType == AbilityType.Charge) v.y = rb.velocity.y; // stays on the ground
+                        else Compat.Call(pc, "AntiGravity", 0.2f);
+                        rb.velocity = v;
+                    }
                 }
-                else if (rb != null && Time.time < _dashEnd + 0.1f)
+                if (rb != null && !DashWindup && !active && Time.time < Mathf.Max(_dashDoneAt, _dashEnd) + 0.15f)
                 {
                     // stop after the dash instead of sliding on
                     var v = rb.velocity; rb.velocity = new Vector3(v.x * 0.2f, Mathf.Min(v.y, 2f), v.z * 0.2f);

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.20 (beta)
+- Charge / Lunge: WASD is disabled for the whole wind-up and dash (pressing a direction shortened it), and the dash
+  now runs until its full distance is covered, so every charge goes the same distance (~14 m Charge, ~8 m Lunge).
+
 ## 1.5.19 (beta)
 - Upscream Launch: the **host** now pushes the knocked-over hider (the host runs the ragdoll physics – the hider's
   own push was overwritten). Log lines `[Launch] host tick: ...` on the host.
