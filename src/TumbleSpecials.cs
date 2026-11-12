@@ -51,6 +51,7 @@ namespace HideAndSeekMonster
             if (h == null) { Plugin.Log.LogInfo("[Launch] no hider within range"); Send(MsgLaunch, -1, dir); return; }
             Plugin.Log.LogInfo($"[Launch] launching {h.photonView.ViewID}");
             Send(MsgLaunch, h.photonView.ViewID, dir);
+            _hostLaunches.Add(new HostLaunchJob { Victim = h, Dir = dir, Start = Time.time });
             var victim = h;
             Later(0.3f, () => { if (victim != null) HostDamage(victim, Abilities.LaunchDamage, "launch"); });
         }
@@ -111,6 +112,50 @@ namespace HideAndSeekMonster
                 rb.angularVelocity = Random.insideUnitSphere * 6f;
                 Plugin.Log.LogInfo("[Launch] done");
                 _launchAt = 0f;
+            }
+        }
+
+        // The host runs the physics of a knocked-over player (the hider's own velocity changes get overwritten),
+        // so the host pushes the ragdoll: wait until it really tumbles, then keep its velocity for a few frames.
+        private class HostLaunchJob { public PlayerAvatar Victim; public Vector3 Dir; public float Start, Pushed, LogAt, RequestAt; }
+        private readonly List<HostLaunchJob> _hostLaunches = new List<HostLaunchJob>();
+
+        private void HostLaunchTick()
+        {
+            if (!IsHost) { _hostLaunches.Clear(); return; }
+            for (int i = _hostLaunches.Count - 1; i >= 0; i--)
+            {
+                var j = _hostLaunches[i];
+                if (j.Victim == null || Time.time > j.Start + 2f)
+                {
+                    Plugin.Log.LogInfo($"[Launch] host: stopped, pushed {j.Pushed:0.00}s");
+                    _hostLaunches.RemoveAt(i); continue;
+                }
+                var tumble = Compat.Get<Component>(j.Victim, "tumble");
+                var rb = tumble != null ? Compat.Get<Rigidbody>(tumble, "rb") : null;
+                bool tumbling = Compat.Get<bool>(j.Victim, "isTumbling") || (tumble != null && Compat.Get<bool>(tumble, "isTumbling"));
+                if (Time.time >= j.LogAt)
+                {
+                    j.LogAt = Time.time + 0.2f;
+                    Plugin.Log.LogInfo($"[Launch] host tick: tumbling={tumbling} rb={(rb != null)} kinematic={(rb != null ? rb.isKinematic.ToString() : "-")} speed={(rb != null ? rb.velocity.magnitude : 0f):0.0} pushed={j.Pushed:0.00}s");
+                }
+                if (tumble == null || rb == null) continue;
+                if (!tumbling || rb.isKinematic)
+                {
+                    if (Time.time >= j.RequestAt) { j.RequestAt = Time.time + 0.4f; Compat.Call(tumble, "TumbleSet", true, false); }
+                    continue;
+                }
+                Vector3 v = j.Dir * Abilities.LaunchSpeed;
+                v.y = Mathf.Max(v.y + 3f, 5f);
+                Compat.Call(tumble, "TumbleOverrideTime", 1.2f);
+                rb.velocity = v;
+                j.Pushed += Time.deltaTime;
+                if (j.Pushed >= 0.3f)
+                {
+                    rb.angularVelocity = Random.insideUnitSphere * 6f;
+                    Plugin.Log.LogInfo("[Launch] host: launched");
+                    _hostLaunches.RemoveAt(i);
+                }
             }
         }
 
@@ -202,6 +247,7 @@ namespace HideAndSeekMonster
         private void ClearTumbleSpecials()
         {
             _launchAt = _impulseBlastUntil = 0f;
+            _hostLaunches.Clear();
             _impulseCaught = false;
         }
     }

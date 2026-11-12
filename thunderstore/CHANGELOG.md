@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.19 (beta)
+- Upscream Launch: the **host** now pushes the knocked-over hider (the host runs the ragdoll physics – the hider's
+  own push was overwritten). Log lines `[Launch] host tick: ...` on the host.
+
 ## 1.5.18 (beta)
 - Upscream Launch: the push is now applied every frame while the ragdoll can move (like the Trudge pull) and always
   goes a bit upwards. More `[Launch]` log lines.

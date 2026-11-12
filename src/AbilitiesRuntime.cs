@@ -443,6 +443,7 @@ namespace HideAndSeekMonster
             Safe("item", ItemTick);
             Safe("tornado", TornadoTick);
             Safe("launch", LaunchTick);
+            Safe("host launch", HostLaunchTick);
             Safe("impulse", ImpulseTick);
             if (Seeker != null && GameRefs.IsLocal(Seeker) && Phase == Phase.Hunting && Abilities.FreeFlight(_monsterName)
                 && !(Charging && _chargeType == AbilityType.FlyingCharge))
