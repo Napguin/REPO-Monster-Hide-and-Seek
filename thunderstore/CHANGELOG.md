@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.21 (beta)
+- **Bowtie Tornado traps players:** hiders that get within 2.5 m are knocked over and spun around inside the
+  tornado until it fades, then flung out. While trapped they can't grab anything. Equipment / weapons are sucked in
+  like valuables. Training dummies are carried around too.
+
 ## 1.5.20
 
 ### After the round – revive, truck & vote (GitHub issue #4)

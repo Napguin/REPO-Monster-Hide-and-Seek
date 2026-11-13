@@ -153,7 +153,7 @@ namespace HideAndSeekMonster
         public static float DashTime(AbilityType a) => a == AbilityType.Charge ? 0.6f : 0.35f; // Charge ~14 m, Lunge ~8 m
         public static bool IsDash(AbilityType a) => a == AbilityType.Charge || a == AbilityType.Lunge;
 
-        public const float TornadoSpeed = 2.2f, TornadoCatchRange = 5f, TornadoPullRange = 6f, TornadoFlingSpeed = 18f;
+        public const float TornadoSpeed = 2.2f, TornadoCatchRange = 5f, TornadoPullRange = 6f, TornadoFlingSpeed = 18f, TornadoTrapRange = 2.5f;
         public const int TornadoMaxItems = 10;
         public const float LaunchRange = 6f, LaunchSpeed = 22f;
         public const int LaunchDamage = 25;

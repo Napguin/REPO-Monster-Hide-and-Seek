@@ -33,7 +33,7 @@ namespace HideAndSeekMonster
             {
                 var t = _tornados[i];
                 bool alive = t.Step(Time.deltaTime) && Phase == Phase.Hunting;
-                if (IsHost) HostTornadoItems(t, alive);
+                if (IsHost) { HostTornadoItems(t, alive); HostTornadoPlayers(t, alive); }
                 if (!alive)
                 {
                     Effects.Shockwave(t.Pos + Vector3.up, 6f, t.Color, 0.5f);
@@ -43,9 +43,22 @@ namespace HideAndSeekMonster
             }
             if (_tornados.Count == 0) return;
 
-            // local hider: pulled in a bit and slowed, can still run away
             if (!LocalHider(out var me)) return;
             Vector3 p = PlayerPos(me);
+            // trapped: the host spins the ragdoll; locally we only stop grabbing
+            foreach (var t in _tornados)
+            {
+                if (!t.LocalTrapped && FlatDistance(p, t.Pos) <= Abilities.TornadoTrapRange && Mathf.Abs(p.y - t.Pos.y) < 3f)
+                {
+                    t.LocalTrapped = true;
+                    Banner(L.TornadoTrapped, t.Color, 2f);
+                }
+                if (!t.LocalTrapped) continue;
+                var grabber = Compat.Get<Component>(me, "physGrabber");
+                if (grabber != null) Compat.Call(grabber, "OverrideGrabDisable", 0.3f);
+                return;
+            }
+            // close by: pulled in a bit and slowed, can still run away
             foreach (var t in _tornados)
             {
                 float d = FlatDistance(p, t.Pos);
@@ -113,6 +126,73 @@ namespace HideAndSeekMonster
             }
         }
 
+        /// <summary>
+        /// Host: hiders that get too close are knocked into the ragdoll and spun around inside the tornado
+        /// (the host runs ragdoll physics), then flung out when it fades. Dummies are carried around too.
+        /// </summary>
+        private void HostTornadoPlayers(Tornado t, bool alive)
+        {
+            if (!alive)
+            {
+                foreach (var h in t.Players)
+                {
+                    if (h == null) continue;
+                    var tumble = Compat.Get<Component>(h, "tumble");
+                    var rb = tumble != null ? Compat.Get<Rigidbody>(tumble, "rb") : null;
+                    if (tumble != null) Compat.Call(tumble, "TumbleOverrideTime", 1f);
+                    if (rb != null && !rb.isKinematic)
+                        rb.velocity = (Away(t.Pos, rb.position) + Vector3.up * 0.7f).normalized * Abilities.TornadoFlingSpeed * 0.8f;
+                }
+                foreach (var d in t.Dummies)
+                    if (d != null) d.transform.position = new Vector3(d.transform.position.x, t.Pos.y, d.transform.position.z) + Away(t.Pos, d.transform.position) * 2.5f;
+                t.Players.Clear(); t.Dummies.Clear();
+                return;
+            }
+
+            foreach (var h in AliveHiders())
+                if (!t.Players.Contains(h) && FlatDistance(PlayerPos(h), t.Pos) <= Abilities.TornadoTrapRange && Mathf.Abs(PlayerPos(h).y - t.Pos.y) < 3f)
+                {
+                    t.Players.Add(h);
+                    Plugin.Log.LogInfo($"[Tornado] trapped player {h.photonView.ViewID}");
+                }
+            foreach (var d in AliveDummies())
+                if (!t.Dummies.Contains(d) && FlatDistance(d.transform.position, t.Pos) <= Abilities.TornadoTrapRange) t.Dummies.Add(d);
+
+            float age = Time.time - t.Born;
+            for (int k = 0; k < t.Players.Count; k++)
+            {
+                var h = t.Players[k];
+                if (h == null || !IsAlive(h)) continue;
+                var tumble = Compat.Get<Component>(h, "tumble");
+                if (tumble == null) continue;
+                var rb = Compat.Get<Rigidbody>(tumble, "rb");
+                bool tumbling = Compat.Get<bool>(h, "isTumbling") || Compat.Get<bool>(tumble, "isTumbling");
+                Compat.Call(tumble, "TumbleOverrideTime", 0.5f);
+                if (!tumbling || rb == null || rb.isKinematic)
+                {
+                    if (Time.time >= t.RequestAt) { t.RequestAt = Time.time + 0.4f; Compat.Call(tumble, "TumbleSet", true, false); }
+                    continue;
+                }
+                rb.velocity = Vector3.ClampMagnitude((OrbitPoint(t, k + 0.5f, age, 1.4f) - rb.position) * 6f, 14f);
+            }
+            for (int k = 0; k < t.Dummies.Count; k++)
+            {
+                var d = t.Dummies[k];
+                if (d == null) continue;
+                d.Stun(0.3f, false);
+                d.transform.position = Vector3.Lerp(d.transform.position, OrbitPoint(t, k + 0.25f, age, 1.4f) - Vector3.up * 0.9f, 6f * Time.deltaTime);
+            }
+        }
+
+        /// <summary>Point on the tornado's spiral for slot k (items and players use the same shape).</summary>
+        private static Vector3 OrbitPoint(Tornado t, float k, float age, float extraRadius = 0f)
+        {
+            float ang = k * 2.399f + age * 4f;
+            float h = 0.6f + Mathf.Repeat(k * 0.7f + age * 0.5f, 3f);
+            float r = 0.8f + h * 0.45f + extraRadius;
+            return t.Pos + new Vector3(Mathf.Cos(ang) * r, h, Mathf.Sin(ang) * r);
+        }
+
         private bool InAnyTornado(Rigidbody rb)
         {
             foreach (var t in _tornados) if (t.Caught.Contains(rb)) return true;
@@ -138,6 +218,10 @@ namespace HideAndSeekMonster
         public readonly float Born;
         public readonly Color Color;
         public readonly List<Rigidbody> Caught = new List<Rigidbody>();
+        public readonly List<PlayerAvatar> Players = new List<PlayerAvatar>();
+        public readonly List<TestDummy> Dummies = new List<TestDummy>();
+        public bool LocalTrapped;
+        public float RequestAt;
         private readonly GameObject _root;
         private readonly List<Renderer> _rings = new List<Renderer>();
         private const int Rings = 7;

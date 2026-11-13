@@ -92,7 +92,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Item Throw | grabs a nearby valuable (4 m); use again to throw it really fast – damage depends on speed and weight | Rugrat |
 | Head bomb | throws its head – it bounces off walls and explodes after 4 s: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | Cleanup Crew |
 | Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | Spewer |
-| Tornado | a small tornado wanders forward for 7 s, sucks in items and valuables and whirls them around, then flings everything away – flying items hurt hiders (20–90 damage). Hiders nearby are pulled in a little | Bowtie |
+| Tornado | a small tornado wanders forward for 7 s, sucks in items, weapons and valuables and whirls them around, then flings everything away – flying items hurt hiders (20–90 damage). Hiders nearby are pulled in; within 2.5 m they're trapped, spun around and can't grab anything | Bowtie |
 | Launch | the closest hider within 6 m tumbles and gets launched in the camera direction (25 damage) | Upscream |
 | Impulse | hiders within 9 m tumble and get sucked towards the monster, then a shockwave blasts them away (40 damage) | Trudge |
 | Scream / Ground slam | hiders within 10 m are pushed away and slowed / wind-up, 50 damage within 5 m | Gambit only |
