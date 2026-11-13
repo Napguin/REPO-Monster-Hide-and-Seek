@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.39 (beta)
+- Tumble-Bash: turning has drag – it turns more gradually (160°/s) and every turn costs speed (sharp turns more,
+  down to 45 %); it speeds up again on straights.
+
 ## 1.5.38 (beta)
 - Tumble-Bash: livelier bounces, but never straight back – head-on hits turn the Tick off to the side. It keeps
   60–90 % of its speed, and camera steering pauses for 0.4 s after a bounce so it doesn't steer back into the wall.

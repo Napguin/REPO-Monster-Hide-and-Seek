@@ -42,7 +42,13 @@ namespace HideAndSeekMonster
                 {
                     var f = view.forward; f.y = 0f;
                     if (f.sqrMagnitude > 0.001f)
+                    {
+                        // turning has drag: it turns gradually and every turn costs speed (sharp turns more)
+                        Vector3 before = _bashDir;
                         _bashDir = Vector3.RotateTowards(_bashDir, f.normalized, Abilities.BashSteer * Mathf.Deg2Rad * Time.deltaTime, 0f);
+                        float turned = Vector3.Angle(before, _bashDir);
+                        _bashSpeedMul = Mathf.Max(Abilities.BashTurnMinSpeed, _bashSpeedMul - turned * Abilities.BashTurnDrag);
+                    }
                 }
                 if (rb != null)
                 {
