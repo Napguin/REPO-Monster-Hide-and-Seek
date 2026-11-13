@@ -34,6 +34,8 @@ namespace HideAndSeekMonster
         public string MonsterName => _entry != null ? _entry.Name : "Monster";
         public bool IsFallback { get; private set; }
         public float BodyHeight { get; private set; } = 2f;
+        /// <summary>Forward roll in degrees (0 = upright).</summary>
+        public float RollAngle;
         public string LastSoundInfo { get; private set; } = "-";
         public string DebugInfo { get; private set; } = "";
         private int _stripped, _stripFailed;
@@ -597,6 +599,14 @@ namespace HideAndSeekMonster
             }
             _yaw = Mathf.LerpAngle(_yaw, wantYaw, 1f - Mathf.Exp(-12f * Time.deltaTime));
             transform.rotation = Quaternion.Euler(0, _yaw, 0);
+            if (Mathf.Abs(RollAngle) > 0.01f)
+            {
+                // rolling (Tick's Tumble-Bash): spin forward around the body's middle
+                float h = BodyHeight * 0.5f;
+                var roll = Quaternion.Euler(0, _yaw, 0) * Quaternion.Euler(RollAngle, 0, 0);
+                transform.rotation = roll;
+                transform.position = target.position + Vector3.up * h - roll * (Vector3.up * h);
+            }
 
             _refreshTimer -= Time.deltaTime;
             if (_refreshTimer <= 0f) { _refreshTimer = 0.5f; HideOriginal(); }

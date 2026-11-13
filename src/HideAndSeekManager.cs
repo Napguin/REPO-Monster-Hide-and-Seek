@@ -234,7 +234,7 @@ namespace HideAndSeekMonster
                     if (rb != null) rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
                     return;
                 }
-                if (Time.time < _dashEnd) return; // Charge / Lunge controls the movement
+                if (Time.time < _dashEnd || Bashing) return; // Charge / Lunge / Tumble-Bash control the movement
                 float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f) * (Charging ? Abilities.ChargeSpeed(_chargeType) : 1f) * (LassoHolding ? Abilities.LassoMonsterSpeed : 1f);
                 if (!Mathf.Approximately(speed, 1f)) Compat.Call(pc, "OverrideSpeed", speed, 0.2f);
             });

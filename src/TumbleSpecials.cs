@@ -117,7 +117,7 @@ namespace HideAndSeekMonster
 
         // The host runs the physics of a knocked-over player (the hider's own velocity changes get overwritten),
         // so the host pushes the ragdoll: wait until it really tumbles, then keep its velocity for a few frames.
-        private class HostLaunchJob { public PlayerAvatar Victim; public Vector3 Dir; public float Start, Pushed, LogAt, RequestAt; }
+        private class HostLaunchJob { public PlayerAvatar Victim; public Vector3 Dir; public float Start, Pushed, LogAt, RequestAt, Speed = Abilities.LaunchSpeed; }
         private readonly List<HostLaunchJob> _hostLaunches = new List<HostLaunchJob>();
 
         private void HostLaunchTick()
@@ -145,7 +145,7 @@ namespace HideAndSeekMonster
                     if (Time.time >= j.RequestAt) { j.RequestAt = Time.time + 0.4f; Compat.Call(tumble, "TumbleSet", true, false); }
                     continue;
                 }
-                Vector3 v = j.Dir * Abilities.LaunchSpeed;
+                Vector3 v = j.Dir * j.Speed;
                 v.y = Mathf.Max(v.y + 3f, 5f);
                 Compat.Call(tumble, "TumbleOverrideTime", 1.2f);
                 rb.velocity = v;

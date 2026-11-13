@@ -21,8 +21,8 @@ namespace HideAndSeekMonster
         private AbilityType _grabType;
         private bool Grabbing => Time.time < _grabUntil;
         /// <summary>Main attack disabled while a charge or grab zone is active.</summary>
-        private bool AttackBlocked => Charging || Grabbing || Time.time < _dashEnd;
-        private float AttackBlockedUntil => Mathf.Max(Mathf.Max(Charging ? _chargeUntil : 0f, Grabbing ? _grabUntil : 0f), _dashEnd);
+        private bool AttackBlocked => Charging || Grabbing || Time.time < _dashEnd || Bashing;
+        private float AttackBlockedUntil => Mathf.Max(Mathf.Max(Charging ? _chargeUntil : 0f, Grabbing ? _grabUntil : 0f), Mathf.Max(_dashEnd, Bashing ? _bashUntil : 0f));
         private bool _grabStunShown, _grabCaught;
         // Charge / Lunge (all clients): wind-up, then dash
         private float _dashStart, _dashEnd;
@@ -273,6 +273,9 @@ namespace HideAndSeekMonster
                         if (_holdingItem && _monster != null) _monster.PlayAttack();
                         break;
                     }
+                case AbilityType.TumbleBash:
+                    OnTumbleBash(dir);
+                    break;
                 case AbilityType.BalloonMines:
                     PlaceBalloon(origin);
                     break;
@@ -459,6 +462,7 @@ namespace HideAndSeekMonster
             Safe("tornado", TornadoTick);
             Safe("lasso", LassoTick);
             Safe("balloons", BalloonTick);
+            Safe("tumble-bash", TumbleBashTick);
             Safe("launch", LaunchTick);
             Safe("host launch", HostLaunchTick);
             Safe("impulse", ImpulseTick);
@@ -940,6 +944,7 @@ namespace HideAndSeekMonster
             ClearTornados();
             ClearLasso();
             ClearBalloons();
+            _bashUntil = 0f;
             ClearTumbleSpecials();
             foreach (var g in _gas) g.Destroy();
             _gas.Clear();

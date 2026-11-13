@@ -31,7 +31,8 @@ namespace HideAndSeekMonster
         Launch = 23,     // Upscream: the closest hider tumbles and is launched in the camera direction
         Impulse = 24,    // Trudge: hiders around tumble, get sucked in, then blasted away
         Lasso = 25,      // Snatcher (pony): lasso in the camera direction, reels a hit hider in for 5 s
-        BalloonMines = 26 // Birthday Boy: hovering balloon mines (max 5), 40 damage when a hider comes close
+        BalloonMines = 26, // Birthday Boy: hovering balloon mines (max 5), 40 damage when a hider comes close
+        TumbleBash = 27   // Tick: roll around fast, bounce off walls, knock hiders over
     }
 
     internal static class Abilities
@@ -49,7 +50,7 @@ namespace HideAndSeekMonster
             { "upscream", AbilityType.Launch },
             { "snatcher", AbilityType.Lasso },
             { "chef", AbilityType.Lunge },
-            { "tick", AbilityType.Leap },
+            { "tick", AbilityType.TumbleBash },
             { "apex predator", AbilityType.FlyingCharge },
             { "peeper", AbilityType.Reveal },
             { "mentalist", AbilityType.ZeroGGrab },
@@ -105,6 +106,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Lasso: return 25f;
                 case AbilityType.BalloonMines: return 1f;     // per balloon: the charge comes back 40 s after it popped
                 case AbilityType.Leap: return 30f;
+                case AbilityType.TumbleBash: return 30f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
                 case AbilityType.Shockwave: return 15f;
@@ -126,6 +128,7 @@ namespace HideAndSeekMonster
                 case AbilityType.FlyingGrab: return 8f;
                 case AbilityType.Tornado: return 7f;
                 case AbilityType.Lasso: return 5f;       // reeling time
+                case AbilityType.TumbleBash: return 4f;
                 case AbilityType.Impulse: return 1.2f;   // suck-in time before the blast
                 case AbilityType.ZeroGGrab: return 8f;
                 case AbilityType.Leap: return 1.2f;
@@ -185,6 +188,8 @@ namespace HideAndSeekMonster
         public const int ImpulseDamage = 40;
         public const int BalloonMax = 5, BalloonDamage = 40;
         public const float BalloonRecharge = 40f;
+        public const float BashSpeed = 13f, BashSteer = 120f, BashHitRadius = 1.6f, BashKnockback = 10f;
+        public const int BashDamage = 30;
         public const float TranqTime = 5f;
         public const float BalloonHeight = 1.6f, BalloonArmTime = 1f, BalloonTriggerRange = 1.8f, BalloonRadius = 2.5f;
         public const float LassoRange = 18f, LassoSpeed = 35f, LassoHitRadius = 1f, LassoPullSpeed = 2.5f, LassoStopDistance = 2f, LassoMonsterSpeed = 0.3f;
@@ -238,6 +243,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Impulse: return "#c07a40";
                 case AbilityType.Lasso: return "#ff7ac8";
                 case AbilityType.BalloonMines: return "#ff5577";
+                case AbilityType.TumbleBash: return "#c0504d";
                 default: return "#a89a9c";
             }
         }

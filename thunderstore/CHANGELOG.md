@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.35 (beta)
+- **Tick – Tumble-Bash** (was Leap attack): rolls around fast for 4 s and bounces off walls; steer a little with the
+  camera. Anyone hit tumbles, gets knocked away and takes 30 damage (once per bash). Cooldown 30 s.
+
 ## 1.5.34 (beta)
 - **Fix: players saw different monsters** after the monster switched models while hiding. Each PC decided on its own,
   so a pick near the end of the hiding time was taken by the monster player but refused by the host. Now only the

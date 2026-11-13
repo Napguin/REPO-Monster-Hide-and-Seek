@@ -80,6 +80,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Launch: return De ? "Wegschleudern" : "Launch";
                 case AbilityType.Impulse: return "Impulse";
                 case AbilityType.Lasso: return "Lasso Grab";
+                case AbilityType.TumbleBash: return "Tumble-Bash";
                 case AbilityType.BalloonMines: return De ? "Ballon-Minen" : "Balloon Mines";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
@@ -112,6 +113,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Tornado: return De ? "Erzeugt einen kleinen Tornado, der 7 s nach vorn wandert, Gegenstände und Wertobjekte einsaugt und herumwirbelt und am Ende alles wegschleudert – fliegende Teile verletzen Hider. Hider in der Nähe werden angezogen – wer zu nah kommt, wird mitgewirbelt und kann nichts greifen." : "Spawns a small tornado that wanders forward for 7 s, sucks in items and valuables and whirls them around, then flings everything away – flying items hurt hiders. Hiders nearby are pulled in – get too close and you're spun around inside it and can't grab anything.";
                 case AbilityType.Launch: return De ? $"Der nächste Hider in {HideAndSeekMonster.Abilities.LaunchRange:0.#} m fällt um und wird in Blickrichtung weggeschleudert ({HideAndSeekMonster.Abilities.LaunchDamage} Schaden)." : $"The closest hider within {HideAndSeekMonster.Abilities.LaunchRange:0.#} m tumbles and gets launched in your camera direction ({HideAndSeekMonster.Abilities.LaunchDamage} damage).";
                 case AbilityType.Impulse: return De ? $"Hider in {HideAndSeekMonster.Abilities.ImpulseRange:0} m fallen um und werden zum Monster gesaugt, dann von einer Druckwelle weggeschleudert ({HideAndSeekMonster.Abilities.ImpulseDamage} Schaden)." : $"Hiders within {HideAndSeekMonster.Abilities.ImpulseRange:0} m tumble and get sucked towards you, then blasted away by a shockwave ({HideAndSeekMonster.Abilities.ImpulseDamage} damage).";
+                case AbilityType.TumbleBash: return De ? "Rollt 4 s lang schnell herum und prallt von Wänden ab (mit der Kamera leicht lenken). Wer getroffen wird, fällt um, fliegt weg und bekommt 30 Schaden." : "Rolls around fast for 4 s and bounces off walls (steer a little with the camera). Anyone hit tumbles, gets knocked away and takes 30 damage.";
                 case AbilityType.BalloonMines: return De ? "Setzt einen schwebenden Ballon als Mine (5 Stück). Kommt ein Hider nah ran, explodiert er: 40 Schaden. 40 s nach dem Platzen hast du den Ballon wieder." : "Places a hovering balloon mine (5 of them). When a hider gets close it explodes: 40 damage. Each balloon comes back 40 s after it popped.";
                 case AbilityType.Lasso: return De ? "Wirft ein Lasso in Blickrichtung (18 m). Trifft es einen Hider, wird er 5 s lang gleichmäßig zu dir gezogen – er kann nur noch seitlich ausweichen. Du bist dabei sehr langsam." : "Throws a lasso where you look (18 m). A hit hider is reeled in towards you at a steady speed for 5 s – they can only dodge sideways. You are very slow meanwhile.";
                 case AbilityType.Lunge: return De ? "Wie Charge, aber in Blickrichtung – auch nach oben/unten und in der Luft. 60 Schaden bei Kontakt." : "Like Charge, but in the camera direction – also up/down and in the air. 60 damage on contact.";
@@ -142,6 +144,7 @@ namespace HideAndSeekMonster
                 case AbilityType.FlyingGrab: return De ? "FLYING GRAB! Weg vom Monster!" : "FLYING GRAB! Get away from the monster!";
                 case AbilityType.ZeroGGrab: return De ? "ZERO-G GRAB! Weg vom Monster!" : "ZERO-G GRAB! Get away from the monster!";
                 case AbilityType.Leap: return De ? "Das Monster springt!" : "The monster leaps!";
+                case AbilityType.TumbleBash: return De ? "TUMBLE-BASH! Aus dem Weg!" : "TUMBLE-BASH! Get out of the way!";
                 case AbilityType.Lasso: return De ? "LASSO! Pass auf!" : "LASSO! Watch out!";
                 case AbilityType.Tornado: return De ? "TORNADO! Pass auf fliegende Teile auf!" : "TORNADO! Watch out for flying items!";
                 case AbilityType.Impulse: return De ? "IMPULSE! Du wirst eingesaugt!" : "IMPULSE! You're being sucked in!";
