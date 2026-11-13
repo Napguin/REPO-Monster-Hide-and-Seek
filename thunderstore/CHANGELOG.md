@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.37 (beta)
+- Tumble-Bash: no more bouncing back at full force – a head-on hit slows the Tick to 20 % speed (glancing hits
+  only a little) and it takes about a second to get back to full speed. The push off the wall is weaker too.
+
 ## 1.5.36 (beta)
 - Tumble-Bash: much more control (turns 300°/s with the camera instead of 120°/s) and softer wall bounces – it
   mostly slides along the wall, only pushes off a little and loses half its speed for a moment.

@@ -60,11 +60,12 @@ namespace HideAndSeekMonster
                             Vector3 slide = Vector3.ProjectOnPlane(_bashDir, n);
                             _bashDir = (slide + n * into * Abilities.BashBounce).normalized;
                             if (_bashDir.sqrMagnitude < 0.001f) _bashDir = n;
-                            _bashSpeedMul = Abilities.BashWallSlow;
+                            // head-on hits lose most speed, glancing hits only a little
+                            _bashSpeedMul = Mathf.Min(_bashSpeedMul, Mathf.Lerp(0.7f, Abilities.BashWallSlow, Mathf.Clamp01(into)));
                         }
                         if (Time.time >= _bashFxAt) { _bashFxAt = Time.time + 0.15f; Effects.Shockwave(hit.point, 1.2f, Abilities.UnityColor(AbilityType.TumbleBash), 0.25f); }
                     }
-                    _bashSpeedMul = Mathf.MoveTowards(_bashSpeedMul, 1f, 1.5f * Time.deltaTime);
+                    _bashSpeedMul = Mathf.MoveTowards(_bashSpeedMul, 1f, 0.7f * Time.deltaTime); // ~1 s back to full speed
                     float spd = Abilities.BashSpeed * _bashSpeedMul;
                     rb.velocity = new Vector3(_bashDir.x * spd, rb.velocity.y, _bashDir.z * spd);
                 }
