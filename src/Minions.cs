@@ -55,6 +55,8 @@ namespace HideAndSeekMonster
             return n.Contains("gnome") || n.Contains("bang") ? e : null;
         }
 
+        private const int MaxSwarmKeep = 8;
+
         private IEnumerator HostSpawnRealSwarm(MonsterCatalog.Entry entry, Vector3 center, Vector3 fwd)
         {
             // "Disable normal enemies" would despawn the new ones before we know they are ours
@@ -73,7 +75,7 @@ namespace HideAndSeekMonster
                 var now = new HashSet<EnemyParent>(Object.FindObjectsOfType<EnemyParent>());
                 if (dir != null && dir.enemiesSpawned != null) now.UnionWith(dir.enemiesSpawned.Where(x => x != null));
                 fresh = now.Where(p => !before.Contains(p)).ToList();
-                foreach (var p in fresh.Take(MinionCount)) _summoned.Add(p);
+                foreach (var p in fresh) _summoned.Add(p);
             }
             if (fresh.Count == 0) { _despawnPauseUntil = 0f; Plugin.Log.LogWarning("[Swarm] no enemies appeared"); yield break; }
 
@@ -88,8 +90,11 @@ namespace HideAndSeekMonster
             {
                 var p = fresh[i];
                 if (p == null) continue;
-                if (i >= MinionCount) { _summoned.Remove(p); DestroyEnemy(p); continue; } // the game spawns groups – keep 5
-                Vector3 pos = center + Quaternion.Euler(0, -60f + i * 30f, 0) * fwd * 1.5f;
+                // The game spawns whole groups (e.g. 6 Bangers). Destroying the extra ones right away broke the group's
+                // director on the other players (NullReferenceException in EnemyBangDirector.Setup) – so keep the group
+                // (up to 8) and only remove more than that, a few seconds later and the game's way (death).
+                if (i >= MaxSwarmKeep) { var extra = p; Later(4f, () => KillSummoned(extra)); continue; }
+                Vector3 pos = center + Quaternion.Euler(0, -90f + i * 25f, 0) * fwd * 1.6f;
                 if (NavMesh.SamplePosition(pos, out var hit, 2f, NavMesh.AllAreas)) pos = hit.position;
                 _summoned.Add(p);
                 kept.Add(p);

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.33 (beta)
+- Swarm (Banger): the game spawns Bangers as a whole group. The mod destroyed the extra ones right away, which broke
+  the group on the other players' PCs (error in the game's Banger director). Now the whole group (up to 8) is kept.
+
 ## 1.5.32 (beta)
 - Balloon Mines: with all 5 balloons out you get "All 5 balloons are out – one has to pop first" (was "next in 0 s").
   When none is left but one is recharging, the ability bar shows that countdown.
