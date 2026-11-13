@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.43 (beta)
+- Tumble-Bash: no damage any more – hiders only tumble and get knocked away. The rolling Tick crouches / crawls,
+  so it fits under tables, beds etc.
+
 ## 1.5.42 (beta)
 - Tumble-Bash: no more steering pause after a bounce – you can steer all the time.
 

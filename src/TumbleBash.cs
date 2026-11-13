@@ -5,7 +5,7 @@ namespace HideAndSeekMonster
 {
     /// <summary>
     /// Tick – Tumble-Bash: the Tick curls up and rolls around fast for a few seconds, bouncing off walls. The monster
-    /// steers a little with the camera. Rolling into a hider knocks them over (ragdoll, pushed away) and hurts them.
+    /// steers a little with the camera. Rolling into a hider knocks them over (ragdoll, pushed away) – no damage.
     /// The monster moves its own body; the host decides hits and pushes the knocked-over hider (host runs ragdolls).
     /// </summary>
     public partial class HideAndSeekManager
@@ -37,6 +37,9 @@ namespace HideAndSeekMonster
                 var pc = PlayerController.instance;
                 var rb = Compat.Get<Rigidbody>(pc, "rb");
                 Compat.Call(InputManager.instance, "DisableMovement", 0.2f);
+                // rolled up small: crouch/crawl so the Tick fits under tables, beds etc.
+                Compat.Call(pc, "CrouchOverride", 0.25f);
+                if (!Compat.Get(pc, "Crawling", false)) Compat.Call(pc, "SetCrawl");
                 var view = GameRefs.ViewTransform(Seeker);
                 if (view != null)
                 {
@@ -52,9 +55,9 @@ namespace HideAndSeekMonster
                 }
                 if (rb != null)
                 {
-                    Vector3 from = rb.position + Vector3.up * 0.5f;
+                    Vector3 from = rb.position + Vector3.up * 0.3f; // low – table tops above don't count as walls
                     float step = Abilities.BashSpeed * _bashSpeedMul * Time.deltaTime + 0.45f;
-                    if (Physics.SphereCast(from, 0.35f, _bashDir, out var hit, step, ~0, QueryTriggerInteraction.Ignore)
+                    if (Physics.SphereCast(from, 0.25f, _bashDir, out var hit, step, ~0, QueryTriggerInteraction.Ignore)
                         && !IsPlayerCollider(hit.collider) && hit.normal.y < 0.5f && Time.time >= _bashBounceReadyAt) // max one bounce per 0.2 s
                     {
                         var n = hit.normal; n.y = 0f;
@@ -89,7 +92,6 @@ namespace HideAndSeekMonster
             foreach (var h in AliveHiders())
             {
                 if (Vector3.Distance(PlayerPos(h) + Vector3.up * 0.8f, sp + Vector3.up * 0.5f) > r || !_bashHit.Add(h.photonView.ViewID)) continue;
-                HostDamage(h, Abilities.BashDamage, "tumble-bash");
                 Vector3 away = Away(sp, PlayerPos(h)) + _bashDir * 0.6f;
                 _hostLaunches.Add(new HostLaunchJob { Victim = h, Dir = away.normalized, Start = Time.time, Speed = Abilities.BashKnockback });
                 Plugin.Log.LogInfo($"[Tumble-Bash] hit {h.photonView.ViewID}");
@@ -97,8 +99,8 @@ namespace HideAndSeekMonster
             foreach (var d in AliveDummies())
                 if (Vector3.Distance(d.transform.position, sp) <= r + 0.4f && _bashHit.Add(-1000 - d.GetInstanceID()))
                 {
-                    d.Stun(1.5f, false);
-                    HostDamageDummy(d, Abilities.BashDamage, sp, "tumble-bash");
+                    d.Stun(1.5f, false); // knocked over, no damage
+                    d.transform.position += Away(sp, d.transform.position) * 1.5f;
                 }
         }
     }
