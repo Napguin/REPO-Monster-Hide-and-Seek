@@ -10,7 +10,7 @@ namespace HideAndSeekMonster
     /// </summary>
     public partial class HideAndSeekManager
     {
-        private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f, _bashNoSteerUntil;
+        private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f, _bashNoSteerUntil, _bashBounceReadyAt;
         private Vector3 _bashDir;
         private readonly HashSet<int> _bashHit = new HashSet<int>();
         private bool Bashing => Time.time < _bashUntil;
@@ -55,7 +55,7 @@ namespace HideAndSeekMonster
                     Vector3 from = rb.position + Vector3.up * 0.5f;
                     float step = Abilities.BashSpeed * _bashSpeedMul * Time.deltaTime + 0.45f;
                     if (Physics.SphereCast(from, 0.35f, _bashDir, out var hit, step, ~0, QueryTriggerInteraction.Ignore)
-                        && !IsPlayerCollider(hit.collider) && hit.normal.y < 0.5f)
+                        && !IsPlayerCollider(hit.collider) && hit.normal.y < 0.5f && Time.time >= _bashBounceReadyAt) // max one bounce per 0.2 s
                     {
                         var n = hit.normal; n.y = 0f;
                         if (n.sqrMagnitude > 0.001f)
@@ -73,6 +73,7 @@ namespace HideAndSeekMonster
                             _bashDir = (slide.normalized + n * Abilities.BashBounce).normalized;
                             _bashSpeedMul = Mathf.Min(_bashSpeedMul, Mathf.Lerp(0.9f, Abilities.BashWallSlow, into));
                             _bashNoSteerUntil = Time.time + 0.4f;
+                            _bashBounceReadyAt = Time.time + Abilities.BashBounceGap;
                         }
                         if (Time.time >= _bashFxAt) { _bashFxAt = Time.time + 0.15f; Effects.Shockwave(hit.point, 1.2f, Abilities.UnityColor(AbilityType.TumbleBash), 0.25f); }
                     }

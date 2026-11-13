@@ -1,6 +1,6 @@
 {
   "name": "HideAndSeekMonster",
-  "version_number": "1.5.39",
+  "version_number": "1.5.40",
   "website_url": "https://github.com/Napguin/repo-monster-hide-and-seek",
   "description": "Hide & Seek for R.E.P.O.: one player becomes a real game monster (third person, attack, roar) and hunts the hiders. Host picks seeker + monster or random. All players need the mod.",
   "dependencies": [

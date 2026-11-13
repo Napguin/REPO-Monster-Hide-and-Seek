@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.40 (beta)
+- Tumble-Bash: less bouncing – at most one bounce every 0.2 s, and a slightly weaker push off the wall.
+
 ## 1.5.39 (beta)
 - Tumble-Bash: turning has drag – it turns more gradually (160°/s) and every turn costs speed (sharp turns more,
   down to 45 %); it speeds up again on straights.
