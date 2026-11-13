@@ -28,7 +28,8 @@ namespace HideAndSeekMonster
 
         private void PlaceBalloon(Vector3 origin)
         {
-            Vector3 basePos = Seeker != null ? PlayerPos(Seeker) : origin;
+            // use the position the monster player sent – other PCs' copy of the monster can be a bit behind
+            Vector3 basePos = origin;
             Vector3 pos = basePos + Vector3.up * Abilities.BalloonHeight;
             if (Physics.Raycast(basePos + Vector3.up * 0.5f, Vector3.up, out var hit, Abilities.BalloonHeight + 0.4f, ~0, QueryTriggerInteraction.Ignore))
                 pos.y = hit.point.y - 0.5f; // low ceiling

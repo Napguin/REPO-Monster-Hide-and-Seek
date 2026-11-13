@@ -162,6 +162,7 @@ namespace HideAndSeekMonster
             }
 
             Vector3 origin = _monster != null ? _monster.MuzzlePosition : SeekerPosition() + Vector3.up * 1.5f;
+            if (ability == AbilityType.BalloonMines) origin = SeekerPosition(); // the monster's own feet – the same spot on every PC
             Send(MsgSpecial, (int)ability, origin, LocalAimDirection(), gambled);
         }
 

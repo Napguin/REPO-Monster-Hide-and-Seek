@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.45 (beta)
+- Fix: Balloon Mines were in different places for the monster and the hiders (the hiders' PCs used their own,
+  slightly outdated copy of the monster's position). Now the monster player's exact position is sent along.
+
 ## 1.5.44 (beta)
 - Balloon Mines: 3 s between two balloons. A popped balloon can be replaced after 3 s as long as at least one other
   balloon still hangs. When the last hanging balloon pops, all 5 come back together after 40 s.
