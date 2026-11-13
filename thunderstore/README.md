@@ -51,7 +51,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Flying Charge | attack form, fly for 6 s (jump = up, crouch = down), 10 damage every 0.5 s to hiders close by | 20 s | Apex Predator |
 | Charge | stops for a moment, then dashes forward very fast (about 14 m, horizontal only) – 60 damage on contact | 30 s | Robe, Headgrab |
 | Lunge | like Charge, but in the camera direction – also up/down and in the air – 60 damage on contact | 30 s | Headman, Chef |
-| Tumble-Bash | rolls around fast for 4 s and bounces off walls (steer a little with the camera); anyone hit tumbles, gets knocked away and takes 30 damage | 30 s | Tick |
+| Tumble-Bash | rolls around fast for 4 s, steered with the camera, softly bouncing off walls; anyone hit tumbles, gets knocked away and takes 30 damage | 30 s | Tick |
 | Radar Ping | position and distance of every hider within 30 m for 2 s; hiders are told whether they were detected | 120 s | Peeper, Loom |
 | Flying Grab | invisible bubble (4 m) around the monster: hiders inside tumble and are stunned for 8 s so the monster can grab and carry them; no main attack meanwhile. The Oogly can always fly | 30 s | Oogly |
 | Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside tumble, float and are stunned for 8 s so the monster can grab them; no main attack meanwhile | 30 s | Mentalist |

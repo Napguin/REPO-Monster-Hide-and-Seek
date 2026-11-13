@@ -10,7 +10,7 @@ namespace HideAndSeekMonster
     /// </summary>
     public partial class HideAndSeekManager
     {
-        private float _bashUntil, _bashFxAt;
+        private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f;
         private Vector3 _bashDir;
         private readonly HashSet<int> _bashHit = new HashSet<int>();
         private bool Bashing => Time.time < _bashUntil;
@@ -21,6 +21,7 @@ namespace HideAndSeekMonster
             _bashDir = dir.sqrMagnitude > 0.001f ? dir.normalized : MonsterForward();
             _bashUntil = Time.time + Abilities.Duration(AbilityType.TumbleBash);
             _bashHit.Clear();
+            _bashSpeedMul = 1f;
             if (_monster != null) _monster.PlayAttack();
         }
 
@@ -46,15 +47,26 @@ namespace HideAndSeekMonster
                 if (rb != null)
                 {
                     Vector3 from = rb.position + Vector3.up * 0.5f;
-                    float step = Abilities.BashSpeed * Time.deltaTime + 0.45f;
+                    float step = Abilities.BashSpeed * _bashSpeedMul * Time.deltaTime + 0.45f;
                     if (Physics.SphereCast(from, 0.35f, _bashDir, out var hit, step, ~0, QueryTriggerInteraction.Ignore)
                         && !IsPlayerCollider(hit.collider) && hit.normal.y < 0.5f)
                     {
                         var n = hit.normal; n.y = 0f;
-                        if (n.sqrMagnitude > 0.001f) _bashDir = Vector3.Reflect(_bashDir, n.normalized).normalized;
+                        if (n.sqrMagnitude > 0.001f)
+                        {
+                            // soft bounce: mostly slide along the wall, only a little push off it, and lose speed
+                            n.Normalize();
+                            float into = -Vector3.Dot(_bashDir, n);
+                            Vector3 slide = Vector3.ProjectOnPlane(_bashDir, n);
+                            _bashDir = (slide + n * into * Abilities.BashBounce).normalized;
+                            if (_bashDir.sqrMagnitude < 0.001f) _bashDir = n;
+                            _bashSpeedMul = Abilities.BashWallSlow;
+                        }
                         if (Time.time >= _bashFxAt) { _bashFxAt = Time.time + 0.15f; Effects.Shockwave(hit.point, 1.2f, Abilities.UnityColor(AbilityType.TumbleBash), 0.25f); }
                     }
-                    rb.velocity = new Vector3(_bashDir.x * Abilities.BashSpeed, rb.velocity.y, _bashDir.z * Abilities.BashSpeed);
+                    _bashSpeedMul = Mathf.MoveTowards(_bashSpeedMul, 1f, 1.5f * Time.deltaTime);
+                    float spd = Abilities.BashSpeed * _bashSpeedMul;
+                    rb.velocity = new Vector3(_bashDir.x * spd, rb.velocity.y, _bashDir.z * spd);
                 }
             }
 

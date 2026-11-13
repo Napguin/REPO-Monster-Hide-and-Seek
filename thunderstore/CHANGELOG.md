@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.36 (beta)
+- Tumble-Bash: much more control (turns 300°/s with the camera instead of 120°/s) and softer wall bounces – it
+  mostly slides along the wall, only pushes off a little and loses half its speed for a moment.
+
 ## 1.5.35 (beta)
 - **Tick – Tumble-Bash** (was Leap attack): rolls around fast for 4 s and bounces off walls; steer a little with the
   camera. Anyone hit tumbles, gets knocked away and takes 30 damage (once per bash). Cooldown 30 s.

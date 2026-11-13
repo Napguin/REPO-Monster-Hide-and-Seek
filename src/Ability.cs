@@ -188,7 +188,7 @@ namespace HideAndSeekMonster
         public const int ImpulseDamage = 40;
         public const int BalloonMax = 5, BalloonDamage = 40;
         public const float BalloonRecharge = 40f;
-        public const float BashSpeed = 13f, BashSteer = 120f, BashHitRadius = 1.6f, BashKnockback = 10f;
+        public const float BashSpeed = 13f, BashSteer = 300f, BashBounce = 0.35f, BashWallSlow = 0.5f, BashHitRadius = 1.6f, BashKnockback = 10f;
         public const int BashDamage = 30;
         public const float TranqTime = 5f;
         public const float BalloonHeight = 1.6f, BalloonArmTime = 1f, BalloonTriggerRange = 1.8f, BalloonRadius = 2.5f;

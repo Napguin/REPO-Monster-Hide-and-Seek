@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.5.35";
+        public const string Version = "1.5.36";
 
         internal static ManualLogSource Log;
 
