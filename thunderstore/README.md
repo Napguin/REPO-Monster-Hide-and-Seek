@@ -63,10 +63,9 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Lasso Grab | lasso in the camera direction (18 m): a hit hider is reeled in at a steady speed for 5 s (they can still move sideways); the monster is very slow meanwhile | Snatcher |
 | Launch | the closest hider within 6 m tumbles and gets launched in the camera direction (25 damage) | Upscream |
 | Impulse | hiders within 9 m tumble and get sucked towards the monster, then a shockwave blasts them away (40 damage) | Trudge |
-| Scream / Ground slam | hiders within 10 m are pushed away and slowed / wind-up, 50 damage within 5 m | Gambit only |
 | Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) | Heart Hugger |
 | Swarm | summons 5 real Gnomes / Bangers of the game that hunt hiders on their own for 30 s (they have to spot them first, and they ignore the monster) | Gnome, Banger |
-| Gamble | a random special – any special of any monster (laser, bomb, gas, grabs, …) | Gambit |
+| Gamble | a random special – one of the specials the other monsters have right now (laser, tornado, lasso, gas, grabs, …) | Gambit |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.
 

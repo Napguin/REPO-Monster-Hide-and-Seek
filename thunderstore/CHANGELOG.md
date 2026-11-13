@@ -1,9 +1,13 @@
 # Changelog
 
+## 1.5.27 (beta)
+- **Gambit** now only rolls the specials the other monsters currently have (built from the monster list, so it
+  follows every change automatically). Old specials no monster has anymore (Scream, Ground slam, Heart gas,
+  Levitate, Throw) are gone from the pool. Item Throw stays out (needs two presses).
+
 ## 1.5.26 (beta)
 - **Birthday Boy – Balloon Mines:** each use places a balloon hovering in the air (max 5 – the oldest pops when you
   place a 6th). Armed after 1 s; when a hider comes within ~1.8 m it explodes: 40 damage within 2.5 m.
-  (Throw is now only in the Gambit's pool.)
 - Snatcher Lasso reels players in a bit slower (2.5 m/s instead of 3.5 m/s).
 
 ## 1.5.25 (beta)

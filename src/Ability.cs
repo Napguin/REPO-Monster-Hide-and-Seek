@@ -147,11 +147,29 @@ namespace HideAndSeekMonster
         public const float BombRadius = 4f, CloudRadius = 3f, CloudTime = 5f;
         public const float PukeRange = 7f, LevitateRange = 10f, SlamRadius = 5f, PullRange = 12f;
 
-        /// <summary>Abilities Gambit can roll.</summary>
-        /// <summary>Abilities Gambit can roll: every special in the mod (new ones are included automatically).</summary>
-        public static readonly AbilityType[] GambleTable =
-            ((AbilityType[])System.Enum.GetValues(typeof(AbilityType)))
-            .Where(a => a != AbilityType.None && a != AbilityType.Gamble && a != AbilityType.ItemThrow).ToArray(); // item throw needs two presses
+        /// <summary>
+        /// Abilities Gambit can roll: exactly the specials other monsters of the game have right now (built from the
+        /// monster list, so changes to any monster carry over automatically). Item Throw needs two presses – left out.
+        /// </summary>
+        public static AbilityType[] GambleTable
+        {
+            get
+            {
+                if (_gambleTable != null) return _gambleTable;
+                var set = new HashSet<AbilityType>();
+                foreach (var e in MonsterCatalog.Entries) set.Add(For(e));
+                if (set.Count <= 1) foreach (var a in ByMonster.Values) set.Add(a); // catalog not loaded yet
+                set.Remove(AbilityType.None); set.Remove(AbilityType.Gamble); set.Remove(AbilityType.ItemThrow);
+                var arr = set.ToArray();
+                if (MonsterCatalog.Entries.Count > 0)
+                {
+                    _gambleTable = arr;
+                    Plugin.Log.LogInfo("[Gambit] pool: " + string.Join(", ", arr.Select(x => x.ToString()).ToArray()));
+                }
+                return arr;
+            }
+        }
+        private static AbilityType[] _gambleTable;
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
         public const int DashDamage = 60;
