@@ -104,7 +104,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Launch: return 30f;
                 case AbilityType.Impulse: return 30f;
                 case AbilityType.Lasso: return 25f;
-                case AbilityType.BalloonMines: return 1f;     // per balloon: the charge comes back 40 s after it popped
+                case AbilityType.BalloonMines: return 3f;     // between two balloons (see Balloons.cs for refills)
                 case AbilityType.Leap: return 30f;
                 case AbilityType.TumbleBash: return 30f;
                 case AbilityType.Reveal: return 120f;
@@ -187,7 +187,7 @@ namespace HideAndSeekMonster
         public const float ImpulseRange = 9f, ImpulseBlastSpeed = 15f;
         public const int ImpulseDamage = 40;
         public const int BalloonMax = 5, BalloonDamage = 40;
-        public const float BalloonRecharge = 40f;
+        public const float BalloonRecharge = 40f, BalloonReplace = 3f;
         public const float BashSpeed = 13f, BashSteer = 160f, BashTurnDrag = 0.006f, BashTurnMinSpeed = 0.45f, BashBounce = 0.2f, BashBounceGap = 0.2f, BashWallSlow = 0.6f, BashHitRadius = 1.6f, BashKnockback = 10f;
         public const int BashDamage = 30;
         public const float TranqTime = 5f;
