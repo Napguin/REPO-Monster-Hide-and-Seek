@@ -180,7 +180,7 @@ namespace HideAndSeekMonster
         // On their own the game's Gnomes / Bangers mostly wander around or go for valuables. So: every 0.5 s each
         // summoned enemy that can SEE a hider (line of sight, 15 m) is sent after them, and touching a hider hurts
         // (Gnome 10 per second, Banger 35 once and it pops).
-        private float _swarmAssistAt;
+        private float _swarmAssistAt, _swarmLogAt;
         private readonly Dictionary<EnemyParent, float> _swarmHitAt = new Dictionary<EnemyParent, float>();
         private const float SwarmSight = 15f, SwarmTouch = 1.5f;
         private const int SwarmGnomeDamage = 10, SwarmBangerDamage = 35;
@@ -189,6 +189,7 @@ namespace HideAndSeekMonster
         {
             if (!IsHost || Phase != Phase.Hunting || _summoned.Count == 0 || Time.time < _swarmAssistAt) return;
             _swarmAssistAt = Time.time + 0.25f;
+            bool logNow = Time.time >= _swarmLogAt;
             var hiders = AliveHiders();
             var dummies = AliveDummies();
             foreach (var p in _summoned.ToList())
@@ -196,7 +197,9 @@ namespace HideAndSeekMonster
                 if (p == null) { _summoned.Remove(p); continue; }
                 var e = Compat.Get<Enemy>(p, "Enemy") ?? p.GetComponentInChildren<Enemy>();
                 if (e == null) continue;
-                Vector3 ep = e.transform.position;
+                // the body that really moves is the enemy's rigidbody (Bangers roll around physically)
+                var erb = Compat.Get<EnemyRigidbody>(e, "Rigidbody") ?? p.GetComponentInChildren<EnemyRigidbody>();
+                Vector3 ep = erb != null && erb.rb != null ? erb.rb.position : e.transform.position;
                 bool banger = p.GetComponentInChildren<EnemyBang>(true) != null;
 
                 // closest visible hider
@@ -209,6 +212,11 @@ namespace HideAndSeekMonster
                     if (Physics.Linecast(ep + Vector3.up * 0.4f, hp, out var hit, ~0, QueryTriggerInteraction.Ignore)
                         && !IsPlayerCollider(hit.collider) && hit.collider.GetComponentInParent<EnemyParent>() == null) continue;
                     best = h; bestD = d;
+                }
+                if (Time.time >= _swarmLogAt)
+                {
+                    float nearest = hiders.Count > 0 ? hiders.Min(h => Vector3.Distance(PlayerPos(h), ep)) : -1f;
+                    Plugin.Log.LogInfo($"[Swarm] {(banger ? "Banger" : "Gnome")} {p.name}: nearest hider {nearest:0.0} m, sees {(best != null ? best.photonView.ViewID.ToString() : "nobody")}");
                 }
                 if (best != null)
                 {
@@ -224,6 +232,7 @@ namespace HideAndSeekMonster
                 if (touched == null && touchedD == null) continue;
                 if (banger)
                 {
+                    Plugin.Log.LogInfo($"[Swarm] Banger {p.name} explodes next to a hider");
                     Effects.Shockwave(ep + Vector3.up * 0.5f, 6f, new Color(1f, 0.6f, 0.2f), 0.4f);
                     foreach (var h in hiders) if (Vector3.Distance(PlayerPos(h), ep) <= 3f) HostDamage(h, SwarmBangerDamage, "banger");
                     foreach (var d in dummies) if (d != null && Vector3.Distance(d.transform.position, ep) <= 3f) HostDamageDummy(d, SwarmBangerDamage, ep, "banger");
@@ -237,6 +246,7 @@ namespace HideAndSeekMonster
                     else HostDamageDummy(touchedD, SwarmGnomeDamage, ep, "gnome");
                 }
             }
+            if (logNow) _swarmLogAt = Time.time + 2f;
         }
 
         private void OnSwarm(Vector3 origin)

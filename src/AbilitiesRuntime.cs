@@ -139,7 +139,7 @@ namespace HideAndSeekMonster
             if (Time.time < _specialReadyAt) return;
             if (ability == AbilityType.BalloonMines && BalloonsLeft <= 0)
             {
-                Banner(L.NoBalloons(NextBalloonIn), Abilities.UnityColor(ability), 1.5f);
+                Banner(_balloons.Count >= Abilities.BalloonMax ? L.AllBalloonsOut : L.NoBalloons(NextBalloonIn), Abilities.UnityColor(ability), 1.5f);
                 _specialReadyAt = Time.time + 0.5f;
                 return;
             }

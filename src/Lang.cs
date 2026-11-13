@@ -184,6 +184,7 @@ namespace HideAndSeekMonster
         public static string ItemNone => De ? "Kein Wertobjekt in der Nähe!" : "No valuable nearby!";
         public static string ItemPicked => De ? "Geschnappt! Nochmal drücken zum Werfen." : "Grabbed! Press again to throw.";
         public static string BalloonsPlaced(int left, int max) => De ? $"Ballon gesetzt – noch {left}/{max}" : $"Balloon placed – {left}/{max} left";
+        public static string AllBalloonsOut => De ? "Alle 5 Ballons hängen – einer muss erst platzen" : "All 5 balloons are out – one has to pop first";
         public static string NoBalloons(float s) => De ? $"Keine Ballons mehr – nächster in {s:0} s" : $"No balloons left – next in {s:0} s";
         public static string Lassoed => De ? "GEFANGEN! Du wirst eingeholt!" : "LASSOED! You're being reeled in!";
         public static string TornadoTrapped => De ? "IM TORNADO GEFANGEN!" : "CAUGHT IN THE TORNADO!";

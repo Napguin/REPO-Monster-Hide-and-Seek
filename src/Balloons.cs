@@ -37,6 +37,10 @@ namespace HideAndSeekMonster
 
         private void BalloonTick()
         {
+            // monster's ability bar: with no balloon left but one recharging, show that countdown
+            if (Seeker != null && GameRefs.IsLocal(Seeker) && CurrentAbility == AbilityType.BalloonMines
+                && BalloonsLeft <= 0 && _balloonRecharge.Any(t => Time.time < t))
+                _specialReadyAt = Mathf.Max(_specialReadyAt, Time.time + NextBalloonIn);
             if (_balloons.Count == 0) return;
             foreach (var b in _balloons) b.Animate();
             if (!IsHost || Phase != Phase.Hunting || Time.time < _balloonCheckAt) return;

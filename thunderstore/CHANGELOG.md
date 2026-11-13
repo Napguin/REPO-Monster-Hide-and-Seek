@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.32 (beta)
+- Balloon Mines: with all 5 balloons out you get "All 5 balloons are out – one has to pop first" (was "next in 0 s").
+  When none is left but one is recharging, the ability bar shows that countdown.
+- Swarm: positions of the real Gnomes / Bangers are taken from their physics body (Bangers roll around), and the host
+  log shows every 2 s what each one sees (`[Swarm] Banger ...: nearest hider X m, sees ...`).
+
 ## 1.5.31 (beta)
 - Noxious Gas: the slowdown comes in 5 s blocks – touching the gas gives 5 s, still inside when it runs out gives
   another 5 s (before, it lasted 5 s after leaving the gas).
