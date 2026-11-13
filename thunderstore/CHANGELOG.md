@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.23 (beta)
+- **Snatcher (the pony)** now has **Lasso Grab** (was Leap attack).
+
 ## 1.5.22 (beta)
 - **Pony – Lasso Grab:** throws a lasso where the camera looks (18 m). A hit hider is reeled in towards the monster at
   a steady speed for 5 s – they can still dodge sideways. The monster is very slow while it holds the rope.

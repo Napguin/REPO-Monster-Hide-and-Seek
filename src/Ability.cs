@@ -46,7 +46,7 @@ namespace HideAndSeekMonster
             { "headman", AbilityType.Lunge },
             { "headgrab", AbilityType.Charge },
             { "upscream", AbilityType.Launch },
-            { "snatcher", AbilityType.Leap },
+            { "snatcher", AbilityType.Lasso },
             { "chef", AbilityType.Lunge },
             { "tick", AbilityType.Leap },
             { "apex predator", AbilityType.FlyingCharge },
