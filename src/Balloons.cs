@@ -19,14 +19,12 @@ namespace HideAndSeekMonster
         private readonly List<float> _balloonRecharge = new List<float>(); // when a popped balloon's charge is back
 
         /// <summary>Balloons the monster can still place: 5 minus placed ones minus popped ones still recharging.</summary>
-        // When the last hanging balloon pops, all of them come back together after 40 s.
-        private float _balloonAllBackAt;
-        internal int BalloonsLeft => Time.time < _balloonAllBackAt ? 0 : Abilities.BalloonMax - _balloons.Count - _balloonRecharge.Count(t => Time.time < t);
-        internal float NextBalloonIn => Time.time < _balloonAllBackAt ? _balloonAllBackAt - Time.time
-            : _balloonRecharge.Where(t => Time.time < t).DefaultIfEmpty(Time.time).Min() - Time.time;
-        private bool BalloonsRecharging => Time.time < _balloonAllBackAt || _balloonRecharge.Any(t => Time.time < t);
+        // Each popped balloon can be placed again 40 s after it popped. Meanwhile the hanging ones can be moved.
+        internal int BalloonsLeft => Abilities.BalloonMax - _balloons.Count - _balloonRecharge.Count(t => Time.time < t);
+        internal float NextBalloonIn => _balloonRecharge.Where(t => Time.time < t).DefaultIfEmpty(Time.time).Min() - Time.time;
+        private bool BalloonsRecharging => _balloonRecharge.Any(t => Time.time < t);
 
-        private void PlaceBalloon(Vector3 origin)
+        private void PlaceBalloon(Vector3 origin, bool move)
         {
             // use the position the monster player sent – other PCs' copy of the monster can be a bit behind
             Vector3 basePos = origin;
@@ -34,9 +32,9 @@ namespace HideAndSeekMonster
             if (Physics.Raycast(basePos + Vector3.up * 0.5f, Vector3.up, out var hit, Abilities.BalloonHeight + 0.4f, ~0, QueryTriggerInteraction.Ignore))
                 pos.y = hit.point.y - 0.5f; // low ceiling
             bool moved = false;
-            if (_balloons.Count >= Abilities.BalloonMax)
+            if ((move || _balloons.Count >= Abilities.BalloonMax) && _balloons.Count > 0)
             {
-                // all 5 hanging: the oldest one is taken down and set again here (not a pop – no recharge)
+                // no balloon free: the oldest hanging one is taken down and set again here (not a pop – no recharge)
                 var old = _balloons[0];
                 _balloons.RemoveAt(0);
                 old.Pop(false);
@@ -53,7 +51,7 @@ namespace HideAndSeekMonster
         {
             // monster's ability bar: with no balloon left but one recharging, show that countdown
             if (Seeker != null && GameRefs.IsLocal(Seeker) && CurrentAbility == AbilityType.BalloonMines
-                && BalloonsLeft <= 0 && BalloonsRecharging)
+                && BalloonsLeft <= 0 && _balloons.Count == 0 && BalloonsRecharging) // nothing to move either
                 _specialReadyAt = Mathf.Max(_specialReadyAt, Time.time + NextBalloonIn);
             if (_balloons.Count == 0) return;
             foreach (var b in _balloons) b.Animate();
@@ -81,14 +79,7 @@ namespace HideAndSeekMonster
             _balloons.Remove(b);
             b.Pop(true);
             _balloonRecharge.RemoveAll(t => Time.time >= t);
-            if (_balloons.Count == 0)
-            {
-                // the last hanging balloon popped: all 5 come back together after 40 s
-                _balloonRecharge.Clear();
-            _balloonAllBackAt = 0f;
-                _balloonAllBackAt = Time.time + Cd(Abilities.BalloonRecharge);
-            }
-            else _balloonRecharge.Add(Time.time + Cd(Abilities.BalloonReplace)); // others still hang: back after 3 s
+            _balloonRecharge.Add(Time.time + Cd(Abilities.BalloonRecharge)); // this balloon can be placed again after 40 s
             Effects.Shockwave(b.Pos, Abilities.BalloonRadius * 2f, b.Color, 0.4f);
             if (_monster != null) _monster.PlayRoar();
             if (LocalHider(out var me) && Vector3.Distance(PlayerPos(me) + Vector3.up * 0.9f, b.Pos) <= Abilities.BalloonRadius)

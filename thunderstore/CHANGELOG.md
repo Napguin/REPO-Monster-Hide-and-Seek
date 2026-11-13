@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.47 (beta)
+- Balloon Mines: a popped balloon can be placed again **40 s after it popped**. As long as no balloon is free,
+  using the special **moves your oldest hanging balloon** to you (3 s cooldown).
+
 ## 1.5.46 (beta)
 - Balloon Mines: with all 5 out, using it again **moves the oldest balloon** to where you stand (3 s cooldown, like
   placing). The 40 s cooldown only comes when the last hanging balloon pops.

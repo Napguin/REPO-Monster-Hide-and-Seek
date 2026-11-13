@@ -138,7 +138,8 @@ namespace HideAndSeekMonster
             if (ability == AbilityType.None) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
             if (Time.time < _specialReadyAt) return;
             // all 5 hanging: pressing again moves the oldest one here – only blocked while balloons recharge
-            if (ability == AbilityType.BalloonMines && BalloonsLeft <= 0 && _balloons.Count < Abilities.BalloonMax)
+            // no free balloon: move the oldest hanging one; only blocked when none hangs and all recharge
+            if (ability == AbilityType.BalloonMines && BalloonsLeft <= 0 && _balloons.Count == 0)
             {
                 Banner(L.NoBalloons(NextBalloonIn), Abilities.UnityColor(ability), 1.5f);
                 _specialReadyAt = Time.time + 0.5f;
@@ -164,7 +165,9 @@ namespace HideAndSeekMonster
 
             Vector3 origin = _monster != null ? _monster.MuzzlePosition : SeekerPosition() + Vector3.up * 1.5f;
             if (ability == AbilityType.BalloonMines) origin = SeekerPosition(); // the monster's own feet – the same spot on every PC
-            Send(MsgSpecial, (int)ability, origin, LocalAimDirection(), gambled);
+            Vector3 aim = LocalAimDirection();
+            if (ability == AbilityType.BalloonMines) aim = BalloonsLeft > 0 ? Vector3.down : Vector3.up; // down = new balloon, up = move the oldest
+            Send(MsgSpecial, (int)ability, origin, aim, gambled);
         }
 
         // ------------------------------------------------------------------
@@ -279,7 +282,7 @@ namespace HideAndSeekMonster
                     OnTumbleBash(dir);
                     break;
                 case AbilityType.BalloonMines:
-                    PlaceBalloon(origin);
+                    PlaceBalloon(origin, dir.y > 0.5f);
                     break;
                 case AbilityType.Lasso:
                     OnLassoThrow(origin, dir);

@@ -55,7 +55,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 | Radar Ping | position and distance of every hider within 30 m for 2 s; hiders are told whether they were detected | 120 s | Peeper, Loom |
 | Flying Grab | invisible bubble (4 m) around the monster: hiders inside tumble and are stunned for 8 s so the monster can grab and carry them; no main attack meanwhile. The Oogly can always fly | 30 s | Oogly |
 | Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside tumble, float and are stunned for 8 s so the monster can grab them; no main attack meanwhile | 30 s | Mentalist |
-| Balloon Mines | places a balloon hovering in the air (5 balloons; with all 5 out, the oldest is moved to you); when a hider gets close it explodes – 40 damage within 2.5 m | 3 s between balloons; a popped one is back after 3 s – 40 s when the last hanging one pops | Birthday Boy |
+| Balloon Mines | places a balloon hovering in the air (5 balloons; with none free, the oldest hanging one is moved to you); when a hider gets close it explodes – 40 damage within 2.5 m | 3 s between balloons / moves; a popped one can be placed again after 40 s | Birthday Boy |
 | Item Throw | grabs a nearby valuable (4 m); use again to throw it really fast – damage depends on speed and weight | 6 s (1 s after picking up) | Rugrat |
 | Head bomb | throws its head – it bounces off walls and explodes after 4 s: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | 40 s | Cleanup Crew |
 | Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | 30 s | Spewer |
