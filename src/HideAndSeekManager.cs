@@ -156,11 +156,9 @@ namespace HideAndSeekMonster
                 if (_menuOpen && IsHost) ResolveNextSeeker();
             }
 
-            bool choiceVisible = _choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker);
-            if (_menuOpen || choiceVisible || VoteVisible)
+            if (CursorWanted)
             {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
+                ShowCursor();
                 Compat.Call(Compat.Static("CursorManager", "instance"), "Unlock", 0.2f);
                 Compat.Call(PlayerController.instance, "InputDisable", 0.2f);
             }
@@ -1138,8 +1136,25 @@ namespace HideAndSeekMonster
             _smallStyle.fontSize = Mathf.RoundToInt(20 * s);
         }
 
+        private bool CursorWanted =>
+            _menuOpen || VoteVisible || (_choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker));
+
+        private static void ShowCursor()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        // The game locks / hides the cursor again later in the frame (its own cursor manager / menus), so it's also
+        // freed after everything else ran (LateUpdate) and right before our menu is drawn (OnGUI).
+        private void LateUpdate()
+        {
+            if (CursorWanted) ShowCursor();
+        }
+
         private void OnGUI()
         {
+            if (CursorWanted && Event.current != null && Event.current.type == EventType.Repaint) ShowCursor();
             EnsureStyles();
             float sw = Screen.width, sh = Screen.height;
             float u = sh / 1080f;

@@ -10,7 +10,7 @@ namespace HideAndSeekMonster
     /// </summary>
     public partial class HideAndSeekManager
     {
-        private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f;
+        private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f, _bashNoSteerUntil;
         private Vector3 _bashDir;
         private readonly HashSet<int> _bashHit = new HashSet<int>();
         private bool Bashing => Time.time < _bashUntil;
@@ -38,7 +38,7 @@ namespace HideAndSeekMonster
                 var rb = Compat.Get<Rigidbody>(pc, "rb");
                 Compat.Call(InputManager.instance, "DisableMovement", 0.2f);
                 var view = GameRefs.ViewTransform(Seeker);
-                if (view != null)
+                if (view != null && Time.time >= _bashNoSteerUntil) // short pause after a bounce, or the camera steers it straight back
                 {
                     var f = view.forward; f.y = 0f;
                     if (f.sqrMagnitude > 0.001f)
@@ -54,14 +54,19 @@ namespace HideAndSeekMonster
                         var n = hit.normal; n.y = 0f;
                         if (n.sqrMagnitude > 0.001f)
                         {
-                            // soft bounce: mostly slide along the wall, only a little push off it, and lose speed
+                            // bounce off at an angle, never straight back: head-on hits are turned to the side
                             n.Normalize();
-                            float into = -Vector3.Dot(_bashDir, n);
+                            float into = Mathf.Clamp01(-Vector3.Dot(_bashDir, n));
                             Vector3 slide = Vector3.ProjectOnPlane(_bashDir, n);
-                            _bashDir = (slide + n * into * Abilities.BashBounce).normalized;
-                            if (_bashDir.sqrMagnitude < 0.001f) _bashDir = n;
-                            // head-on hits lose most speed, glancing hits only a little
-                            _bashSpeedMul = Mathf.Min(_bashSpeedMul, Mathf.Lerp(0.7f, Abilities.BashWallSlow, Mathf.Clamp01(into)));
+                            if (slide.sqrMagnitude < 0.09f) // (almost) head-on: pick a side
+                            {
+                                Vector3 side = Vector3.Cross(Vector3.up, n);
+                                if (slide.sqrMagnitude > 0.0001f ? Vector3.Dot(slide, side) < 0f : Random.value < 0.5f) side = -side;
+                                slide = side;
+                            }
+                            _bashDir = (slide.normalized + n * Abilities.BashBounce).normalized;
+                            _bashSpeedMul = Mathf.Min(_bashSpeedMul, Mathf.Lerp(0.9f, Abilities.BashWallSlow, into));
+                            _bashNoSteerUntil = Time.time + 0.4f;
                         }
                         if (Time.time >= _bashFxAt) { _bashFxAt = Time.time + 0.15f; Effects.Shockwave(hit.point, 1.2f, Abilities.UnityColor(AbilityType.TumbleBash), 0.25f); }
                     }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.38 (beta)
+- Tumble-Bash: livelier bounces, but never straight back – head-on hits turn the Tick off to the side. It keeps
+  60–90 % of its speed, and camera steering pauses for 0.4 s after a bounce so it doesn't steer back into the wall.
+- Fix: the mouse cursor didn't show in the menus (F8 menu, monster choice, vote) – the game hid it again later in
+  the frame. It's now freed again right before the menu is drawn.
+
 ## 1.5.37 (beta)
 - Tumble-Bash: no more bouncing back at full force – a head-on hit slows the Tick to 20 % speed (glancing hits
   only a little) and it takes about a second to get back to full speed. The push off the wall is weaker too.
