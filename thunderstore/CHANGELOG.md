@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.41 (beta)
+- Tumble-Bash: much weaker bounces – it barely pushes off the wall, mostly slides along it.
+
 ## 1.5.40 (beta)
 - Tumble-Bash: less bouncing – at most one bounce every 0.2 s, and a slightly weaker push off the wall.
 
