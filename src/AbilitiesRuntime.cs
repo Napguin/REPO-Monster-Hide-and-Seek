@@ -447,6 +447,7 @@ namespace HideAndSeekMonster
             Safe("grab zone", GrabTick);
             Safe("gas", GasTick);
             Safe("minions", MinionTick);
+            Safe("swarm assist", SwarmAssistTick);
             Safe("dash", DashTick);
             Safe("item", ItemTick);
             Safe("tornado", TornadoTick);
@@ -751,9 +752,39 @@ namespace HideAndSeekMonster
 
         private float _grabFxAt;
 
+        private readonly HashSet<int> _zeroGCaught = new HashSet<int>();
+        private float _zeroGRequestAt, _zeroGLogAt;
+
+        private void HostZeroG(Vector3 c, float r)
+        {
+            foreach (var h in AliveHiders())
+            {
+                int id = h.photonView.ViewID;
+                if (!_zeroGCaught.Contains(id) && Vector3.Distance(PlayerPos(h), c) > r) continue;
+                _zeroGCaught.Add(id);
+                var tumble = Compat.Get<Component>(h, "tumble");
+                if (tumble == null) continue;
+                var rb = Compat.Get<Rigidbody>(tumble, "rb");
+                bool tumbling = Compat.Get<bool>(h, "isTumbling") || Compat.Get<bool>(tumble, "isTumbling");
+                Compat.Call(tumble, "TumbleOverrideTime", 0.4f);
+                if (!tumbling || rb == null || rb.isKinematic)
+                {
+                    if (Time.time >= _zeroGRequestAt) { _zeroGRequestAt = Time.time + 0.4f; Compat.Call(tumble, "TumbleSet", true, false); }
+                    continue;
+                }
+                Compat.Call(tumble, "DisableCustomGravity", 0.3f); // the ragdoll uses its own gravity
+                // drift slowly upwards to ~2.5 m above the monster's feet and hover there, slowly spinning
+                var v = rb.velocity;
+                float targetY = rb.position.y < c.y + 2.5f ? 1.2f : 0f;
+                rb.velocity = new Vector3(v.x * 0.97f, Mathf.MoveTowards(v.y, targetY, 25f * Time.deltaTime), v.z * 0.97f);
+                rb.angularVelocity = Vector3.MoveTowards(rb.angularVelocity, new Vector3(0.5f, 0.8f, 0.3f), 2f * Time.deltaTime);
+                if (Time.time >= _zeroGLogAt) { _zeroGLogAt = Time.time + 1f; Plugin.Log.LogInfo($"[Zero-G] host floats {id}: height {rb.position.y - c.y:0.0} m"); }
+            }
+        }
+
         private void GrabTick()
         {
-            if (!Grabbing || Seeker == null) return;
+            if (!Grabbing || Seeker == null) { _zeroGCaught.Clear(); return; }
             Vector3 c = PlayerPos(Seeker);
             float r = Abilities.GrabRadius(_grabType) * Mathf.Max(1f, _roundScale);
             bool zeroG = _grabType == AbilityType.ZeroGGrab;
@@ -761,6 +792,9 @@ namespace HideAndSeekMonster
             // test dummies (host only)
             foreach (var d in AliveDummies())
                 if (Vector3.Distance(d.transform.position, c) <= r) d.Stun(0.3f, zeroG);
+
+            // Zero-G: the host runs the physics of knocked-over players, so the host makes them float
+            if (IsHost && zeroG) Safe("zero-g host", () => HostZeroG(c, r));
 
             // the monster: faint ring showing the reach (hiders don't see it – it's an invisible bubble) + count
             if (GameRefs.IsLocal(Seeker))

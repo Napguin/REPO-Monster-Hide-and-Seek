@@ -176,6 +176,69 @@ namespace HideAndSeekMonster
             return false;
         }
 
+        // ---- help for the real summoned enemies (host) ----
+        // On their own the game's Gnomes / Bangers mostly wander around or go for valuables. So: every 0.5 s each
+        // summoned enemy that can SEE a hider (line of sight, 15 m) is sent after them, and touching a hider hurts
+        // (Gnome 10 per second, Banger 35 once and it pops).
+        private float _swarmAssistAt;
+        private readonly Dictionary<EnemyParent, float> _swarmHitAt = new Dictionary<EnemyParent, float>();
+        private const float SwarmSight = 15f, SwarmTouch = 1.5f;
+        private const int SwarmGnomeDamage = 10, SwarmBangerDamage = 35;
+
+        private void SwarmAssistTick()
+        {
+            if (!IsHost || Phase != Phase.Hunting || _summoned.Count == 0 || Time.time < _swarmAssistAt) return;
+            _swarmAssistAt = Time.time + 0.25f;
+            var hiders = AliveHiders();
+            var dummies = AliveDummies();
+            foreach (var p in _summoned.ToList())
+            {
+                if (p == null) { _summoned.Remove(p); continue; }
+                var e = Compat.Get<Enemy>(p, "Enemy") ?? p.GetComponentInChildren<Enemy>();
+                if (e == null) continue;
+                Vector3 ep = e.transform.position;
+                bool banger = p.GetComponentInChildren<EnemyBang>(true) != null;
+
+                // closest visible hider
+                PlayerAvatar best = null; float bestD = SwarmSight;
+                foreach (var h in hiders)
+                {
+                    Vector3 hp = PlayerPos(h) + Vector3.up * 0.8f;
+                    float d = Vector3.Distance(ep, hp);
+                    if (d >= bestD) continue;
+                    if (Physics.Linecast(ep + Vector3.up * 0.4f, hp, out var hit, ~0, QueryTriggerInteraction.Ignore)
+                        && !IsPlayerCollider(hit.collider) && hit.collider.GetComponentInParent<EnemyParent>() == null) continue;
+                    best = h; bestD = d;
+                }
+                if (best != null)
+                {
+                    Compat.Call(e, "SetChaseTarget", best);
+                    var dir = banger ? (object)EnemyBangDirector.instance : EnemyGnomeDirector.instance;
+                    if (dir != null) Compat.Call(dir, "SetTarget", best);
+                }
+
+                // contact damage
+                if (_swarmHitAt.TryGetValue(p, out float next) && Time.time < next) continue;
+                PlayerAvatar touched = hiders.FirstOrDefault(h => Vector3.Distance(PlayerPos(h) + Vector3.up * 0.5f, ep + Vector3.up * 0.3f) <= SwarmTouch);
+                TestDummy touchedD = touched == null ? dummies.FirstOrDefault(d => d != null && Vector3.Distance(d.transform.position, ep) <= SwarmTouch) : null;
+                if (touched == null && touchedD == null) continue;
+                if (banger)
+                {
+                    Effects.Shockwave(ep + Vector3.up * 0.5f, 6f, new Color(1f, 0.6f, 0.2f), 0.4f);
+                    foreach (var h in hiders) if (Vector3.Distance(PlayerPos(h), ep) <= 3f) HostDamage(h, SwarmBangerDamage, "banger");
+                    foreach (var d in dummies) if (d != null && Vector3.Distance(d.transform.position, ep) <= 3f) HostDamageDummy(d, SwarmBangerDamage, ep, "banger");
+                    _swarmHitAt[p] = float.MaxValue;
+                    KillSummoned(p);
+                }
+                else
+                {
+                    _swarmHitAt[p] = Time.time + 1f;
+                    if (touched != null) HostDamage(touched, SwarmGnomeDamage, "gnome");
+                    else HostDamageDummy(touchedD, SwarmGnomeDamage, ep, "gnome");
+                }
+            }
+        }
+
         private void OnSwarm(Vector3 origin)
         {
             Vector3 c = Seeker != null ? PlayerPos(Seeker) : origin;

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.28 (beta)
+- **Swarm attacks now:** the host sends every summoned Gnome / Banger after the closest hider it can actually see
+  (15 m, line of sight), and touching a hider hurts – Gnome 10 damage per second, Banger 35 damage (3 m) and pops.
+- **Zero-G Grab floats again:** the host (who runs the ragdoll physics) now lifts caught hiders slowly to ~2.5 m and
+  lets them hover until the ability ends. Log lines `[Zero-G] host floats ...`.
+
 ## 1.5.27 (beta)
 - **Gambit** now only rolls the specials the other monsters currently have (built from the monster list, so it
   follows every change automatically). Old specials no monster has anymore (Scream, Ground slam, Heart gas,
