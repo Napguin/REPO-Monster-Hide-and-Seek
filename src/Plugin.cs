@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.5.28";
+        public const string Version = "1.5.29";
 
         internal static ManualLogSource Log;
 
@@ -45,7 +45,6 @@ namespace HideAndSeekMonster
         internal static ConfigEntry<bool> TestMode;
         internal static ConfigEntry<string> SpecialBinding;
         internal static ConfigEntry<float> LaserDuration;
-        internal static ConfigEntry<float> LaserCooldown;
         internal static ConfigEntry<bool> MonsterCanGrab;
         internal static ConfigEntry<bool> SeekerChoosesMonster;
         internal static ConfigEntry<int> TestDummyCount;
@@ -109,8 +108,6 @@ namespace HideAndSeekMonster
                 "Special ability, e.g. the Clown's laser (Unity Input System path). F always works as well.");
             LaserDuration = Config.Bind("Seeker", "LaserDuration", 3f,
                 new ConfigDescription("Seconds the laser fires.", new AcceptableValueRange<float>(0.5f, 10f)));
-            LaserCooldown = Config.Bind("Seeker", "LaserCooldown", 12f,
-                new ConfigDescription("Seconds between lasers.", new AcceptableValueRange<float>(1f, 60f)));
             MonsterCanGrab = Config.Bind("Seeker", "CanGrab", true,
                 "Monster can grab things. Needed to open doors, press buttons etc. in R.E.P.O.");
             SeekerChoosesMonster = Config.Bind("Round", "SeekerChoosesMonster", true,

@@ -82,29 +82,29 @@ namespace HideAndSeekMonster
         {
             switch (a)
             {
-                case AbilityType.Laser: return Plugin.LaserCooldown.Value + Plugin.LaserDuration.Value;
+                case AbilityType.Laser: return 40f;
                 case AbilityType.Shot: return 15f;
-                case AbilityType.Sprint: return 15f;
-                case AbilityType.FlyingCharge: return 18f;
-                case AbilityType.Bomb: return 10f;
-                case AbilityType.Puke: return 12f;
+                case AbilityType.Sprint: return 40f;          // Rapid Charge
+                case AbilityType.FlyingCharge: return 20f;
+                case AbilityType.Bomb: return 40f;
+                case AbilityType.Puke: return 30f;
                 case AbilityType.Levitate: return 20f;
                 case AbilityType.Slam: return 10f;
                 case AbilityType.Pull: return 16f;
-                case AbilityType.Gamble: return 15f;
-                case AbilityType.FlyingGrab: return 20f;
-                case AbilityType.ZeroGGrab: return 18f;
-                case AbilityType.NoxiousGas: return 25f;
-                case AbilityType.Swarm: return 40f;
-                case AbilityType.Charge: return 10f;
-                case AbilityType.Lunge: return 10f;
+                case AbilityType.Gamble: return 30f;
+                case AbilityType.FlyingGrab: return 30f;
+                case AbilityType.ZeroGGrab: return 30f;
+                case AbilityType.NoxiousGas: return 40f;
+                case AbilityType.Swarm: return 70f;
+                case AbilityType.Charge: return 30f;
+                case AbilityType.Lunge: return 30f;
                 case AbilityType.ItemThrow: return 6f;
-                case AbilityType.Tornado: return 20f;
-                case AbilityType.Launch: return 10f;
-                case AbilityType.Impulse: return 14f;
-                case AbilityType.Lasso: return 14f;
-                case AbilityType.BalloonMines: return 3f;
-                case AbilityType.Leap: return 8f;
+                case AbilityType.Tornado: return 40f;
+                case AbilityType.Launch: return 30f;
+                case AbilityType.Impulse: return 30f;
+                case AbilityType.Lasso: return 25f;
+                case AbilityType.BalloonMines: return 1f;     // per balloon: the charge comes back 40 s after it popped
+                case AbilityType.Leap: return 30f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
                 case AbilityType.Shockwave: return 15f;
@@ -127,7 +127,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Tornado: return 7f;
                 case AbilityType.Lasso: return 5f;       // reeling time
                 case AbilityType.Impulse: return 1.2f;   // suck-in time before the blast
-                case AbilityType.ZeroGGrab: return 4f;
+                case AbilityType.ZeroGGrab: return 8f;
                 case AbilityType.Leap: return 1.2f;
                 case AbilityType.Reveal: return 2f;
                 case AbilityType.Shockwave: return 2.5f; // stun time
@@ -137,7 +137,7 @@ namespace HideAndSeekMonster
 
         // ---- damage values (players have 100 HP) ----
         public const int ShotDamage = 60, ThrowDamage = 40, LeapDamage = 40;
-        public const int LaserDamage = 50;          // per tick
+        public const int LaserDamage = 25;          // per tick (0.5 s) = 50 per second
         public const int RapidChargeDamage = 20;    // per tick
         public const int FlyingChargeDamage = 10;   // per tick
         public const float DamageTick = 0.5f;
@@ -184,6 +184,8 @@ namespace HideAndSeekMonster
         public const float ImpulseRange = 9f, ImpulseBlastSpeed = 15f;
         public const int ImpulseDamage = 40;
         public const int BalloonMax = 5, BalloonDamage = 40;
+        public const float BalloonRecharge = 40f;
+        public const float TranqTime = 5f;
         public const float BalloonHeight = 1.6f, BalloonArmTime = 1f, BalloonTriggerRange = 1.8f, BalloonRadius = 2.5f;
         public const float LassoRange = 18f, LassoSpeed = 35f, LassoHitRadius = 1f, LassoPullSpeed = 2.5f, LassoStopDistance = 2f, LassoMonsterSpeed = 0.3f;
 

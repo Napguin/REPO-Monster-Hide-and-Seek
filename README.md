@@ -74,31 +74,31 @@ Details are also written to `BepInEx/LogOutput.log`. Dummies only exist on the h
 
 <a id="special-abilities"></a>
 ### Special abilities
-Every monster has one special (**middle mouse** / **F**). The ability bar at the bottom shows the cooldowns.
+Every monster has one special (**middle mouse** / **F**). The ability bar at the bottom shows the cooldowns (no cooldowns in test mode).
 
-| Special | What it does | Monsters |
-|---|---|---|
-| Laser | 3 s beam, 50 damage every 0.5 s, walls block it; the Clown can't move while firing | Clown |
-| Shot | one long-range shot, 60 damage to the first hider in the line of fire | Huntsman |
-| Rapid Charge | 1.5x speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | Reaper, Animal, Elsa, Bella |
-| Flying Charge | attack form, fly for 6 s (jump = up, crouch = down), 10 damage every 0.5 s to hiders close by | Apex Predator |
-| Charge | stops for a moment, then dashes forward very fast (about 14 m, horizontal only) – 60 damage on contact | Robe, Headgrab |
-| Lunge | like Charge, but in the camera direction – also up/down and in the air – 60 damage on contact | Headman, Chef |
-| Leap attack | big jump forward, 40 damage to anyone hit | Tick |
-| Radar Ping | position and distance of every hider within 30 m for 2 s (2 min cooldown); hiders are told whether they were detected | Peeper, Loom |
-| Flying Grab | invisible bubble (4 m) around the monster: hiders inside tumble and are stunned for 8 s so the monster can grab and carry them; no main attack meanwhile. The Oogly can always fly | Oogly |
-| Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside tumble, float and are stunned for 4 s so the monster can grab them; no main attack meanwhile | Mentalist |
-| Balloon Mines | places a balloon hovering in the air (max 5); when a hider gets close it explodes – 40 damage within 2.5 m | Birthday Boy |
-| Item Throw | grabs a nearby valuable (4 m); use again to throw it really fast – damage depends on speed and weight | Rugrat |
-| Head bomb | throws its head – it bounces off walls and explodes after 4 s: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | Cleanup Crew |
-| Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | Spewer |
-| Tornado | a small tornado wanders forward for 7 s, sucks in items, weapons and valuables and whirls them around, then flings everything away – flying items hurt hiders (20–90 damage). Hiders nearby are pulled in; within 2.5 m they're trapped, spun around and can't grab anything | Bowtie |
-| Lasso Grab | lasso in the camera direction (18 m): a hit hider is reeled in at a steady speed for 5 s (they can still move sideways); the monster is very slow meanwhile | Snatcher |
-| Launch | the closest hider within 6 m tumbles and gets launched in the camera direction (25 damage) | Upscream |
-| Impulse | hiders within 9 m tumble and get sucked towards the monster, then a shockwave blasts them away (40 damage) | Trudge |
-| Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) | Heart Hugger |
-| Swarm | summons 5 real Gnomes / Bangers of the game that hunt hiders on their own for 30 s (they have to spot them first, and they ignore the monster) | Gnome, Banger |
-| Gamble | a random special – one of the specials the other monsters have right now (laser, tornado, lasso, gas, grabs, …) | Gambit |
+| Special | What it does | Cooldown | Monsters |
+|---|---|---|---|
+| Laser | 3 s beam, 50 damage per second, walls block it; the Clown can't move while firing | 40 s | Clown |
+| Shot | one long-range shot, 60 damage to the first hider in the line of fire | 15 s | Huntsman |
+| Rapid Charge | 1.5x speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | 40 s | Reaper, Animal, Elsa, Bella |
+| Flying Charge | attack form, fly for 6 s (jump = up, crouch = down), 10 damage every 0.5 s to hiders close by | 20 s | Apex Predator |
+| Charge | stops for a moment, then dashes forward very fast (about 14 m, horizontal only) – 60 damage on contact | 30 s | Robe, Headgrab |
+| Lunge | like Charge, but in the camera direction – also up/down and in the air – 60 damage on contact | 30 s | Headman, Chef |
+| Leap attack | big jump forward, 40 damage to anyone hit | 30 s | Tick |
+| Radar Ping | position and distance of every hider within 30 m for 2 s; hiders are told whether they were detected | 120 s | Peeper, Loom |
+| Flying Grab | invisible bubble (4 m) around the monster: hiders inside tumble and are stunned for 8 s so the monster can grab and carry them; no main attack meanwhile. The Oogly can always fly | 30 s | Oogly |
+| Zero-G Grab | stun bubble (6 m) with zero gravity: hiders inside tumble, float and are stunned for 8 s so the monster can grab them; no main attack meanwhile | 30 s | Mentalist |
+| Balloon Mines | places a balloon hovering in the air (5 balloons); when a hider gets close it explodes – 40 damage within 2.5 m | 40 s per balloon after it popped | Birthday Boy |
+| Item Throw | grabs a nearby valuable (4 m); use again to throw it really fast – damage depends on speed and weight | 6 s (1 s after picking up) | Rugrat |
+| Head bomb | throws its head – it bounces off walls and explodes after 4 s: explosion (50 damage, 4 m) and a uranium cloud (10 damage every 0.5 s for 5 s) | 40 s | Cleanup Crew |
+| Puke | vomit stream forward for 2.5 s: 10 damage every 0.5 s and slows. The Spewer can always fly | 30 s | Spewer |
+| Tornado | a small tornado wanders forward for 7 s, sucks in items, weapons and valuables and whirls them around, then flings everything away – flying items hurt hiders (20–90 damage). Hiders nearby are pulled in; within 2.5 m they're trapped, spun around and can't grab anything | 40 s | Bowtie |
+| Lasso Grab | lasso in the camera direction (18 m): a hit hider is reeled in at a steady speed for 5 s (they can still move sideways); the monster is very slow meanwhile | 25 s | Snatcher |
+| Launch | the closest hider within 6 m tumbles and gets launched in the camera direction (25 damage) | 30 s | Upscream |
+| Impulse | hiders within 9 m tumble and get sucked towards the monster, then a shockwave blasts them away (40 damage) | 30 s | Trudge |
+| Noxious Gas | spews 5 large gas clouds that linger for 10 s – hiders in the gas are tranquilized (very slow, sluggish camera) – for 5 s after leaving it | 40 s | Heart Hugger |
+| Swarm | summons 5 real Gnomes / Bangers of the game that hunt hiders on their own for 30 s (they have to spot them first, and they ignore the monster) | 70 s | Gnome, Banger |
+| Gamble | a random special – one of the specials the other monsters have right now (laser, tornado, lasso, gas, grabs, …) | 30 s | Gambit |
 
 Hiders see which special the monster has while they hide and get a warning when it is used.
 
@@ -151,7 +151,6 @@ The round settings of the **host** are used for everyone.
 | Round / SeekerChoosesMonster | true | Seeker picks their monster while the others hide |
 | Seeker / CanGrab | true | Monster can grab (needed for doors) |
 | Seeker / LaserDuration | 3 | Seconds the laser fires |
-| Seeker / LaserCooldown | 12 | Seconds between lasers |
 | Test / TestMode | false | Solo test mode with training dummies |
 | Test / DummyCount | 4 | Dummies spawned around you in test mode |
 | Controls / Attack, Roar, ToggleView | mouse L / mouse R / V | Input System paths, e.g. `<Keyboard>/f` |

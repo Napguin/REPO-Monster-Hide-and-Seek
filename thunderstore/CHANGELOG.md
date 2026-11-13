@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.29 (beta)
+- **New cooldowns:** Rapid Charge 40 s, Flying Charge 20 s, Swarm 70 s, Tornado 40 s, Lunge 30 s, Charge 30 s,
+  Head bomb 40 s, Laser 40 s, Gamble 30 s, Noxious Gas 40 s, Shot 15 s, Radar Ping 120 s, Flying / Zero-G Grab 30 s,
+  Item Throw 6 s (1 s after picking up), Lasso 25 s, Puke 30 s, Leap (Tick) 30 s, Impulse 30 s, Launch 30 s.
+- **Laser:** 50 damage per second for 3 s (was 50 every 0.5 s). The `LaserCooldown` config is gone (fixed 40 s).
+- **Balloon Mines:** 5 balloons; each one comes back 40 s after it popped (no more popping the oldest).
+- **Noxious Gas:** the tranquilizer lasts 5 s after leaving the gas.
+- **Zero-G Grab (Mentalist):** lasts 8 s (was 4 s).
+
 ## 1.5.28 (beta)
 - **Swarm attacks now:** the host sends every summoned Gnome / Banger after the closest hider it can actually see
   (15 m, line of sight), and touching a hider hurts – Gnome 10 damage per second, Banger 35 damage (3 m) and pops.

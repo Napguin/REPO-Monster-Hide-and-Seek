@@ -137,6 +137,12 @@ namespace HideAndSeekMonster
             var ability = CurrentAbility;
             if (ability == AbilityType.None) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
             if (Time.time < _specialReadyAt) return;
+            if (ability == AbilityType.BalloonMines && BalloonsLeft <= 0)
+            {
+                Banner(L.NoBalloons(NextBalloonIn), Abilities.UnityColor(ability), 1.5f);
+                _specialReadyAt = Time.time + 0.5f;
+                return;
+            }
             _specialReadyAt = Time.time + Cd(ability == AbilityType.ItemThrow && !_holdingItem ? 1f : Abilities.Cooldown(ability));
             Plugin.Log.LogInfo($"[Monster] special pressed: {ability}");
 
@@ -727,17 +733,22 @@ namespace HideAndSeekMonster
             {
                 if (!_gas[i].Step(Time.deltaTime)) { _gas[i].Destroy(); _gas.RemoveAt(i); }
             }
-            if (_gas.Count == 0) { _tranqShown = false; return; }
+            // tranquilized: lasts 5 s after the last time you were in the gas
+            if (Time.time < _tranqUntil)
+            {
+                var pc = PlayerController.instance;
+                Compat.Call(pc, "OverrideSpeed", 0.3f, 0.2f);
+                Compat.Call(pc, "OverrideLookSpeed", 0.25f, 0.5f, 1f, 0.2f);
+            }
+            else _tranqShown = false;
+            if (_gas.Count == 0) return;
 
             foreach (var d in AliveDummies())
                 if (_gas.Any(g => g.Contains(d.transform.position + Vector3.up * 0.9f))) d.Stun(0.3f, false);
 
             if (!LocalHider(out var me)) return;
             if (!_gas.Any(g => g.Contains(PlayerPos(me) + Vector3.up * 0.9f))) return;
-            _tranqUntil = Time.time + 0.3f;
-            var pc = PlayerController.instance;
-            Compat.Call(pc, "OverrideSpeed", 0.3f, 0.2f);
-            Compat.Call(pc, "OverrideLookSpeed", 0.25f, 0.5f, 1f, 0.2f);
+            _tranqUntil = Time.time + Abilities.TranqTime;
             if (!_tranqShown) { _tranqShown = true; Banner(L.Tranquilized, Abilities.UnityColor(AbilityType.NoxiousGas), 2.5f); }
         }
 

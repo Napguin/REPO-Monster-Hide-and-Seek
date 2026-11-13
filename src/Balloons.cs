@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace HideAndSeekMonster
@@ -15,6 +16,11 @@ namespace HideAndSeekMonster
         private readonly List<Balloon> _balloons = new List<Balloon>();
         private int _balloonNextId;
         private float _balloonCheckAt;
+        private readonly List<float> _balloonRecharge = new List<float>(); // when a popped balloon's charge is back
+
+        /// <summary>Balloons the monster can still place: 5 minus placed ones minus popped ones still recharging.</summary>
+        internal int BalloonsLeft => Abilities.BalloonMax - _balloons.Count - _balloonRecharge.Count(t => Time.time < t);
+        internal float NextBalloonIn => _balloonRecharge.Where(t => Time.time < t).DefaultIfEmpty(Time.time).Min() - Time.time;
 
         private void PlaceBalloon(Vector3 origin)
         {
@@ -24,15 +30,9 @@ namespace HideAndSeekMonster
                 pos.y = hit.point.y - 0.5f; // low ceiling
             var b = new Balloon(_balloonNextId++, pos, Time.time + Abilities.BalloonArmTime);
             _balloons.Add(b);
-            if (_balloons.Count > Abilities.BalloonMax)
-            {
-                var old = _balloons[0];
-                _balloons.RemoveAt(0);
-                old.Pop(false);
-            }
             if (_monster != null) _monster.PlayAttack();
             if (Seeker != null && GameRefs.IsLocal(Seeker))
-                Banner(L.BalloonsPlaced(_balloons.Count, Abilities.BalloonMax), Abilities.UnityColor(AbilityType.BalloonMines), 1.2f);
+                Banner(L.BalloonsPlaced(BalloonsLeft, Abilities.BalloonMax), Abilities.UnityColor(AbilityType.BalloonMines), 1.2f);
         }
 
         private void BalloonTick()
@@ -62,6 +62,8 @@ namespace HideAndSeekMonster
             if (b == null) return;
             _balloons.Remove(b);
             b.Pop(true);
+            _balloonRecharge.RemoveAll(t => Time.time >= t);
+            _balloonRecharge.Add(Time.time + Cd(Abilities.BalloonRecharge));
             Effects.Shockwave(b.Pos, Abilities.BalloonRadius * 2f, b.Color, 0.4f);
             if (_monster != null) _monster.PlayRoar();
             if (LocalHider(out var me) && Vector3.Distance(PlayerPos(me) + Vector3.up * 0.9f, b.Pos) <= Abilities.BalloonRadius)
@@ -81,6 +83,7 @@ namespace HideAndSeekMonster
             foreach (var b in _balloons) b.Pop(false);
             _balloons.Clear();
             _balloonNextId = 0;
+            _balloonRecharge.Clear();
         }
     }
 
