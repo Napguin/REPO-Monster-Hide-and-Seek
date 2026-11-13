@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.46 (beta)
+- Balloon Mines: with all 5 out, using it again **moves the oldest balloon** to where you stand (3 s cooldown, like
+  placing). The 40 s cooldown only comes when the last hanging balloon pops.
+
 ## 1.5.45 (beta)
 - Fix: Balloon Mines were in different places for the monster and the hiders (the hiders' PCs used their own,
   slightly outdated copy of the monster's position). Now the monster player's exact position is sent along.

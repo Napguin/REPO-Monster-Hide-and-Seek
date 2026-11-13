@@ -137,9 +137,10 @@ namespace HideAndSeekMonster
             var ability = CurrentAbility;
             if (ability == AbilityType.None) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
             if (Time.time < _specialReadyAt) return;
-            if (ability == AbilityType.BalloonMines && BalloonsLeft <= 0)
+            // all 5 hanging: pressing again moves the oldest one here – only blocked while balloons recharge
+            if (ability == AbilityType.BalloonMines && BalloonsLeft <= 0 && _balloons.Count < Abilities.BalloonMax)
             {
-                Banner(_balloons.Count >= Abilities.BalloonMax ? L.AllBalloonsOut : L.NoBalloons(NextBalloonIn), Abilities.UnityColor(ability), 1.5f);
+                Banner(L.NoBalloons(NextBalloonIn), Abilities.UnityColor(ability), 1.5f);
                 _specialReadyAt = Time.time + 0.5f;
                 return;
             }

@@ -33,11 +33,20 @@ namespace HideAndSeekMonster
             Vector3 pos = basePos + Vector3.up * Abilities.BalloonHeight;
             if (Physics.Raycast(basePos + Vector3.up * 0.5f, Vector3.up, out var hit, Abilities.BalloonHeight + 0.4f, ~0, QueryTriggerInteraction.Ignore))
                 pos.y = hit.point.y - 0.5f; // low ceiling
+            bool moved = false;
+            if (_balloons.Count >= Abilities.BalloonMax)
+            {
+                // all 5 hanging: the oldest one is taken down and set again here (not a pop – no recharge)
+                var old = _balloons[0];
+                _balloons.RemoveAt(0);
+                old.Pop(false);
+                moved = true;
+            }
             var b = new Balloon(_balloonNextId++, pos, Time.time + Abilities.BalloonArmTime);
             _balloons.Add(b);
             if (_monster != null) _monster.PlayAttack();
             if (Seeker != null && GameRefs.IsLocal(Seeker))
-                Banner(L.BalloonsPlaced(BalloonsLeft, Abilities.BalloonMax), Abilities.UnityColor(AbilityType.BalloonMines), 1.2f);
+                Banner(moved ? L.BalloonMoved : L.BalloonsPlaced(BalloonsLeft, Abilities.BalloonMax), Abilities.UnityColor(AbilityType.BalloonMines), 1.2f);
         }
 
         private void BalloonTick()
