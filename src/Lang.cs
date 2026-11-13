@@ -81,6 +81,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Launch: return De ? "Wegschleudern" : "Launch";
                 case AbilityType.Impulse: return "Impulse";
                 case AbilityType.Lasso: return "Lasso Grab";
+                case AbilityType.BalloonMines: return De ? "Ballon-Minen" : "Balloon Mines";
                 case AbilityType.Leap: return De ? "Sprungangriff" : "Leap attack";
                 case AbilityType.Reveal: return "Radar Ping";
                 case AbilityType.Throw: return De ? "Wurf" : "Throw";
@@ -112,6 +113,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Tornado: return De ? "Erzeugt einen kleinen Tornado, der 7 s nach vorn wandert, Gegenstände und Wertobjekte einsaugt und herumwirbelt und am Ende alles wegschleudert – fliegende Teile verletzen Hider. Hider in der Nähe werden angezogen – wer zu nah kommt, wird mitgewirbelt und kann nichts greifen." : "Spawns a small tornado that wanders forward for 7 s, sucks in items and valuables and whirls them around, then flings everything away – flying items hurt hiders. Hiders nearby are pulled in – get too close and you're spun around inside it and can't grab anything.";
                 case AbilityType.Launch: return De ? $"Der nächste Hider in {HideAndSeekMonster.Abilities.LaunchRange:0.#} m fällt um und wird in Blickrichtung weggeschleudert ({HideAndSeekMonster.Abilities.LaunchDamage} Schaden)." : $"The closest hider within {HideAndSeekMonster.Abilities.LaunchRange:0.#} m tumbles and gets launched in your camera direction ({HideAndSeekMonster.Abilities.LaunchDamage} damage).";
                 case AbilityType.Impulse: return De ? $"Hider in {HideAndSeekMonster.Abilities.ImpulseRange:0} m fallen um und werden zum Monster gesaugt, dann von einer Druckwelle weggeschleudert ({HideAndSeekMonster.Abilities.ImpulseDamage} Schaden)." : $"Hiders within {HideAndSeekMonster.Abilities.ImpulseRange:0} m tumble and get sucked towards you, then blasted away by a shockwave ({HideAndSeekMonster.Abilities.ImpulseDamage} damage).";
+                case AbilityType.BalloonMines: return De ? "Setzt einen schwebenden Ballon als Mine (max. 5, der älteste platzt beim 6.). Kommt ein Hider nah ran, explodiert er: 40 Schaden." : "Places a hovering balloon mine (max 5 – the oldest pops when you place a 6th). When a hider gets close it explodes: 40 damage.";
                 case AbilityType.Lasso: return De ? "Wirft ein Lasso in Blickrichtung (18 m). Trifft es einen Hider, wird er 5 s lang gleichmäßig zu dir gezogen – er kann nur noch seitlich ausweichen. Du bist dabei sehr langsam." : "Throws a lasso where you look (18 m). A hit hider is reeled in towards you at a steady speed for 5 s – they can only dodge sideways. You are very slow meanwhile.";
                 case AbilityType.Lunge: return De ? "Wie Charge, aber in Blickrichtung – auch nach oben/unten und in der Luft. 60 Schaden bei Kontakt." : "Like Charge, but in the camera direction – also up/down and in the air. 60 damage on contact.";
                 case AbilityType.Swarm: return De ? "Ruft 5 echte Gnome/Banger des Spiels, die 30 s lang selbst nach Hidern suchen – sie müssen sie erst sehen. Dich greifen sie nicht an." : "Summons 5 real Gnomes/Bangers of the game that hunt hiders on their own for 30 s – they have to spot them first. They ignore you.";
@@ -182,6 +184,7 @@ namespace HideAndSeekMonster
         public static string Apply => De ? "Übernehmen" : "Apply";
         public static string ItemNone => De ? "Kein Wertobjekt in der Nähe!" : "No valuable nearby!";
         public static string ItemPicked => De ? "Geschnappt! Nochmal drücken zum Werfen." : "Grabbed! Press again to throw.";
+        public static string BalloonsPlaced(int n, int max) => De ? $"Ballon {n}/{max}" : $"Balloon {n}/{max}";
         public static string Lassoed => De ? "GEFANGEN! Du wirst eingeholt!" : "LASSOED! You're being reeled in!";
         public static string TornadoTrapped => De ? "IM TORNADO GEFANGEN!" : "CAUGHT IN THE TORNADO!";
         public static string LaunchNone => De ? "Kein Hider nah genug!" : "No hider close enough!";

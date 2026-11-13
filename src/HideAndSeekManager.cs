@@ -870,6 +870,10 @@ namespace HideAndSeekMonster
                         if (!SenderIsMaster(sender)) return;
                         OnItemState((int)data[2], data.Length > 3 ? (int)data[3] : 0);
                         break;
+                    case MsgBalloon:
+                        if (!SenderIsMaster(sender)) return;
+                        OnBalloonExplode((int)data[2]);
+                        break;
                     case MsgLasso:
                         if (!SenderIsMaster(sender)) return;
                         OnLassoResult((int)data[2]);

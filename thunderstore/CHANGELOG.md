@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.26 (beta)
+- **Birthday Boy – Balloon Mines:** each use places a balloon hovering in the air (max 5 – the oldest pops when you
+  place a 6th). Armed after 1 s; when a hider comes within ~1.8 m it explodes: 40 damage within 2.5 m.
+  (Throw is now only in the Gambit's pool.)
+- Snatcher Lasso reels players in a bit slower (2.5 m/s instead of 3.5 m/s).
+
 ## 1.5.25 (beta)
 - Rugrat: the "no collision with the held item" fix now also works in single player / for the host (it
   didn't find the item there).

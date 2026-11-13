@@ -30,7 +30,8 @@ namespace HideAndSeekMonster
         Tornado = 22,    // Bowtie: wandering tornado that whirls items around and flings them out
         Launch = 23,     // Upscream: the closest hider tumbles and is launched in the camera direction
         Impulse = 24,    // Trudge: hiders around tumble, get sucked in, then blasted away
-        Lasso = 25       // Pony: lasso in the camera direction, reels a hit hider in for 5 s
+        Lasso = 25,      // Snatcher (pony): lasso in the camera direction, reels a hit hider in for 5 s
+        BalloonMines = 26 // Birthday Boy: hovering balloon mines (max 5), 40 damage when a hider comes close
     }
 
     internal static class Abilities
@@ -58,7 +59,7 @@ namespace HideAndSeekMonster
             { "rugrat", AbilityType.ItemThrow },
             { "cleanup crew", AbilityType.Bomb },
             { "spewer", AbilityType.Puke },
-            { "birthday boy", AbilityType.Throw },
+            { "birthday boy", AbilityType.BalloonMines },
             { "bowtie", AbilityType.Tornado },
             { "trudge", AbilityType.Impulse },
             { "heart hugger", AbilityType.NoxiousGas },
@@ -102,6 +103,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Launch: return 10f;
                 case AbilityType.Impulse: return 14f;
                 case AbilityType.Lasso: return 14f;
+                case AbilityType.BalloonMines: return 3f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -163,7 +165,9 @@ namespace HideAndSeekMonster
         public const int LaunchDamage = 25;
         public const float ImpulseRange = 9f, ImpulseBlastSpeed = 15f;
         public const int ImpulseDamage = 40;
-        public const float LassoRange = 18f, LassoSpeed = 35f, LassoHitRadius = 1f, LassoPullSpeed = 3.5f, LassoStopDistance = 2f, LassoMonsterSpeed = 0.3f;
+        public const int BalloonMax = 5, BalloonDamage = 40;
+        public const float BalloonHeight = 1.6f, BalloonArmTime = 1f, BalloonTriggerRange = 1.8f, BalloonRadius = 2.5f;
+        public const float LassoRange = 18f, LassoSpeed = 35f, LassoHitRadius = 1f, LassoPullSpeed = 2.5f, LassoStopDistance = 2f, LassoMonsterSpeed = 0.3f;
 
         public const int GasClouds = 5;
         public const float GasTime = 10f, GasRadius = 1.8f, GasSpread = 4f;
@@ -213,6 +217,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Launch: return "#ff8a3d";
                 case AbilityType.Impulse: return "#c07a40";
                 case AbilityType.Lasso: return "#ff7ac8";
+                case AbilityType.BalloonMines: return "#ff5577";
                 default: return "#a89a9c";
             }
         }
