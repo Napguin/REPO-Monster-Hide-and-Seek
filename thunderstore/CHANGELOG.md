@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.22 (beta)
+- **Pony – Lasso Grab:** throws a lasso where the camera looks (18 m). A hit hider is reeled in towards the monster at
+  a steady speed for 5 s – they can still dodge sideways. The monster is very slow while it holds the rope.
+  (Also in the Gambit's pool.)
+
 ## 1.5.21 (beta)
 - **Bowtie Tornado traps players:** hiders that get within 2.5 m are knocked over and spun around inside the
   tornado until it fades, then flung out. While trapped they can't grab anything. Equipment / weapons are sucked in

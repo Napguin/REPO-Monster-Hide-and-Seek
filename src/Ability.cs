@@ -29,7 +29,8 @@ namespace HideAndSeekMonster
         ItemThrow = 21,  // Rugrat: pick up a valuable, use again to throw it very fast
         Tornado = 22,    // Bowtie: wandering tornado that whirls items around and flings them out
         Launch = 23,     // Upscream: the closest hider tumbles and is launched in the camera direction
-        Impulse = 24     // Trudge: hiders around tumble, get sucked in, then blasted away
+        Impulse = 24,    // Trudge: hiders around tumble, get sucked in, then blasted away
+        Lasso = 25       // Pony: lasso in the camera direction, reels a hit hider in for 5 s
     }
 
     internal static class Abilities
@@ -65,6 +66,7 @@ namespace HideAndSeekMonster
             { "banger", AbilityType.Swarm },
             { "gambit", AbilityType.Gamble },
             { "bella", AbilityType.Sprint },
+            { "pony", AbilityType.Lasso },
         };
 
         public static AbilityType For(MonsterCatalog.Entry e)
@@ -99,6 +101,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Tornado: return 20f;
                 case AbilityType.Launch: return 10f;
                 case AbilityType.Impulse: return 14f;
+                case AbilityType.Lasso: return 14f;
                 case AbilityType.Leap: return 8f;
                 case AbilityType.Reveal: return 120f;
                 case AbilityType.Throw: return 5f;
@@ -120,6 +123,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Pull: return 3f;
                 case AbilityType.FlyingGrab: return 8f;
                 case AbilityType.Tornado: return 7f;
+                case AbilityType.Lasso: return 5f;       // reeling time
                 case AbilityType.Impulse: return 1.2f;   // suck-in time before the blast
                 case AbilityType.ZeroGGrab: return 4f;
                 case AbilityType.Leap: return 1.2f;
@@ -159,6 +163,7 @@ namespace HideAndSeekMonster
         public const int LaunchDamage = 25;
         public const float ImpulseRange = 9f, ImpulseBlastSpeed = 15f;
         public const int ImpulseDamage = 40;
+        public const float LassoRange = 18f, LassoSpeed = 35f, LassoHitRadius = 1f, LassoPullSpeed = 3.5f, LassoStopDistance = 2f, LassoMonsterSpeed = 0.3f;
 
         public const int GasClouds = 5;
         public const float GasTime = 10f, GasRadius = 1.8f, GasSpread = 4f;
@@ -207,6 +212,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Tornado: return "#a8d8ff";
                 case AbilityType.Launch: return "#ff8a3d";
                 case AbilityType.Impulse: return "#c07a40";
+                case AbilityType.Lasso: return "#ff7ac8";
                 default: return "#a89a9c";
             }
         }

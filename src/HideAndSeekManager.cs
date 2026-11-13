@@ -234,7 +234,7 @@ namespace HideAndSeekMonster
                     return;
                 }
                 if (Time.time < _dashEnd) return; // Charge / Lunge controls the movement
-                float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f) * (Charging ? Abilities.ChargeSpeed(_chargeType) : 1f);
+                float speed = _roundSpeed * (Time.time < _lungeUntil ? 1.8f : 1f) * (Charging ? Abilities.ChargeSpeed(_chargeType) : 1f) * (LassoHolding ? Abilities.LassoMonsterSpeed : 1f);
                 if (!Mathf.Approximately(speed, 1f)) Compat.Call(pc, "OverrideSpeed", speed, 0.2f);
             });
             if (_roundInfStamina)
@@ -869,6 +869,10 @@ namespace HideAndSeekMonster
                     case MsgItem:
                         if (!SenderIsMaster(sender)) return;
                         OnItemState((int)data[2]);
+                        break;
+                    case MsgLasso:
+                        if (!SenderIsMaster(sender)) return;
+                        OnLassoResult((int)data[2]);
                         break;
                     case MsgLaunch:
                         if (!SenderIsMaster(sender)) return;

@@ -267,6 +267,9 @@ namespace HideAndSeekMonster
                         if (_holdingItem && _monster != null) _monster.PlayAttack();
                         break;
                     }
+                case AbilityType.Lasso:
+                    OnLassoThrow(origin, dir);
+                    break;
                 case AbilityType.Tornado:
                     SpawnTornado(origin);
                     break;
@@ -444,6 +447,7 @@ namespace HideAndSeekMonster
             Safe("dash", DashTick);
             Safe("item", ItemTick);
             Safe("tornado", TornadoTick);
+            Safe("lasso", LassoTick);
             Safe("launch", LaunchTick);
             Safe("host launch", HostLaunchTick);
             Safe("impulse", ImpulseTick);
@@ -884,6 +888,7 @@ namespace HideAndSeekMonster
             ClearMinions();
             ClearItem();
             ClearTornados();
+            ClearLasso();
             ClearTumbleSpecials();
             foreach (var g in _gas) g.Destroy();
             _gas.Clear();
