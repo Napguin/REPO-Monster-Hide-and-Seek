@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.49 (beta)
+- **Debug menu (F7, host only):** revive all, heal all, everyone to me / to the truck, skip the hiding phase, end
+  the round, reset all cooldowns, spawn any real game enemy in front of you (stays even with "disable normal
+  enemies"), kill all enemies, spawn / remove training dummies. Key: `General / DebugMenuKey`.
+
 ## 1.5.48 (beta)
 - **Monster Showcase** in the F8 menu: every special with its hand-drawn animation, cooldown, which monsters have it
   and what it does (values come straight from the mod, so they're always current). Drawings for Balloon Mines,

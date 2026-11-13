@@ -156,6 +156,7 @@ namespace HideAndSeekMonster
                 if (!_menuOpen) SetMenuPage(MenuPage.Main);
                 if (_menuOpen && IsHost) ResolveNextSeeker();
             }
+            DebugMenuKey();
 
             if (CursorWanted)
             {
@@ -191,7 +192,7 @@ namespace HideAndSeekMonster
                 if (_attackAction.WasPressedThisFrame()) _rawAttackPresses++;
                 if (_roarAction.WasPressedThisFrame()) _rawRoarPresses++;
             });
-            if (_roundTest && !_menuOpen) Safe("test keys", TestKeys);
+            if (_roundTest && !_menuOpen && !_debugOpen) Safe("test keys", TestKeys);
             Safe("choice keys", ChoiceKeys);
             Safe("seeker", LocalSeekerTick);
             Safe("laser", LaserTick);
@@ -240,7 +241,7 @@ namespace HideAndSeekMonster
             if (_roundInfStamina)
                 Safe("stamina", () => Compat.Set(pc, "EnergyCurrent", Compat.Get(pc, "EnergyStart", 100f)));
 
-            if (_menuOpen || GameRefs.IsTyping) return;
+            if (_menuOpen || _debugOpen || GameRefs.IsTyping) return;
 
             Safe("view key", () =>
             {
@@ -647,7 +648,7 @@ namespace HideAndSeekMonster
             if (dir == null || dir.enemiesSpawned == null) return;
             foreach (var e in dir.enemiesSpawned)
             {
-                if (e == null || IsSummoned(e)) continue; // our Swarm minions stay
+                if (e == null || IsSummoned(e) || IsDebugSpawned(e)) continue; // our Swarm minions and debug-spawned enemies stay
                 try
                 {
                     if (Compat.Get(e, "Spawned", false)) Compat.Call(e, "Despawn");
@@ -926,6 +927,10 @@ namespace HideAndSeekMonster
                         }
                         Send(MsgMonsterSet, chosen);
                         break;
+                    case MsgDebug:
+                        if (!SenderIsMaster(sender)) return;
+                        OnDebug((int)data[2], (Vector3)data[3]);
+                        break;
                     case MsgMonsterSet:
                         if (!SenderIsMaster(sender)) return;
                         var setName = (string)data[2];
@@ -1138,7 +1143,7 @@ namespace HideAndSeekMonster
         }
 
         private bool CursorWanted =>
-            _menuOpen || VoteVisible || (_choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker));
+            _menuOpen || _debugOpen || VoteVisible || (_choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker));
 
         private static void ShowCursor()
         {
@@ -1246,6 +1251,11 @@ namespace HideAndSeekMonster
             {
                 try { DrawStartMenu(sw, sh, u); }
                 catch (System.Exception ex) { _lastError = "menu: " + ex.Message; GUI.color = Color.white; }
+            }
+            if (_debugOpen)
+            {
+                try { DrawDebugMenu(sw, sh, u); }
+                catch (System.Exception ex) { if (ex is ExitGUIException) throw; _lastError = "debug menu: " + ex.Message; GUI.color = Color.white; GUI.enabled = true; }
             }
         }
 

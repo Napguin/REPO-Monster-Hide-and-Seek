@@ -232,6 +232,27 @@ namespace HideAndSeekMonster
         public static string ShowcaseBasicsText => De
             ? "Linksklick: Angriff nach vorn – 40 Schaden (Spieler haben 100 HP). Reinlaufen tötet niemanden mehr.\nRechtsklick / R: Player Scan – zeigt, wie viele Spieler in 15 m sind (20 s Cooldown).\nMittlere Maustaste / F: die Spezialfähigkeit des Monsters.\nV: Kamera wechseln (Third / First Person)."
             : "Left click: attack forward – 40 damage (players have 100 HP). Running into hiders doesn't kill any more.\nRight click / R: Player Scan – shows how many players are within 15 m (20 s cooldown).\nMiddle mouse / F: the monster's special.\nV: switch camera (third / first person).";
+        public static string DebugHostOnly => De ? "Das Debug-Menü kann nur der Host benutzen." : "Only the host can use the debug menu.";
+        public static string DebugPlayers => De ? "Spieler" : "Players";
+        public static string DebugReviveAll => De ? "Alle wiederbeleben" : "Revive all";
+        public static string DebugHealAll => De ? "Alle heilen" : "Heal all";
+        public static string DebugAllToMe => De ? "Alle zu mir" : "Everyone to me";
+        public static string DebugAllToTruck => De ? "Alle zum Truck" : "Everyone to truck";
+        public static string DebugRound => De ? "Runde" : "Round";
+        public static string DebugSkipHide => De ? "Versteckphase überspringen" : "Skip hiding phase";
+        public static string DebugResetCooldowns => De ? "Alle Cooldowns zurücksetzen" : "Reset all cooldowns";
+        public static string DebugEnemies => De ? "Gegner (echte aus dem Spiel)" : "Enemies (real game enemies)";
+        public static string DebugSpawnEnemy => De ? "Vor mir spawnen" : "Spawn in front of me";
+        public static string DebugKillEnemies => De ? "Alle Gegner töten" : "Kill all enemies";
+        public static string DebugDummies => De ? "Trainingspuppen" : "Training dummies";
+        public static string DebugSpawnDummy => De ? "Puppe spawnen" : "Spawn dummy";
+        public static string DebugRemoveDummies => De ? "Puppen entfernen" : "Remove dummies";
+        public static string DebugCantSpawn => De ? "Kann hier nichts spawnen" : "Can't spawn here";
+        public static string DebugRevived(int n) => De ? $"{n} Spieler wiederbelebt" : $"Revived {n} player(s)";
+        public static string DebugKilled(int n) => De ? $"{n} Gegner getötet" : $"Killed {n} enemies";
+        public static string DebugHint => De
+            ? "Gespawnte Gegner bleiben auch bei „Normale Gegner aus“. Puppen zählen in einer Runde als Hider (nur auf dem Host sichtbar)."
+            : "Spawned enemies stay even with \"disable normal enemies\". Dummies count as hiders during a round (only visible on the host).";
         public static string Close => De ? "Schließen" : "Close";
         public static string NotEnoughPlayers => De ? "Mindestens 2 lebende Spieler nötig." : "At least 2 living players are needed.";
         public static string RoundRunning => De ? "Eine Runde läuft gerade." : "A round is currently running.";

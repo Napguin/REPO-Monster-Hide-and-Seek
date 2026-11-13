@@ -18,12 +18,13 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.5.48";
+        public const string Version = "1.5.49";
 
         internal static ManualLogSource Log;
 
         // ---- Config ----
         internal static ConfigEntry<Key> MenuKey;
+        internal static ConfigEntry<Key> DebugMenuKey;
         internal static ConfigEntry<UiLanguage> Language;
         internal static ConfigEntry<float> HideTime;
         internal static ConfigEntry<float> RoundTime;
@@ -59,6 +60,8 @@ namespace HideAndSeekMonster
 
             MenuKey = Config.Bind("General", "MenuKey", Key.F8,
                 "Key that opens the Hide & Seek menu (host only can start rounds).");
+            DebugMenuKey = Config.Bind("General", "DebugMenuKey", Key.F7,
+                "Key that opens the debug menu (host only: revive, heal, teleport, spawn enemies / dummies, skip hiding ...).");
             Language = Config.Bind("General", "Language", UiLanguage.English,
                 "Language of the in-game texts.");
 
