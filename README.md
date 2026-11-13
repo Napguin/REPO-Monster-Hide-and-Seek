@@ -135,7 +135,7 @@ The round settings of the **host** are used for everyone.
 | Setting | Default | Description |
 |---|---|---|
 | General / MenuKey | F8 | Key to open the menu |
-| General / DebugMenuKey | F7 | Debug menu (host only): revive, heal, teleport, spawn enemies / dummies, skip hiding, reset cooldowns |
+| General / DebugMenuKey | F7 | Debug menu (host only): revive, heal, teleport, spawn enemies / valuables / items / dummies, skip hiding, reset cooldowns |
 | General / Language | English | English or Deutsch |
 | Round / HideTime | 30 | Seconds to hide |
 | Round / RoundTime | 300 | Seconds the monster has to hunt |

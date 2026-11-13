@@ -247,6 +247,12 @@ namespace HideAndSeekMonster
         public static string DebugDummies => De ? "Trainingspuppen" : "Training dummies";
         public static string DebugSpawnDummy => De ? "Puppe spawnen" : "Spawn dummy";
         public static string DebugRemoveDummies => De ? "Puppen entfernen" : "Remove dummies";
+        public static string DebugValuables => De ? "Wertgegenstände" : "Valuables";
+        public static string DebugItems => De ? "Items (Shop)" : "Items (shop)";
+        public static string DebugSpawnHere => De ? "Vor mir spawnen" : "Spawn in front of me";
+        public static string DebugRandom => De ? "Zufällig" : "Random";
+        public static string DebugNothingFound => De ? "Nichts gefunden (erst in einem Level verfügbar)" : "Nothing found (available in a level)";
+        public static string DebugSpawned(string n) => De ? $"{n} gespawnt" : $"Spawned {n}";
         public static string DebugCantSpawn => De ? "Kann hier nichts spawnen" : "Can't spawn here";
         public static string DebugRevived(int n) => De ? $"{n} Spieler wiederbelebt" : $"Revived {n} player(s)";
         public static string DebugKilled(int n) => De ? $"{n} Gegner getötet" : $"Killed {n} enemies";

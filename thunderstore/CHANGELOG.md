@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.50 (beta)
+- Debug menu: spawn **valuables** (every valuable of every level) and **shop items** in front of you – pick one
+  with ◀ ▶ or spawn a random one.
+
 ## 1.5.49 (beta)
 - **Debug menu (F7, host only):** revive all, heal all, everyone to me / to the truck, skip the hiding phase, end
   the round, reset all cooldowns, spawn any real game enemy in front of you (stays even with "disable normal

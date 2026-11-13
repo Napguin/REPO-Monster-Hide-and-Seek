@@ -140,6 +140,96 @@ namespace HideAndSeekMonster
             Banner(L.DebugKilled(n), Color.white, 2f);
         }
 
+        // ---------------- items & valuables ----------------
+        // Lists are built from the game's own data: every valuable of every level preset, every item of the shop.
+        private List<(string name, PrefabRef prefab)> _dbgValuables, _dbgItems;
+        private int _debugValuable, _debugItem;
+        private float _dbgListAt;
+
+        private void BuildSpawnLists()
+        {
+            if (_dbgValuables != null && _dbgValuables.Count > 0 && _dbgItems != null && _dbgItems.Count > 0) return;
+            if (Time.realtimeSinceStartup < _dbgListAt) return; // not found yet: try again every 2 s, not every frame
+            _dbgListAt = Time.realtimeSinceStartup + 2f;
+            var vals = new Dictionary<string, PrefabRef>();
+            try
+            {
+                var rm = RunManager.instance;
+                var levels = new List<Level>();
+                if (rm != null)
+                {
+                    if (rm.levels != null) levels.AddRange(rm.levels);
+                    if (rm.levelCurrent != null) levels.Add(rm.levelCurrent);
+                }
+                foreach (var lv in levels.Where(l => l != null && l.ValuablePresets != null))
+                    foreach (var preset in lv.ValuablePresets.Where(p => p != null))
+                        foreach (var list in new[] { preset.tiny, preset.small, preset.medium, preset.big, preset.wide, preset.tall, preset.veryTall })
+                            if (list != null)
+                                foreach (var pr in list)
+                                    if (pr != null && pr.IsValid()) vals[CleanName(pr.PrefabName)] = pr;
+            }
+            catch (System.Exception ex) { Plugin.Log.LogWarning("[Debug] valuable list: " + ex.Message); }
+            _dbgValuables = vals.OrderBy(k => k.Key).Select(k => (k.Key, k.Value)).ToList();
+
+            var items = new Dictionary<string, PrefabRef>();
+            try
+            {
+                var sm = StatsManager.instance;
+                if (sm != null && sm.itemDictionary != null)
+                    foreach (var it in sm.itemDictionary.Values)
+                        if (it != null && it.prefab != null && it.prefab.IsValid())
+                            items[string.IsNullOrEmpty(it.itemName) ? CleanName(it.prefab.PrefabName) : it.itemName] = it.prefab;
+            }
+            catch (System.Exception ex) { Plugin.Log.LogWarning("[Debug] item list: " + ex.Message); }
+            _dbgItems = items.OrderBy(k => k.Key).Select(k => (k.Key, k.Value)).ToList();
+            Plugin.Log.LogInfo($"[Debug] spawn lists: {_dbgValuables.Count} valuables, {_dbgItems.Count} items");
+        }
+
+        private static string CleanName(string n) =>
+            (n ?? "?").Replace("Valuable ", "").Replace("Item ", "").Replace("(Clone)", "").Trim();
+
+        /// <summary>Host: spawns a valuable / item prefab like the game does (network object in multiplayer).</summary>
+        private void DebugSpawnPrefab(string name, PrefabRef pr)
+        {
+            Vector3 pos = HostFront(2f) + Vector3.up * 1f;
+            try
+            {
+                GameObject go;
+                if (SemiFunc.IsMultiplayer())
+                    go = Photon.Pun.PhotonNetwork.InstantiateRoomObject(pr.ResourcePath, pos, Quaternion.identity);
+                else
+                    go = Object.Instantiate(pr.Prefab, pos, Quaternion.identity);
+                Plugin.Log.LogInfo($"[Debug] spawned '{name}' ({pr.ResourcePath}) -> {(go != null ? go.name : "null")}");
+                Banner(go != null ? L.DebugSpawned(name) : L.DebugCantSpawn, Color.white, 1.5f);
+            }
+            catch (System.Exception ex)
+            {
+                Plugin.Log.LogWarning($"[Debug] spawning '{name}' failed: {ex.Message}");
+                Banner(L.DebugCantSpawn, Color.white, 2f);
+            }
+        }
+
+        private void SpawnPicker(ref float y, float cw, float bh, float g, float u, List<(string name, PrefabRef prefab)> list, ref int sel, string button)
+        {
+            float half = (cw - g) / 2f;
+            if (list == null || list.Count == 0)
+            {
+                GUI.Label(new Rect(0, y, cw, bh), L.DebugNothingFound, _mSmall);
+                y += bh + g;
+                return;
+            }
+            sel = Mathf.Clamp(sel, 0, list.Count - 1);
+            if (GUI.Button(new Rect(0, y, 44 * u, bh), "◀", _chBtn)) sel = (sel - 1 + list.Count) % list.Count;
+            GUI.Label(new Rect(50 * u, y, cw - 100 * u, bh), $"<b>{list[sel].name}</b>  <color=#a89a9c>({sel + 1}/{list.Count})</color>", CenterStyleSmall(u));
+            if (GUI.Button(new Rect(cw - 44 * u, y, 44 * u, bh), "▶", _chBtn)) sel = (sel + 1) % list.Count;
+            y += bh + g;
+            GUI.enabled = InLevel();
+            if (GUI.Button(new Rect(0, y, half, bh), button, _chBtn)) DebugSpawnPrefab(list[sel].name, list[sel].prefab);
+            if (GUI.Button(new Rect(half + g, y, half, bh), L.DebugRandom, _chBtn)) { sel = Random.Range(0, list.Count); DebugSpawnPrefab(list[sel].name, list[sel].prefab); }
+            GUI.enabled = true;
+            y += bh + g;
+        }
+
         // ---------------- window ----------------
 
         private void DrawDebugMenu(float sw, float sh, float u)
@@ -159,7 +249,7 @@ namespace HideAndSeekMonster
                 return;
             }
             float bh = 36 * u, g = 6 * u;
-            var content = new Rect(0, 0, area.width - 18 * u, 900 * u);
+            var content = new Rect(0, 0, area.width - 18 * u, 1250 * u);
             _debugScroll = GUI.BeginScrollView(area, _debugScroll, content);
             try
             {
@@ -201,6 +291,12 @@ namespace HideAndSeekMonster
                     if (Btn(L.DebugKillEnemies, half + g, half)) DebugKillEnemies();
                     Row();
                 }
+
+                BuildSpawnLists();
+                Head(L.DebugValuables);
+                SpawnPicker(ref y, cw, bh, g, u, _dbgValuables, ref _debugValuable, L.DebugSpawnHere);
+                Head(L.DebugItems);
+                SpawnPicker(ref y, cw, bh, g, u, _dbgItems, ref _debugItem, L.DebugSpawnHere);
 
                 Head(L.DebugDummies);
                 if (Btn(L.DebugSpawnDummy, 0, half)) SpawnDummyAt(HostFront(4f));
