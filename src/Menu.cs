@@ -39,15 +39,16 @@ namespace HideAndSeekMonster
         {
             EnsureMenuStyles(u);
             bool full = IsHost && !RoundActive && InLevel();
+            bool big = full || _menuPage != MenuPage.Main;
 
             GUI.color = new Color(0, 0, 0, 0.75f);
             GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
             GUI.color = Color.white;
 
-            float pw = full ? Mathf.Min(sw - 40 * u, 1400 * u) : Mathf.Min(sw - 40 * u, 640 * u);
+            float pw = big ? Mathf.Min(sw - 40 * u, 1400 * u) : Mathf.Min(sw - 40 * u, 1100 * u);
             int scoreLines = Mathf.Max(1, _sbNames.Length) + (IsHost && _sbNames.Length > 0 ? 2 : 0);
             float simpleH = 74 * u + 40 * u + (RoundActive ? (IsHost ? 130 * u : 70 * u) : 40 * u) + 50 * u + scoreLines * 26 * u + 30 * u;
-            float ph = full ? Mathf.Min(sh - 40 * u, 860 * u) : Mathf.Min(sh - 40 * u, simpleH);
+            float ph = big ? Mathf.Min(sh - 40 * u, 860 * u) : Mathf.Min(sh - 40 * u, simpleH);
             var panel = new Rect((sw - pw) / 2f, (sh - ph) / 2f, pw, ph);
             GUI.DrawTexture(panel, Tex(new Color(0.06f, 0.045f, 0.05f, 1f)));
             GUI.DrawTexture(new Rect(panel.x, panel.y, panel.width, 4 * u), Tex(new Color(0.8f, 0.1f, 0.08f, 1f)));
@@ -56,9 +57,12 @@ namespace HideAndSeekMonster
             GUI.color = new Color(1f, 0.25f, 0.2f);
             GUI.Label(new Rect(panel.x + pad, panel.y + 12 * u, pw - 200 * u, 50 * u), "HIDE & SEEK · MONSTER", _mHead);
             GUI.color = Color.white;
-            if (GUI.Button(new Rect(panel.xMax - pad - 120 * u, panel.y + 18 * u, 120 * u, 38 * u), L.Close + "  (F8)", _chBtn)) _menuOpen = false;
+            if (GUI.Button(new Rect(panel.xMax - pad - 120 * u, panel.y + 18 * u, 120 * u, 38 * u), L.Close + "  (F8)", _chBtn)) { _menuOpen = false; SetMenuPage(MenuPage.Main); }
+            DrawMenuPageButtons(panel, pad, u);
 
             var body = new Rect(panel.x + pad, panel.y + 74 * u, pw - 2 * pad, ph - 74 * u - pad);
+            if (_menuPage == MenuPage.Showcase) { MenuPart("showcase", () => DrawShowcase(body, u)); return; }
+            if (_menuPage == MenuPage.HowToPlay) { MenuPart("how to play", () => DrawHowToPlay(body, u)); return; }
             if (!full) { DrawSimpleMenu(body, u); return; }
 
             float gap = 16 * u;

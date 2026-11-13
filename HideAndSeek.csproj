@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>HideAndSeekMonster</AssemblyName>
     <RootNamespace>HideAndSeekMonster</RootNamespace>
-    <Version>1.5.47</Version>
+    <Version>1.5.48</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <!-- REQUIRED: the game DLLs are publicized (private members made public). Mono only skips its access
@@ -40,6 +40,11 @@
   <!-- Alternative: dotnet build -p:LocalLibs=C:\path\to\folder\with\dlls -->
   <ItemGroup Condition="'$(LocalLibs)' != ''">
     <Reference Include="$(LocalLibs)\*.dll" Private="false" />
+  </ItemGroup>
+
+  <!-- Monster Showcase drawings (made from pictures/monster-showcase by tools/make_showcase.py) -->
+  <ItemGroup>
+    <EmbeddedResource Include="showcase\*.*" LogicalName="showcase/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <Target Name="CopyToGame" AfterTargets="Build" Condition="'$(GameDir)' != ''">

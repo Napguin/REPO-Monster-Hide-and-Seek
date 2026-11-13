@@ -220,6 +220,18 @@ namespace HideAndSeekMonster
         public static string Off => De ? "AUS" : "OFF";
         public static string Start => De ? "Runde starten" : "Start round";
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
+        public static string MonsterShowcase => "Monster Showcase";
+        public static string HowToPlay => De ? "Spielanleitung" : "How To Play";
+        public static string Back => De ? "Zurück" : "Back";
+        public static string HowToPlaySoon => De ? "Die Spielanleitung mit Bildern kommt bald!" : "How To Play with pictures is coming soon!";
+        public static string DrawingSoon => De ? "Zeichnung kommt bald" : "Drawing coming soon";
+        public static string ShowcaseBasics => De ? "Angriff & Grundlagen" : "Attack & basics";
+        public static string AllMonsters => De ? "alle Monster" : "all monsters";
+        public static string CooldownLabel => "Cooldown";
+        public static string MonstersLabel => De ? "Monster" : "Monsters";
+        public static string ShowcaseBasicsText => De
+            ? "Linksklick: Angriff nach vorn – 40 Schaden (Spieler haben 100 HP). Reinlaufen tötet niemanden mehr.\nRechtsklick / R: Player Scan – zeigt, wie viele Spieler in 15 m sind (20 s Cooldown).\nMittlere Maustaste / F: die Spezialfähigkeit des Monsters.\nV: Kamera wechseln (Third / First Person)."
+            : "Left click: attack forward – 40 damage (players have 100 HP). Running into hiders doesn't kill any more.\nRight click / R: Player Scan – shows how many players are within 15 m (20 s cooldown).\nMiddle mouse / F: the monster's special.\nV: switch camera (third / first person).";
         public static string Close => De ? "Schließen" : "Close";
         public static string NotEnoughPlayers => De ? "Mindestens 2 lebende Spieler nötig." : "At least 2 living players are needed.";
         public static string RoundRunning => De ? "Eine Runde läuft gerade." : "A round is currently running.";

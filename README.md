@@ -49,6 +49,8 @@ Everyone else has a short time to hide. Then the monster is released and hunts t
 4. Adjust times, attack range, speed and monster size if you like. Under the hunt time the menu recommends hide and hunt times for the current moon phase (maps get bigger every phase) – one click applies them.
 5. Press **Start round**.
 
+New to the mod? Open **Monster Showcase** in the F8 menu: every special with a drawn animation, its cooldown and which monsters have it.
+
 ### As the monster
 | Control | Action |
 |---|---|

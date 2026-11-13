@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.48 (beta)
+- **Monster Showcase** in the F8 menu: every special with its hand-drawn animation, cooldown, which monsters have it
+  and what it does (values come straight from the mod, so they're always current). Drawings for Balloon Mines,
+  Tumble-Bash and Gamble are still to come.
+- **How To Play** button in the F8 menu (page with text and pictures coming soon).
+
 ## 1.5.47 (beta)
 - Balloon Mines: a popped balloon can be placed again **40 s after it popped**. As long as no balloon is free,
   using the special **moves your oldest hanging balloon** to you (3 s cooldown).

@@ -153,6 +153,7 @@ namespace HideAndSeekMonster
             if (kb != null && kb[Plugin.MenuKey.Value].wasPressedThisFrame)
             {
                 _menuOpen = !_menuOpen;
+                if (!_menuOpen) SetMenuPage(MenuPage.Main);
                 if (_menuOpen && IsHost) ResolveNextSeeker();
             }
 
