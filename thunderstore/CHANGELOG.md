@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.31 (beta)
+- Noxious Gas: the slowdown comes in 5 s blocks – touching the gas gives 5 s, still inside when it runs out gives
+  another 5 s (before, it lasted 5 s after leaving the gas).
+
 ## 1.5.30 (beta)
 - Player Scan no longer flashes a "ROAR!" text first – only the scan result is shown. Remaining "Roar" labels
   in the help text are now "Scan".
@@ -10,7 +14,7 @@
   Item Throw 6 s (1 s after picking up), Lasso 25 s, Puke 30 s, Leap (Tick) 30 s, Impulse 30 s, Launch 30 s.
 - **Laser:** 50 damage per second for 3 s (was 50 every 0.5 s). The `LaserCooldown` config is gone (fixed 40 s).
 - **Balloon Mines:** 5 balloons; each one comes back 40 s after it popped (no more popping the oldest).
-- **Noxious Gas:** the tranquilizer lasts 5 s after leaving the gas.
+- **Noxious Gas:** clouds last 10 s. Touching the gas tranquilizes you for 5 s; still inside after that = another 5 s.
 - **Zero-G Grab (Mentalist):** lasts 8 s (was 4 s).
 
 ## 1.5.28 (beta)

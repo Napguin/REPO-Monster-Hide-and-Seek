@@ -733,7 +733,7 @@ namespace HideAndSeekMonster
             {
                 if (!_gas[i].Step(Time.deltaTime)) { _gas[i].Destroy(); _gas.RemoveAt(i); }
             }
-            // tranquilized: lasts 5 s after the last time you were in the gas
+            // tranquilized (5 s blocks, see below)
             if (Time.time < _tranqUntil)
             {
                 var pc = PlayerController.instance;
@@ -748,7 +748,8 @@ namespace HideAndSeekMonster
 
             if (!LocalHider(out var me)) return;
             if (!_gas.Any(g => g.Contains(PlayerPos(me) + Vector3.up * 0.9f))) return;
-            _tranqUntil = Time.time + Abilities.TranqTime;
+            // 5 s blocks: touching the gas starts 5 s of slowdown; still inside when it runs out → another 5 s
+            if (Time.time >= _tranqUntil) _tranqUntil = Time.time + Abilities.TranqTime;
             if (!_tranqShown) { _tranqShown = true; Banner(L.Tranquilized, Abilities.UnityColor(AbilityType.NoxiousGas), 2.5f); }
         }
 
