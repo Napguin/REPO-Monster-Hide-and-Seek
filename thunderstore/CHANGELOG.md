@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.42 (beta)
+- Tumble-Bash: no more steering pause after a bounce – you can steer all the time.
+
 ## 1.5.41 (beta)
 - Tumble-Bash: much weaker bounces – it barely pushes off the wall, mostly slides along it.
 

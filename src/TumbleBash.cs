@@ -10,7 +10,7 @@ namespace HideAndSeekMonster
     /// </summary>
     public partial class HideAndSeekManager
     {
-        private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f, _bashNoSteerUntil, _bashBounceReadyAt;
+        private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f, _bashBounceReadyAt;
         private Vector3 _bashDir;
         private readonly HashSet<int> _bashHit = new HashSet<int>();
         private bool Bashing => Time.time < _bashUntil;
@@ -38,7 +38,7 @@ namespace HideAndSeekMonster
                 var rb = Compat.Get<Rigidbody>(pc, "rb");
                 Compat.Call(InputManager.instance, "DisableMovement", 0.2f);
                 var view = GameRefs.ViewTransform(Seeker);
-                if (view != null && Time.time >= _bashNoSteerUntil) // short pause after a bounce, or the camera steers it straight back
+                if (view != null)
                 {
                     var f = view.forward; f.y = 0f;
                     if (f.sqrMagnitude > 0.001f)
@@ -72,7 +72,6 @@ namespace HideAndSeekMonster
                             }
                             _bashDir = (slide.normalized + n * Abilities.BashBounce).normalized;
                             _bashSpeedMul = Mathf.Min(_bashSpeedMul, Mathf.Lerp(0.9f, Abilities.BashWallSlow, into));
-                            _bashNoSteerUntil = Time.time + 0.4f;
                             _bashBounceReadyAt = Time.time + Abilities.BashBounceGap;
                         }
                         if (Time.time >= _bashFxAt) { _bashFxAt = Time.time + 0.15f; Effects.Shockwave(hit.point, 1.2f, Abilities.UnityColor(AbilityType.TumbleBash), 0.25f); }
