@@ -868,7 +868,7 @@ namespace HideAndSeekMonster
                         break;
                     case MsgItem:
                         if (!SenderIsMaster(sender)) return;
-                        OnItemState((int)data[2]);
+                        OnItemState((int)data[2], data.Length > 3 ? (int)data[3] : 0);
                         break;
                     case MsgLasso:
                         if (!SenderIsMaster(sender)) return;

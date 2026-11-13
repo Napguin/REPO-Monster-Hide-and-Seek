@@ -50,7 +50,8 @@ namespace HideAndSeekMonster
                 _heldItem = best;
                 _heldItem.useGravity = false;
                 Plugin.Log.LogInfo($"[Rugrat] picked up '{best.name}' ({best.mass:0.0} kg)");
-                Send(MsgItem, 1);
+                var pv = best.GetComponentInParent<Photon.Pun.PhotonView>();
+                Send(MsgItem, 1, pv != null ? pv.ViewID : 0);
                 return;
             }
 
@@ -63,7 +64,7 @@ namespace HideAndSeekMonster
             item.angularVelocity = Random.insideUnitSphere * 10f;
             TrackFlyingItem(item, ItemFlyTime);
             Plugin.Log.LogInfo($"[Rugrat] threw '{item.name}'");
-            Send(MsgItem, 2);
+            Send(MsgItem, 2, 0);
         }
 
         private Vector3 HoldPoint()
@@ -104,9 +105,43 @@ namespace HideAndSeekMonster
             }
         }
 
-        private void OnItemState(int state)
+        // The held item must not collide with the monster: otherwise a big item pushes the Rugrat around when it looks
+        // around. Collisions are switched off on every client (each moves its own player body) and back on shortly
+        // after the throw.
+        private readonly List<(Collider a, Collider b)> _itemIgnored = new List<(Collider, Collider)>();
+
+        private void SetItemCollision(int viewId)
+        {
+            RestoreItemCollision();
+            if (viewId == 0 || Seeker == null) return;
+            var pv = Photon.Pun.PhotonView.Find(viewId);
+            if (pv == null) return;
+            var itemCols = pv.GetComponentsInChildren<Collider>(true);
+            var mine = new List<Collider>(Seeker.GetComponentsInChildren<Collider>(true));
+            if (GameRefs.IsLocal(Seeker) && PlayerController.instance != null)
+                mine.AddRange(PlayerController.instance.GetComponentsInChildren<Collider>(true));
+            foreach (var a in itemCols)
+                foreach (var b in mine)
+                {
+                    if (a == null || b == null || a == b) continue;
+                    Physics.IgnoreCollision(a, b, true);
+                    _itemIgnored.Add((a, b));
+                }
+            Plugin.Log.LogInfo($"[Rugrat] held item ignores {mine.Count} monster colliders");
+        }
+
+        private void RestoreItemCollision()
+        {
+            foreach (var (a, b) in _itemIgnored)
+                if (a != null && b != null) Physics.IgnoreCollision(a, b, false);
+            _itemIgnored.Clear();
+        }
+
+        private void OnItemState(int state, int viewId = 0)
         {
             _holdingItem = state == 1;
+            if (state == 1) SetItemCollision(viewId);
+            else if (state == 2) Later(0.6f, () => { if (!_holdingItem) RestoreItemCollision(); }); // let it clear the monster first
             if (Seeker == null || !GameRefs.IsLocal(Seeker)) return;
             var col = Abilities.UnityColor(AbilityType.ItemThrow);
             if (state == 0) Banner(L.ItemNone, col, 1.5f);
@@ -119,6 +154,7 @@ namespace HideAndSeekMonster
             _heldItem = null;
             _flying.Clear();
             _holdingItem = false;
+            RestoreItemCollision();
         }
     }
 }

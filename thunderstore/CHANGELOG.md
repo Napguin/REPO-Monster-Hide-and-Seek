@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.24 (beta)
+- Rugrat Item Throw: the held item no longer collides with the Rugrat – big items can't push the monster around
+  anymore when looking around. Collision comes back shortly after the throw.
+
 ## 1.5.23 (beta)
 - **Snatcher (the pony)** now has **Lasso Grab** (was Leap attack).
 
