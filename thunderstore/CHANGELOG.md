@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.30 (beta)
+- Player Scan no longer flashes a "ROAR!" text first – only the scan result is shown. Remaining "Roar" labels
+  in the help text are now "Scan".
+
 ## 1.5.29 (beta)
 - **New cooldowns:** Rapid Charge 40 s, Flying Charge 20 s, Swarm 70 s, Tornado 40 s, Lunge 30 s, Charge 30 s,
   Head bomb 40 s, Laser 40 s, Gamble 30 s, Noxious Gas 40 s, Shot 15 s, Radar Ping 120 s, Flying / Zero-G Grab 30 s,

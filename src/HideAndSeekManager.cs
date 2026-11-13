@@ -265,7 +265,6 @@ namespace HideAndSeekMonster
                 if (!_roarAction.WasPressedThisFrame() || Time.time < _roarReadyAt) return;
                 _roarReadyAt = Time.time + Cd(Plugin.RoarCooldown.Value);
                 Plugin.Log.LogInfo("[Monster] roar pressed");
-                Banner(L.RoarBanner, new Color(1f, 0.3f, 0.2f), 1f);
                 Send(MsgRoar, SeekerPosition());
             });
 

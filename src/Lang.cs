@@ -30,7 +30,6 @@ namespace HideAndSeekMonster
             ? $"verfehlt – nächste Puppe {name}: {dist:0.0}m (Reichweite {range:0.0}m), Winkel {angle:0}° (max ~70°)"
             : $"missed – nearest {name}: {dist:0.0}m (range {range:0.0}m), angle {angle:0}° (max ~70°)";
         public static string AttackMissNoTarget => De ? "verfehlt – keine Puppen mehr" : "missed – no dummies left";
-        public static string RoarBanner => De ? "BRÜLLEN!" : "ROAR!";
         public static string NoSpecial => De ? "Dieses Monster hat keine Spezialfähigkeit." : "This monster has no special ability.";
         public static string LaserControl(string key, string cd) => De ? $"   [{key}] Laser{cd}" : $"   [{key}] Laser{cd}";
         public static string LaserHit(string name) => De ? $"LASER traf {name}" : $"LASER hit {name}";
@@ -46,7 +45,7 @@ namespace HideAndSeekMonster
         public static string MonsterDied(string name) => De ? $"Das Monster ({name}) ist tot – die Hider gewinnen!" : $"The monster ({name}) is dead – the hiders win!";
         public static string ReopenChoice => De ? "[C] Monster ändern" : "[C] change monster";
         public static string SpecialLaser => De ? "Spezial: Laser" : "Special: laser";
-        public static string BasicAbilities => De ? "Angriff · Brüllen" : "Attack · roar";
+        public static string BasicAbilities => De ? "Angriff · Player Scan" : "Attack · player scan";
         public static string YouAre => De ? "DU BIST" : "YOU ARE";
         public static string Abilities => De ? "Fähigkeiten" : "Abilities";
         public static string AbilityAttack => De ? $"Angreifen (Sprung nach vorn, {Plugin.AttackDamage.Value} Schaden)" : $"Attack (lunge, {Plugin.AttackDamage.Value} damage)";
@@ -225,8 +224,8 @@ namespace HideAndSeekMonster
         public static string WaitForHiders(int s) => De ? $"Die anderen verstecken sich... {s}s" : $"The others are hiding... {s}s";
         public static string HideNow(string seeker, string monster, int s) => De ? $"VERSTECK DICH! {seeker} ist {monster} – {s}s" : $"HIDE! {seeker} is the {monster} – {s}s";
         public static string SeekerControls(string atk, string atkCd, string roar, string roarCd, string view) =>
-            De ? $"[{atk}] Angreifen{atkCd}   [{roar}] Brüllen{roarCd}   [{view}] Kamera"
-               : $"[{atk}] Attack{atkCd}   [{roar}] Roar{roarCd}   [{view}] Camera";
+            De ? $"[{atk}] Angreifen{atkCd}   [{roar}] Scan{roarCd}   [{view}] Kamera"
+               : $"[{atk}] Attack{atkCd}   [{roar}] Scan{roarCd}   [{view}] Camera";
         public static string HuntStarted => De ? "Das Monster ist los!" : "The monster is loose!";
         public static string Hunt(int s, int left) => De ? $"Jagd: {s}s | Übrige Hider: {left}" : $"Hunt: {s}s | Hiders left: {left}";
         public static string Hiding(int s) => De ? $"Verstecken: {s}s" : $"Hiding: {s}s";
