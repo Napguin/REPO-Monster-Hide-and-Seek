@@ -33,7 +33,7 @@ namespace HideAndSeekMonster
 
         private const byte EventCode = 147;
         private const string Magic = "HNSM";
-        private const int MsgStart = 1, MsgKill = 2, MsgEnd = 3, MsgAttack = 4, MsgRoar = 5, MsgLaser = 6, MsgAim = 7, MsgChoose = 8, MsgScore = 9;
+        private const int MsgStart = 1, MsgKill = 2, MsgEnd = 3, MsgAttack = 4, MsgRoar = 5, MsgLaser = 6, MsgAim = 7, MsgChoose = 8, MsgScore = 9, MsgMonsterSet = 24;
         private const string RandomMonster = "<random>";
 
         // ---- round state (all clients) ----
@@ -181,6 +181,7 @@ namespace HideAndSeekMonster
             if (Phase == Phase.Hiding && Time.time >= _phaseEndTime)
             {
                 Phase = Phase.Hunting;
+                if (IsHost && Seeker != null) Send(MsgMonsterSet, _monsterName); // everyone hunts with the host's monster
                 _phaseEndTime = Time.time + _roundHuntTime;
                 Banner(L.HuntStarted, new Color(1f, 0.2f, 0.2f), 3f);
                 if (_monster != null) _monster.PlayRoar();
@@ -911,11 +912,26 @@ namespace HideAndSeekMonster
                         _resultsUntil = (bool)data[6] ? Time.time + 10f : 0f;
                         break;
                     case MsgChoose:
-                        if (!SenderIsSeeker(sender) || Phase != Phase.Hiding || !_roundSeekerChooses) return;
+                        // Only the host decides (its own phase timer), then tells everyone – so all players always
+                        // see the same monster. Before, each PC decided alone and a pick at the end of the hiding
+                        // time could be taken by the monster player but refused by the host.
+                        if (!IsHost) return;
+                        if (!SenderIsSeeker(sender) || !_roundSeekerChooses) return;
                         var chosen = (string)data[2];
                         if (MonsterCatalog.Find(chosen) == null) return;
-                        SwitchMonster(chosen);
-                        Plugin.Log.LogInfo($"[Monster] seeker chose '{chosen}'");
+                        if (Phase != Phase.Hiding)
+                        {
+                            Plugin.Log.LogInfo($"[Monster] pick '{chosen}' refused – the hunt already started");
+                            Send(MsgMonsterSet, _monsterName); // make sure the monster player shows the current one
+                            return;
+                        }
+                        Send(MsgMonsterSet, chosen);
+                        break;
+                    case MsgMonsterSet:
+                        if (!SenderIsMaster(sender)) return;
+                        var setName = (string)data[2];
+                        if (MonsterCatalog.Find(setName) == null) return;
+                        if (setName != _monsterName) { SwitchMonster(setName); Plugin.Log.LogInfo($"[Monster] seeker chose '{setName}'"); }
                         break;
                     case MsgAim:
                         if (!SenderIsSeeker(sender)) return;

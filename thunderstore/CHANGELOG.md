@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.34 (beta)
+- **Fix: players saw different monsters** after the monster switched models while hiding. Each PC decided on its own,
+  so a pick near the end of the hiding time was taken by the monster player but refused by the host. Now only the
+  host decides and tells everyone; when the hunt starts the host sends the monster once more, so everyone matches.
+- Swarm (Banger) confirmed working: the summoned Bangers chase visible hiders and explode next to them.
+
 ## 1.5.33 (beta)
 - Swarm (Banger): the game spawns Bangers as a whole group. The mod destroyed the extra ones right away, which broke
   the group on the other players' PCs (error in the game's Banger director). Now the whole group (up to 8) is kept.
