@@ -113,13 +113,27 @@ namespace HideAndSeekMonster
         private void SetItemCollision(int viewId)
         {
             RestoreItemCollision();
-            if (viewId == 0 || Seeker == null) return;
-            var pv = Photon.Pun.PhotonView.Find(viewId);
-            if (pv == null) return;
-            var itemCols = pv.GetComponentsInChildren<Collider>(true);
+            if (Seeker == null) { Plugin.Log.LogInfo("[Rugrat] no-collision: no monster"); return; }
+            // host knows the item directly (in single player there are no network ids); clients look it up by id
+            GameObject item = null;
+            if (IsHost && _heldItem != null)
+            {
+                var pgo = _heldItem.GetComponentInParent<PhysGrabObject>();
+                item = pgo != null ? pgo.gameObject : _heldItem.gameObject;
+            }
+            else if (viewId != 0)
+            {
+                var pv = Photon.Pun.PhotonView.Find(viewId);
+                if (pv != null) item = pv.gameObject;
+            }
+            if (item == null) { Plugin.Log.LogInfo($"[Rugrat] no-collision: item not found (id {viewId})"); return; }
+
+            var itemCols = item.GetComponentsInChildren<Collider>(true);
             var mine = new List<Collider>(Seeker.GetComponentsInChildren<Collider>(true));
             if (GameRefs.IsLocal(Seeker) && PlayerController.instance != null)
                 mine.AddRange(PlayerController.instance.GetComponentsInChildren<Collider>(true));
+            var tumble = Compat.Get<Component>(Seeker, "tumble");
+            if (tumble != null) mine.AddRange(tumble.GetComponentsInChildren<Collider>(true));
             foreach (var a in itemCols)
                 foreach (var b in mine)
                 {
@@ -127,7 +141,7 @@ namespace HideAndSeekMonster
                     Physics.IgnoreCollision(a, b, true);
                     _itemIgnored.Add((a, b));
                 }
-            Plugin.Log.LogInfo($"[Rugrat] held item ignores {mine.Count} monster colliders");
+            Plugin.Log.LogInfo($"[Rugrat] held item '{item.name}': {itemCols.Length} item colliders ignore {mine.Count} monster colliders");
         }
 
         private void RestoreItemCollision()

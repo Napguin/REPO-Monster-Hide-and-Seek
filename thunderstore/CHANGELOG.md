@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.25 (beta)
+- Rugrat: the "no collision with the held item" fix now also works in single player / for the host (it
+  didn't find the item there).
+
 ## 1.5.24 (beta)
 - Rugrat Item Throw: the held item no longer collides with the Rugrat – big items can't push the monster around
   anymore when looking around. Collision comes back shortly after the throw.
