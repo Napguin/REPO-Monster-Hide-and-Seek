@@ -937,6 +937,10 @@ namespace HideAndSeekMonster
                         }
                         Send(MsgMonsterSet, chosen);
                         break;
+                    case MsgBashStop:
+                        if (!SenderIsSeeker(sender)) return;
+                        OnBashStop();
+                        break;
                     case MsgOwner:
                         if (!SenderIsMaster(sender)) return;
                         OnOwner((int)data[2], (int)data[3]);

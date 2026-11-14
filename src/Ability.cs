@@ -86,7 +86,7 @@ namespace HideAndSeekMonster
                 case AbilityType.Laser: return 40f;
                 case AbilityType.Shot: return 15f;
                 case AbilityType.Sprint: return 40f;          // Rapid Charge
-                case AbilityType.FlyingCharge: return 20f;
+                case AbilityType.FlyingCharge: return 30f;
                 case AbilityType.Bomb: return 40f;
                 case AbilityType.Puke: return 30f;
                 case AbilityType.Levitate: return 20f;
@@ -128,7 +128,7 @@ namespace HideAndSeekMonster
                 case AbilityType.FlyingGrab: return 8f;
                 case AbilityType.Tornado: return 7f;
                 case AbilityType.Lasso: return 5f;       // reeling time
-                case AbilityType.TumbleBash: return 4f;
+                case AbilityType.TumbleBash: return 5f;
                 case AbilityType.Impulse: return 1.2f;   // suck-in time before the blast
                 case AbilityType.ZeroGGrab: return 8f;
                 case AbilityType.Leap: return 1.2f;
@@ -175,7 +175,7 @@ namespace HideAndSeekMonster
         private static AbilityType[] _gambleTable;
 
         public static bool IsCharge(AbilityType a) => a == AbilityType.Sprint || a == AbilityType.FlyingCharge;
-        public const int DashDamage = 60;
+        public const int DashDamage = 50;
         public const float DashWindup = 0.5f, DashSpeed = 24f, DashHitRadius = 1.8f;
         public static float DashTime(AbilityType a) => a == AbilityType.Charge ? 0.6f : 0.35f; // Charge ~14 m, Lunge ~8 m
         public static bool IsDash(AbilityType a) => a == AbilityType.Charge || a == AbilityType.Lunge;
@@ -189,7 +189,8 @@ namespace HideAndSeekMonster
         public const int BalloonMax = 5, BalloonDamage = 40;
         public const float BalloonRecharge = 40f, BalloonReplace = 3f;
         public const float BashSpeed = 13f, BashSteer = 160f, BashTurnDrag = 0.006f, BashTurnMinSpeed = 0.45f, BashBounce = 0.2f, BashBounceGap = 0.2f, BashWallSlow = 0.6f, BashHitRadius = 1.6f, BashKnockback = 10f;
-        public const int BashDamage = 30;
+        public const int BashDamage = 15;
+        public const float BashJump = 6.5f;
         public const float TranqTime = 5f;
         public const float BalloonHeight = 1.6f, BalloonArmTime = 1f, BalloonTriggerRange = 1.8f, BalloonRadius = 2.5f;
         public const float LassoRange = 18f, LassoSpeed = 35f, LassoHitRadius = 1f, LassoPullSpeed = 2.5f, LassoStopDistance = 2f, LassoMonsterSpeed = 0.3f;

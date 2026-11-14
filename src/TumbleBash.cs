@@ -10,6 +10,16 @@ namespace HideAndSeekMonster
     /// </summary>
     public partial class HideAndSeekManager
     {
+        private const int MsgBashStop = 28;
+
+        private void OnBashStop()
+        {
+            if (!Bashing) return;
+            _bashUntil = 0f;
+            if (_monster != null) _monster.RollAngle = 0f;
+            Plugin.Log.LogInfo("[Tumble-Bash] stopped early");
+        }
+
         private float _bashUntil, _bashFxAt, _bashSpeedMul = 1f, _bashBounceReadyAt;
         private Vector3 _bashDir;
         private readonly HashSet<int> _bashHit = new HashSet<int>();
@@ -81,7 +91,11 @@ namespace HideAndSeekMonster
                     }
                     _bashSpeedMul = Mathf.MoveTowards(_bashSpeedMul, 1f, 0.7f * Time.deltaTime); // ~1 s back to full speed
                     float spd = Abilities.BashSpeed * _bashSpeedMul;
-                    rb.velocity = new Vector3(_bashDir.x * spd, rb.velocity.y, _bashDir.z * spd);
+                    float vy = rb.velocity.y;
+                    // jump while rolling (the game's jump key; movement input is blocked during the roll)
+                    if ((SemiFunc.InputDown(InputKey.Jump) || (UnityEngine.InputSystem.Keyboard.current?.spaceKey.wasPressedThisFrame ?? false)) && Physics.Raycast(rb.position + Vector3.up * 0.2f, Vector3.down, 0.6f, ~0, QueryTriggerInteraction.Ignore))
+                        vy = Abilities.BashJump;
+                    rb.velocity = new Vector3(_bashDir.x * spd, vy, _bashDir.z * spd);
                 }
             }
 
@@ -92,6 +106,7 @@ namespace HideAndSeekMonster
             foreach (var h in AliveHiders())
             {
                 if (Vector3.Distance(PlayerPos(h) + Vector3.up * 0.8f, sp + Vector3.up * 0.5f) > r || !_bashHit.Add(h.photonView.ViewID)) continue;
+                HostDamage(h, Abilities.BashDamage, "tumble-bash");
                 Vector3 away = Away(sp, PlayerPos(h)) + _bashDir * 0.6f;
                 _hostLaunches.Add(new HostLaunchJob { Victim = h, Dir = away.normalized, Start = Time.time, Speed = Abilities.BashKnockback });
                 Plugin.Log.LogInfo($"[Tumble-Bash] hit {h.photonView.ViewID}");
@@ -99,8 +114,9 @@ namespace HideAndSeekMonster
             foreach (var d in AliveDummies())
                 if (Vector3.Distance(d.transform.position, sp) <= r + 0.4f && _bashHit.Add(-1000 - d.GetInstanceID()))
                 {
-                    d.Stun(1.5f, false); // knocked over, no damage
+                    d.Stun(1.5f, false);
                     d.transform.position += Away(sp, d.transform.position) * 1.5f;
+                    HostDamageDummy(d, Abilities.BashDamage, sp, "tumble-bash");
                 }
         }
     }

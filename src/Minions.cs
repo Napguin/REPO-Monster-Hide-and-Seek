@@ -49,10 +49,14 @@ namespace HideAndSeekMonster
         /// <summary>Gnome / Banger use the game's own enemy as minions (own vision + pathfinding).</summary>
         private MonsterCatalog.Entry RealSwarmEntry()
         {
+            if (LevelGenerator.Instance == null) return null;
             var e = MonsterCatalog.Find(_monsterName);
-            if (e == null || e.Setup == null || LevelGenerator.Instance == null) return null;
-            string n = e.Name.ToLowerInvariant();
-            return n.Contains("gnome") || n.Contains("bang") ? e : null;
+            string n = e != null ? e.Name.ToLowerInvariant() : "";
+            if (e != null && e.Setup != null && (n.Contains("gnome") || n.Contains("bang"))) return e;
+            // anyone else using Swarm (e.g. a Gambit roll) gets the game's real Gnomes – no fake copies that walk
+            // through walls and know where everyone is
+            var gnome = MonsterCatalog.Entries.FirstOrDefault(x => x.Name.ToLowerInvariant().Contains("gnome") && x.Setup != null);
+            return gnome;
         }
 
         private const int MaxSwarmKeep = 8;

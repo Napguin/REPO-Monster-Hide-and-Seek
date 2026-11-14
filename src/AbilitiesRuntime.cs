@@ -136,6 +136,7 @@ namespace HideAndSeekMonster
         {
             var ability = CurrentAbility;
             if (ability == AbilityType.None) { Banner(L.NoSpecial, Color.white, 1.5f); return; }
+            if (Bashing) { Send(MsgBashStop); return; } // Tumble-Bash: pressing again stops the roll
             if (Time.time < _specialReadyAt) return;
             // all 5 hanging: pressing again moves the oldest one here – only blocked while balloons recharge
             // no free balloon: move the oldest hanging one; only blocked when none hangs and all recharge

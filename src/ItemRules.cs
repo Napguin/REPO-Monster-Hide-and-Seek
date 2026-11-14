@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -233,6 +234,7 @@ namespace HideAndSeekMonster
 
         // Fallback: the game's item emojis (TextMeshPro sprite sheet used in its text UI), by Item.emojiIcon name.
         private static System.Collections.Generic.Dictionary<string, (Texture tex, Rect px)> _emoji;
+        private static readonly System.Collections.Generic.HashSet<string> _emojiMissLogged = new System.Collections.Generic.HashSet<string>();
 
         private static bool EmojiFor(string key, out Texture tex, out Rect px)
         {
@@ -271,7 +273,25 @@ namespace HideAndSeekMonster
                 else if (k.Contains("grenade")) guess = k.Contains("shockwave") ? "item_grenade_shockwave" : k.Contains("stun") ? "grenade_stun" : k.Contains("duct") ? "item_grenade_duct_taped" : k.Contains("human") ? "item_grenade_human" : "grenade_explosive";
                 else if (k.Contains("tracker")) guess = k.Contains("extraction") ? "item_extraction_tracker" : "item_valuable_tracker";
                 else if (k.Contains("health")) guess = k.Contains("small") ? "item_health_pack_S" : k.Contains("large") || k.Contains("big") ? "item_health_pack_L" : "item_health_pack_M";
-                if (guess == null || !_emoji.TryGetValue(guess, out e)) return false;
+                if (guess == null || !_emoji.TryGetValue(guess, out e))
+                {
+                    // last try: an emoji whose name contains the item's main words (e.g. "mine" + "shockwave")
+                    var words = k.Replace("item", " ").Split(new[] { ' ', '_', '-' }, System.StringSplitOptions.RemoveEmptyEntries)
+                        .Where(w => w.Length > 2).ToArray();
+                    string best = null;
+                    foreach (var name in _emoji.Keys)
+                    {
+                        string nl = name.ToLowerInvariant();
+                        if (words.Length > 0 && words.All(w => nl.Contains(w))) { best = name; break; }
+                    }
+                    if (best == null || !_emoji.TryGetValue(best, out e))
+                    {
+                        if (_emojiMissLogged.Add(key))
+                            Plugin.Log.LogInfo($"[Picker] no emoji for '{key}' (own: {it.emojiIcon}); emojis with 'mine': " +
+                                string.Join(", ", _emoji.Keys.Where(x => x.ToLowerInvariant().Contains("mine")).Take(12).ToArray()));
+                        return false;
+                    }
+                }
             }
             tex = e.tex; px = e.px;
             return tex != null;

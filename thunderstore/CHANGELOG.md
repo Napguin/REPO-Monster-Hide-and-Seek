@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.60 (beta)
+- **Tumble-Bash (Tick):** lasts up to 5 s, **press the special again to stop rolling**, you can **jump** while rolling,
+  and a hit does **15 damage** again (plus tumbling).
+- **Charge / Lunge:** 50 damage (was 60). **Flying Charge:** 30 s cooldown (was 20 s).
+- **Gambit rolling Swarm** now summons the game's real Gnomes (with real vision and pathfinding) instead of fake
+  Gambit copies that walked through walls and knew where everyone was.
+- Item picker: mines etc. look for a matching emoji by name; if none is found the log lists what exists.
+
 ## 1.5.59 (beta)
 - Item picker: mines (Shockwave Mine, Trapzap …) and other items without their own emoji get one by name; the first
   tile is selected when the picker opens (was an upgrade further down).
