@@ -1,8 +1,9 @@
 # Changelog
 
-## 2.0.2 (beta)
+## 2.0.3 (beta)
 - Fix: **Charge** no longer launches the monster into the air over a small ramp / incline (it then floated until the
   charge ended). The charge now follows slopes and falls down over edges.
+- Fix: **Charge goes up stairs** – a step in front is climbed instead of stopping the charge.
 
 ## 2.0.0 – R.E.P.O. Hide 'n Seek
 

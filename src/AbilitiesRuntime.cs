@@ -677,6 +677,19 @@ namespace HideAndSeekMonster
             return found;
         }
 
+        /// <summary>A low step right in front: blocked at ankle height, free at step height.</summary>
+        private static bool StepAhead(Vector3 feet, Vector3 dir)
+        {
+            dir.y = 0f; if (dir.sqrMagnitude < 0.001f) return false; dir.Normalize();
+            bool Blocked(float h)
+            {
+                foreach (var hit in Physics.RaycastAll(feet + Vector3.up * h, dir, 0.9f, ~0, QueryTriggerInteraction.Ignore))
+                    if (hit.collider != null && !IsPlayerCollider(hit.collider) && hit.normal.y < 0.5f) return true;
+                return false;
+            }
+            return Blocked(0.12f) && !Blocked(0.55f);
+        }
+
         private void DashTick()
         {
             if (Seeker == null || Time.time >= _dashEnd + 0.6f) return;
@@ -721,6 +734,8 @@ namespace HideAndSeekMonster
                             {
                                 v = Vector3.ProjectOnPlane(_dashDir, groundNormal).normalized * Abilities.DashSpeed;
                                 v.y = Mathf.Min(v.y, 3f);
+                                // stairs: a step in front (blocked at the feet, free a bit higher) – climb it
+                                if (StepAhead(rb.position, _dashDir)) v.y = Mathf.Max(v.y, 6f);
                             }
                             else v.y = Mathf.Min(rb.velocity.y, 0f) - 25f * Time.deltaTime;
                         }
