@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.54 (beta)
+- **Free item per round:** while hiding, every hider presses **I** and takes 1 item for free – it appears in front of
+  them. Only items hiders may use: no guns / melee / cart cannons / scouts, and of the grenades and mines only those
+  that do no damage. Toggle in the F8 menu (`Round / FreeItem`).
+- **Tranq and pulse pistol:** only 2 shots per round and no recharging (when weapons are banned).
+
 ## 1.5.53 (beta)
 - **Scoring like the rules:** hiders get 0 / 1 / 2 ... in the order they die, survivors get as many points as there
   were hiders. The monster gets 1 point for **every** hider that dies, whatever killed them.

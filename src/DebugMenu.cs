@@ -189,9 +189,11 @@ namespace HideAndSeekMonster
             (n ?? "?").Replace("Valuable ", "").Replace("Item ", "").Replace("(Clone)", "").Trim();
 
         /// <summary>Host: spawns a valuable / item prefab like the game does (network object in multiplayer).</summary>
-        private void DebugSpawnPrefab(string name, PrefabRef pr)
+        private void DebugSpawnPrefab(string name, PrefabRef pr) => SpawnPrefabAt(name, pr, HostFront(2f) + Vector3.up * 1f);
+
+        /// <summary>Host: spawns a valuable / item prefab at a position (network object in multiplayer).</summary>
+        internal GameObject SpawnPrefabAt(string name, PrefabRef pr, Vector3 pos)
         {
-            Vector3 pos = HostFront(2f) + Vector3.up * 1f;
             try
             {
                 GameObject go;
@@ -201,11 +203,13 @@ namespace HideAndSeekMonster
                     go = Object.Instantiate(pr.Prefab, pos, Quaternion.identity);
                 Plugin.Log.LogInfo($"[Debug] spawned '{name}' ({pr.ResourcePath}) -> {(go != null ? go.name : "null")}");
                 Banner(go != null ? L.DebugSpawned(name) : L.DebugCantSpawn, Color.white, 1.5f);
+                return go;
             }
             catch (System.Exception ex)
             {
                 Plugin.Log.LogWarning($"[Debug] spawning '{name}' failed: {ex.Message}");
                 Banner(L.DebugCantSpawn, Color.white, 2f);
+                return null;
             }
         }
 

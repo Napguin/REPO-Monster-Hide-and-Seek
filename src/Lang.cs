@@ -262,6 +262,11 @@ namespace HideAndSeekMonster
             ? "Gespawnte Gegner bleiben auch bei „Normale Gegner aus“. Puppen zählen in einer Runde als Hider (nur auf dem Host sichtbar)."
             : "Spawned enemies stay even with \"disable normal enemies\". Dummies count as hiders during a round (only visible on the host).";
         public static string BanWeaponsToggle => De ? "Waffen verboten (Schuss + Nahkampf)" : "Ban weapons (guns + melee)";
+        public static string FreeItemToggle => De ? "Gratis-Item für Hider (Taste I)" : "Free item for hiders (I key)";
+        public static string FreeItemTitle => De ? "Gratis-Item für diese Runde" : "Free item for this round";
+        public static string FreeItemHint => De ? "Wähle 1 Item – es erscheint vor dir. Nur Items, die Hider benutzen dürfen." : "Pick 1 item – it appears in front of you. Only items hiders are allowed to use.";
+        public static string FreeItemTake => De ? "Nehmen" : "Take";
+        public static string FreeItemPress => De ? "Drück I für dein Gratis-Item!" : "Press I for your free item!";
         public static string WeaponBanned => De ? "Waffen sind im Monster-Modus verboten!" : "Weapons are banned in Monster mode!";
         public static string Close => De ? "Schließen" : "Close";
         public static string NotEnoughPlayers => De ? "Mindestens 2 lebende Spieler nötig." : "At least 2 living players are needed.";

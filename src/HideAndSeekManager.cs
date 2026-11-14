@@ -158,6 +158,7 @@ namespace HideAndSeekMonster
             }
             DebugMenuKey();
             Safe("weapon ban", WeaponBanTick);
+            Safe("free item", FreeItemKeys);
 
             if (CursorWanted)
             {
@@ -242,7 +243,7 @@ namespace HideAndSeekMonster
             if (_roundInfStamina)
                 Safe("stamina", () => Compat.Set(pc, "EnergyCurrent", Compat.Get(pc, "EnergyStart", 100f)));
 
-            if (_menuOpen || _debugOpen || GameRefs.IsTyping) return;
+            if (_menuOpen || _debugOpen || _freePickOpen || GameRefs.IsTyping) return;
 
             Safe("view key", () =>
             {
@@ -818,6 +819,7 @@ namespace HideAndSeekMonster
                             (bool)data[6], (bool)data[7], (bool)data[8], (float)data[9], (int[])data[10],
                             (string)data[11], (float)data[12], data.Length > 13 && (bool)data[13]);
                         _roundBanWeapons = data.Length > 14 && (bool)data[14];
+                        _roundFreeItem = data.Length > 15 && (bool)data[15];
                         break;
                     case MsgKill:
                         if (!SenderIsMaster(sender)) return;
@@ -924,6 +926,9 @@ namespace HideAndSeekMonster
                         }
                         Send(MsgMonsterSet, chosen);
                         break;
+                    case MsgFreeItem:
+                        if (IsHost) HostGiveFreeItem(sender, (string)data[2]);
+                        break;
                     case MsgDebug:
                         if (!SenderIsMaster(sender)) return;
                         OnDebug((int)data[2], (Vector3)data[3]);
@@ -1004,7 +1009,8 @@ namespace HideAndSeekMonster
                 monster,
                 Plugin.AttackRange.Value,
                 Plugin.SeekerChoosesMonster.Value,
-                Plugin.BanWeapons.Value);
+                Plugin.BanWeapons.Value,
+                Plugin.FreeItem.Value);
             _menuOpen = false;
         }
 
@@ -1043,6 +1049,10 @@ namespace HideAndSeekMonster
             _attackReadyAt = _roarReadyAt = 0f;
 
             Phase = Phase.Hiding;
+            _freeItemTaken = false; _freePickOpen = false;
+            _hostFreeItemGiven.Clear();
+            ResetPistolShots();
+            Later(1f, () => { if (CanPickFreeItem) Banner(L.FreeItemPress, new Color(0.4f, 0.7f, 1f), 4f); });
             _phaseEndTime = Time.time + hide;
 
             _monster = MonsterVisual.Create(seeker, monster, scale);
@@ -1141,7 +1151,7 @@ namespace HideAndSeekMonster
         }
 
         private bool CursorWanted =>
-            _menuOpen || _debugOpen || VoteVisible || (_choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker));
+            _menuOpen || _debugOpen || _freePickOpen || VoteVisible || (_choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker));
 
         private static void ShowCursor()
         {
@@ -1249,6 +1259,11 @@ namespace HideAndSeekMonster
             {
                 try { DrawStartMenu(sw, sh, u); }
                 catch (System.Exception ex) { _lastError = "menu: " + ex.Message; GUI.color = Color.white; }
+            }
+            if (_freePickOpen)
+            {
+                try { DrawFreeItemPicker(sw, sh, u); }
+                catch (System.Exception ex) { if (ex is ExitGUIException) throw; _lastError = "free item: " + ex.Message; GUI.color = Color.white; GUI.enabled = true; }
             }
             if (_debugOpen)
             {

@@ -140,7 +140,8 @@ The round settings of the **host** are used for everyone.
 | Round / RoundTime | 300 | Seconds the monster has to hunt |
 | Round / DisableEnemies | true | Despawn normal enemies during a round |
 | Round / MapLevel | 0 | Level (map size) for new maps from the menu / map vote, 0 = keep current |
-| Round / BanWeapons | true | Monster mode: guns, melee weapons and cart cannons can't be grabbed (tranq / pulse pistol allowed) |
+| Round / FreeItem | true | Every hider may take 1 free item while hiding (I key) |
+| Round / BanWeapons | true | Monster mode: guns, melee weapons and cart cannons can't be grabbed (tranq / pulse pistol allowed, but only 2 shots per round and no recharging) |
 | Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
 | Seeker / AttackRange | 2.8 | Reach of the attack in metres |
 | Seeker / AttackCooldown | 1.2 | Seconds between attacks |
