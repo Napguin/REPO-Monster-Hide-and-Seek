@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.65 (beta)
+- Fix: teleports (debug menu "everyone to me / to the truck", after-round regroup) didn't work for players lying
+  in the ragdoll (tumbling) – they now stand up first, and the host also moves the ragdoll.
+
 ## 1.5.64 (beta)
 - **Hunter's weapons have unlimited energy** (whatever the hunter holds or was given) – not the hiders'.
 - **Hiders: 2 shots** per tranq / pulse pistol per round, now in **both** modes (the hunter has no limit).

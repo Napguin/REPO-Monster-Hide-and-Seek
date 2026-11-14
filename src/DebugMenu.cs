@@ -71,8 +71,8 @@ namespace HideAndSeekMonster
                     // spread a little so nobody stands inside another player
                     int idx = Mathf.Abs(ActorOf(me)) % 8;
                     Vector3 p = pos + Quaternion.Euler(0, idx * 45f, 0) * Vector3.forward * (idx == 0 ? 0f : 1f) + Vector3.up * 0.2f;
-                    TeleportLocal(p);
-                    Later(0.5f, () => TeleportLocal(p));
+                    StartCoroutine(TeleportOutOfTumble(p));
+                    if (IsHost) HostMoveRagdolls(pos);
                     break;
                 case DbgSkipHide:
                     if (RoundActive && Phase == Phase.Hiding) _phaseEndTime = Time.time;

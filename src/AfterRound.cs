@@ -223,11 +223,9 @@ namespace HideAndSeekMonster
             // spread everyone a bit so nobody stands inside another player
             int idx = Mathf.Abs(ActorOf(me)) % 8;
             Vector3 pos = truck + Quaternion.Euler(0, idx * 45f, 0) * Vector3.forward * (idx == 0 ? 0f : 0.9f) + Vector3.up * 0.2f;
-            for (int i = 0; i < 2; i++)
-            {
-                yield return new WaitForSeconds(i == 0 ? 0.6f : 0.8f);
-                TeleportLocal(pos);
-            }
+            yield return new WaitForSeconds(0.3f);
+            yield return TeleportOutOfTumble(pos);
+            if (IsHost) HostMoveRagdolls(truck);
             var health = me.playerHealth;
             if (health != null)
             {
@@ -235,6 +233,44 @@ namespace HideAndSeekMonster
                 if (hp < max) Compat.Call(health, "Heal", max - hp, true);
             }
             Banner(L.Regrouped, Color.white, 3f);
+        }
+
+        /// <summary>Teleport the local player – also when they are knocked over (ragdoll): stand up first, then move,
+        /// and move again shortly after (the ragdoll / the game can still pull the body back for a moment).</summary>
+        private IEnumerator TeleportOutOfTumble(Vector3 pos)
+        {
+            var me = GameRefs.LocalAvatar;
+            var tumble = me != null ? Compat.Get<Component>(me, "tumble") : null;
+            bool tumbling = me != null && (Compat.Get<bool>(me, "isTumbling") || (tumble != null && Compat.Get<bool>(tumble, "isTumbling")));
+            if (tumbling && tumble != null)
+            {
+                Compat.Call(tumble, "TumbleOverrideTime", 0f);
+                Compat.Call(tumble, "TumbleRequest", false, false);
+                var trb = Compat.Get<Rigidbody>(tumble, "rb");
+                if (trb != null && !trb.isKinematic) { trb.position = pos; trb.velocity = Vector3.zero; }
+                for (float t = 0; t < 1.5f && (Compat.Get<bool>(me, "isTumbling") || Compat.Get<bool>(tumble, "isTumbling")); t += 0.1f)
+                    yield return new WaitForSeconds(0.1f);
+            }
+            TeleportLocal(pos);
+            yield return new WaitForSeconds(0.5f);
+            TeleportLocal(pos);
+            Plugin.Log.LogInfo($"[Teleport] to {pos} (was tumbling: {tumbling})");
+        }
+
+        /// <summary>Host: knocked-over players' ragdolls are run by the host – move them there too.</summary>
+        private void HostMoveRagdolls(Vector3 pos)
+        {
+            foreach (var p in AllPlayers())
+            {
+                if (p == null) continue;
+                var tumble = Compat.Get<Component>(p, "tumble");
+                if (tumble == null || !(Compat.Get<bool>(p, "isTumbling") || Compat.Get<bool>(tumble, "isTumbling"))) continue;
+                Compat.Call(tumble, "TumbleSet", false, false);
+                var rb = Compat.Get<Rigidbody>(tumble, "rb");
+                int idx = Mathf.Abs(ActorOf(p)) % 8;
+                Vector3 q = pos + Quaternion.Euler(0, idx * 45f, 0) * Vector3.forward * (idx == 0 ? 0f : 1f) + Vector3.up * 0.5f;
+                if (rb != null && !rb.isKinematic) { rb.position = q; rb.velocity = Vector3.zero; }
+            }
         }
 
         private static void TeleportLocal(Vector3 pos)
