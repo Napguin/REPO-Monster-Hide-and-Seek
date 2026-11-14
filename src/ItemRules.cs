@@ -455,15 +455,31 @@ namespace HideAndSeekMonster
         internal static bool PistolRuleActive(Component c)
         {
             var mgr = Instance;
-            if (mgr == null || !mgr.RoundActive || !mgr._roundBanWeapons || c == null) return false;
+            if (mgr == null || !mgr.RoundActive || c == null) return false;
             var attr = c.GetComponent<ItemAttributes>() ?? c.GetComponentInParent<ItemAttributes>();
             return attr != null && attr.item != null && attr.item.itemType == SemiFunc.itemType.gun && !IsBannedWeapon(attr.item);
         }
 
-        /// <summary>Called for every shot (on every PC). False = this pistol has no shots left.</summary>
+        /// <summary>Who holds this item right now (else who held it last).</summary>
+        internal static PlayerAvatar HolderOf(Component c)
+        {
+            var pgo = c == null ? null : c.GetComponent<PhysGrabObject>() ?? c.GetComponentInParent<PhysGrabObject>();
+            if (pgo == null) return null;
+            if (pgo.playerGrabbing != null)
+                foreach (var g in pgo.playerGrabbing)
+                    if (g != null && g.playerAvatar != null) return g.playerAvatar;
+            return pgo.lastPlayerGrabbing;
+        }
+
+        private bool IsHiderAvatar(PlayerAvatar p) => p != null && p != Seeker && p.photonView != null && _hiderViewIds.Contains(p.photonView.ViewID);
+
+        /// <summary>Called for every shot (on every PC). False = this pistol has no shots left.
+        /// Rules: a hider gets only 2 shots per tranq / pulse pistol per round (both modes); the hunter has no limit.</summary>
         internal static bool PistolMayShoot(Component gun)
         {
             if (!PistolRuleActive(gun)) return true;
+            var mgr = Instance;
+            if (!mgr.IsHiderAvatar(HolderOf(gun))) return true;
             int id = gun.GetInstanceID();
             _pistolShots.TryGetValue(id, out int n);
             if (n >= PistolShots) return false;
@@ -481,15 +497,7 @@ namespace HideAndSeekMonster
             var attr = gun.GetComponent<ItemAttributes>() ?? gun.GetComponentInParent<ItemAttributes>();
             if (attr == null || !IsBannedWeapon(attr.item)) return true;
             // who fires = who holds it (the shot RPC itself is sent by the host, who runs the item physics)
-            var pgo = gun.GetComponent<PhysGrabObject>() ?? gun.GetComponentInParent<PhysGrabObject>();
-            PlayerAvatar shooter = null;
-            if (pgo != null)
-            {
-                if (pgo.playerGrabbing != null)
-                    foreach (var g in pgo.playerGrabbing)
-                        if (g != null && g.playerAvatar != null) { shooter = g.playerAvatar; break; }
-                if (shooter == null) shooter = pgo.lastPlayerGrabbing;
-            }
+            PlayerAvatar shooter = HolderOf(gun);
             if (shooter == null && info.Sender != null) shooter = mgr.AvatarOfActor(info.Sender.ActorNumber);
             if (shooter == null || shooter == mgr.Seeker || !mgr._hiderViewIds.Contains(shooter.photonView.ViewID)) return true;
             if (shooter.photonView.IsMine) mgr.BannerPublic(L.HiderNoFire);

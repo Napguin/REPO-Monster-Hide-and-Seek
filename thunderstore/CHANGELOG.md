@@ -1,11 +1,14 @@
 # Changelog
 
+## 1.5.64 (beta)
+- **Hunter's weapons have unlimited energy** (whatever the hunter holds or was given) – not the hiders'.
+- **Hiders: 2 shots** per tranq / pulse pistol per round, now in **both** modes (the hunter has no limit).
+
 ## 1.5.63 (beta)
 - Fix (Classic): hiders could still fire the hunter's gun – the shot is sent by the host, so the mod checked the
   wrong player. It now checks who is **holding** the gun.
 - Fix: used-up items (player upgrades, health packs …) no longer come back the next round – only weapons and
   explosives (grenades, mines) are given back when they're gone.
-- Hider weapons (tranq and pulse pistol) have **unlimited energy** during a round.
 
 ## 1.5.62 (beta)
 - Classic mode: the hunter's start weapon can also be a **gun** (the list shows melee weapons and guns). Guns

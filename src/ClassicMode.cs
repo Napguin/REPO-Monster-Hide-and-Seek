@@ -69,13 +69,16 @@ namespace HideAndSeekMonster
             }
         }
 
-        /// <summary>The hiders' weapons (tranq and pulse pistol): unlimited energy during a round.</summary>
-        internal static bool IsHiderWeapon(Component c)
+        /// <summary>The hunter's weapons (held by the hunter or handed out to them): unlimited energy during a round.</summary>
+        internal static bool IsSeekerWeapon(Component c)
         {
             var mgr = Instance;
-            if (mgr == null || !mgr.RoundActive || c == null) return false;
+            if (mgr == null || !mgr.RoundActive || mgr.Seeker == null || c == null) return false;
             var it = ItemOf(c);
-            return it != null && it.itemType == SemiFunc.itemType.gun && !IsBannedWeapon(it);
+            if (it == null || !(it.itemType == SemiFunc.itemType.gun || it.itemType == SemiFunc.itemType.melee || it.itemType == SemiFunc.itemType.launcher)) return false;
+            if (HolderOf(c) == mgr.Seeker) return true;
+            int owner = OwnerOf(c);
+            return owner >= 0 && owner == mgr.SeekerActor;
         }
 
         private int SeekerActor => Seeker != null ? ActorOf(Seeker) : -999;
@@ -203,7 +206,7 @@ namespace HideAndSeekMonster
     {
         private static bool Prefix(ItemBattery __instance)
         {
-            if (HideAndSeekManager.IsHiderWeapon(__instance)) return false; // tranq / pulse pistol: unlimited energy
+            if (HideAndSeekManager.IsSeekerWeapon(__instance)) return false; // the hunter's weapons: unlimited energy
             var mgr = HideAndSeekManager.Instance;
             if (mgr == null || !mgr.ClassicActive) return true;
             var attr = __instance.GetComponent<ItemAttributes>() ?? __instance.GetComponentInParent<ItemAttributes>();
@@ -215,7 +218,7 @@ namespace HideAndSeekMonster
     [HarmonyLib.HarmonyPatch(typeof(ItemBattery), "RemoveFullBar")]
     internal static class ClassicMeleeBarPatch
     {
-        private static bool Prefix(ItemBattery __instance) => !HideAndSeekManager.IsHiderWeapon(__instance) && ClassicMeleeDrainPatch_Allow(__instance);
+        private static bool Prefix(ItemBattery __instance) => !HideAndSeekManager.IsSeekerWeapon(__instance) && ClassicMeleeDrainPatch_Allow(__instance);
         internal static bool ClassicMeleeDrainPatch_Allow(ItemBattery b)
         {
             var mgr = HideAndSeekManager.Instance;
