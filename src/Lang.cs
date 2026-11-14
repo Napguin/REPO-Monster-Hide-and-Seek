@@ -222,6 +222,8 @@ namespace HideAndSeekMonster
         public static string Abort => De ? "Runde abbrechen" : "Abort round";
         public static string MonsterShowcase => "Monster Showcase";
         public static string HowToPlay => De ? "Spielanleitung" : "How To Play";
+        public static string PrevPage => De ? "Vorherige" : "Previous";
+        public static string NextPage => De ? "Weiter" : "Next";
         public static string Back => De ? "Zurück" : "Back";
         public static string HowToPlaySoon => De ? "Die Spielanleitung mit Bildern kommt bald!" : "How To Play with pictures is coming soon!";
         public static string DrawingSoon => De ? "Zeichnung kommt bald" : "Drawing coming soon";

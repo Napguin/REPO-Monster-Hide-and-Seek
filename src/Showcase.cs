@@ -169,6 +169,7 @@ namespace HideAndSeekMonster
             _menuPage = p;
             _showcaseStart = Time.realtimeSinceStartup;
             if (p != MenuPage.Showcase) ShowcaseArt.Unload();
+            if (p != MenuPage.HowToPlay) UnloadHowToPlay();
         }
 
         private void DrawShowcase(Rect body, float u)
@@ -247,12 +248,81 @@ namespace HideAndSeekMonster
             return _mCenter;
         }
 
+        // ---- How To Play: the drawn rule pages (howtoplay/page_N.png), one page at a time ----
+        private int _htpPage = 1;
+        private int _htpPageCount = -1;
+        private int _htpLoaded = -1;
+        private Texture2D _htpTex;
+
+        private int HowToPlayPages
+        {
+            get
+            {
+                if (_htpPageCount >= 0) return _htpPageCount;
+                _htpPageCount = 0;
+                using (var st = typeof(ShowcaseArt).Assembly.GetManifestResourceStream("howtoplay/index.txt"))
+                    if (st != null) using (var rd = new StreamReader(st)) int.TryParse(rd.ReadToEnd().Trim(), out _htpPageCount);
+                return _htpPageCount;
+            }
+        }
+
+        private Texture2D HowToPlayTexture(int page)
+        {
+            if (_htpLoaded == page && _htpTex != null) return _htpTex;
+            if (_htpTex != null) Object.Destroy(_htpTex);
+            _htpTex = null;
+            _htpLoaded = page;
+            using (var st = typeof(ShowcaseArt).Assembly.GetManifestResourceStream($"howtoplay/page_{page}.png"))
+            {
+                if (st == null) return null;
+                var bytes = new byte[st.Length];
+                int read = 0;
+                while (read < bytes.Length) { int k = st.Read(bytes, read, bytes.Length - read); if (k <= 0) break; read += k; }
+                var tex = new Texture2D(2, 2, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+                if (ImageConversion.LoadImage(tex, bytes, false)) _htpTex = tex; else Object.Destroy(tex);
+            }
+            return _htpTex;
+        }
+
         private void DrawHowToPlay(Rect body, float u)
         {
             GUI.DrawTexture(body, Tex(new Color(0.10f, 0.075f, 0.08f, 1f)));
-            GUI.color = new Color(1, 1, 1, 0.7f);
-            GUI.Label(new Rect(body.x, body.center.y - 30 * u, body.width, 60 * u), L.HowToPlaySoon, CenterStyle(u));
-            GUI.color = Color.white;
+            int n = HowToPlayPages;
+            if (n <= 0)
+            {
+                GUI.color = new Color(1, 1, 1, 0.7f);
+                GUI.Label(new Rect(body.x, body.center.y - 30 * u, body.width, 60 * u), L.HowToPlaySoon, CenterStyle(u));
+                GUI.color = Color.white;
+                return;
+            }
+            _htpPage = Mathf.Clamp(_htpPage, 1, n);
+            float barH = 52 * u, p = 10 * u;
+            float size = Mathf.Min(body.width - 2 * p, body.height - barH - 3 * p);
+            var img = new Rect(body.x + (body.width - size) / 2f, body.y + p, size, size);
+            GUI.DrawTexture(img, Tex(Color.black));
+            var tex = HowToPlayTexture(_htpPage);
+            if (tex != null) GUI.DrawTexture(img, tex, ScaleMode.ScaleToFit);
+
+            // navigation: ◀  page x / n  ▶   (arrow keys work too)
+            float bw = 140 * u, by = img.yMax + p;
+            var e = Event.current;
+            bool prev = e.type == EventType.KeyDown && (e.keyCode == KeyCode.LeftArrow || e.keyCode == KeyCode.A);
+            bool next = e.type == EventType.KeyDown && (e.keyCode == KeyCode.RightArrow || e.keyCode == KeyCode.D);
+            GUI.enabled = _htpPage > 1;
+            if (GUI.Button(new Rect(body.center.x - bw * 1.5f - 10 * u, by, bw, barH - p), "◀  " + L.PrevPage, _chBtn)) prev = true;
+            GUI.enabled = _htpPage < n;
+            if (GUI.Button(new Rect(body.center.x + bw * 0.5f + 10 * u, by, bw, barH - p), L.NextPage + "  ▶", _chBtn)) next = true;
+            GUI.enabled = true;
+            GUI.Label(new Rect(body.center.x - bw / 2f, by, bw, barH - p), $"{_htpPage} / {n}", CenterStyle(u));
+            if (prev && _htpPage > 1) { _htpPage--; if (e.type == EventType.KeyDown) e.Use(); }
+            if (next && _htpPage < n) { _htpPage++; if (e.type == EventType.KeyDown) e.Use(); }
+        }
+
+        private void UnloadHowToPlay()
+        {
+            if (_htpTex != null) Object.Destroy(_htpTex);
+            _htpTex = null;
+            _htpLoaded = -1;
         }
     }
 }

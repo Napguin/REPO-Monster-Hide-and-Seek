@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>HideAndSeekMonster</AssemblyName>
     <RootNamespace>HideAndSeekMonster</RootNamespace>
-    <Version>1.5.51</Version>
+    <Version>1.5.52</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <!-- REQUIRED: the game DLLs are publicized (private members made public). Mono only skips its access
@@ -45,6 +45,7 @@
   <!-- Monster Showcase drawings (made from pictures/monster-showcase by tools/make_showcase.py) -->
   <ItemGroup>
     <EmbeddedResource Include="showcase\*.*" LogicalName="showcase/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="howtoplay\*.*" LogicalName="howtoplay/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <Target Name="CopyToGame" AfterTargets="Build" Condition="'$(GameDir)' != ''">

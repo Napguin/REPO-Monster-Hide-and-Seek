@@ -44,3 +44,21 @@ for path in paths:
 
 with open(os.path.join(out, "index.txt"), "w") as fh:
     fh.write("\n".join(lines) + "\n")
+
+
+# ---- How To Play pages (pictures/how-to-play/*<number>.png -> howtoplay/page_<n>.png, in page order) ----
+hsrc = os.path.join(root, "pictures", "how-to-play")
+hout = os.path.join(root, "howtoplay")
+os.makedirs(hout, exist_ok=True)
+for f in glob.glob(os.path.join(hout, "*")):
+    os.remove(f)
+pages = []
+for path in glob.glob(os.path.join(hsrc, "*.png")):
+    m = re.search(r"(\d+)\.png$", path)
+    if m: pages.append((int(m.group(1)), path))
+pages.sort()
+for i, (_, path) in enumerate(pages, 1):
+    Image.open(path).convert("RGB").quantize(colors=64, method=Image.Quantize.MEDIANCUT).save(os.path.join(hout, f"page_{i}.png"), optimize=True)
+with open(os.path.join(hout, "index.txt"), "w") as fh:
+    fh.write(str(len(pages)) + "\n")
+print("how to play:", len(pages), "pages")

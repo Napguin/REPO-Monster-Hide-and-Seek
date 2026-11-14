@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.52 (beta)
+- **How To Play** in the F8 menu: the 18 drawn rule pages ("Da Rulz", game start, classic / monster mode, bonus shop
+  rules, scoring, item gallery, credits). Flip with the buttons or the arrow keys / A / D.
+
 ## 1.5.51 (beta)
 - Monster Showcase: new drawings for **Tick (Tumble-Bash)**, **Birthday Boy (Balloon Mines)** and **Gambit (Gamble)**;
   the Clown's laser is animated now. Every special has a drawing.
