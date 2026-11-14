@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.58 (beta)
+- Item picker icons: the game only makes an item's icon when the item exists in the world, so the picker now uses
+  the game's item emojis (grenades, mines, drones, orbs, weapons, health packs, trackers …) and remembers real icons of
+  items seen in the shop / truck / inventory.
+
 ## 1.5.57 (beta)
 - Item picker: icons are also looked up by the item's resource path and on copies of the item in the scene (shop,
   truck, inventory); the log says why if an icon can't be found (`[Picker] no icon for ...`).

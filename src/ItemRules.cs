@@ -140,8 +140,27 @@ namespace HideAndSeekMonster
             return _startWeaponList;
         }
 
+        private float _iconScanAt;
+
+        /// <summary>Every few seconds: remember the icons of items that exist in the world (shop, truck, inventory).
+        /// The game only creates an item's icon when the item is spawned, so this fills the picker over time.</summary>
+        private void HarvestItemIcons()
+        {
+            if (Time.realtimeSinceStartup < _iconScanAt) return;
+            _iconScanAt = Time.realtimeSinceStartup + 5f;
+            var sm = StatsManager.instance;
+            if (sm == null || sm.itemDictionary == null) return;
+            foreach (var a in Object.FindObjectsOfType<ItemAttributes>())
+            {
+                if (a == null || a.icon == null || a.item == null) continue;
+                foreach (var kv in sm.itemDictionary)
+                    if (kv.Value == a.item) { _itemIcons[kv.Key] = a.icon; break; }
+            }
+        }
+
         private void FreeItemKeys()
         {
+            HarvestItemIcons();
             if (!PickerAvailable) { _freePickOpen = false; return; }
             var kb = UnityEngine.InputSystem.Keyboard.current;
             if (kb != null && kb[UnityEngine.InputSystem.Key.I].wasPressedThisFrame && !GameRefs.IsTyping) _freePickOpen = !_freePickOpen;
@@ -210,6 +229,50 @@ namespace HideAndSeekMonster
             // only cache hits – a missing icon is looked for again a bit later (items in the scene can appear)
             if (sp != null) _itemIcons[key] = sp;
             return sp;
+        }
+
+        // Fallback: the game's item emojis (TextMeshPro sprite sheet used in its text UI), by Item.emojiIcon name.
+        private static System.Collections.Generic.Dictionary<string, (Texture tex, Rect px)> _emoji;
+
+        private static bool EmojiFor(string key, out Texture tex, out Rect px)
+        {
+            tex = null; px = default;
+            if (_emoji == null)
+            {
+                _emoji = new System.Collections.Generic.Dictionary<string, (Texture, Rect)>(System.StringComparer.OrdinalIgnoreCase);
+                try
+                {
+                    foreach (var sa in Resources.FindObjectsOfTypeAll<TMPro.TMP_SpriteAsset>())
+                    {
+                        if (sa == null || sa.spriteSheet == null || sa.spriteCharacterTable == null) continue;
+                        foreach (var ch in sa.spriteCharacterTable)
+                        {
+                            if (ch == null || ch.glyph == null || string.IsNullOrEmpty(ch.name)) continue;
+                            var gr = ch.glyph.glyphRect;
+                            _emoji[ch.name] = (sa.spriteSheet, new Rect(gr.x, gr.y, gr.width, gr.height));
+                        }
+                    }
+                    Plugin.Log.LogInfo($"[Picker] {_emoji.Count} item emojis found");
+                }
+                catch (System.Exception ex) { Plugin.Log.LogInfo("[Picker] emoji lookup failed: " + ex.Message); }
+            }
+            var sm = StatsManager.instance;
+            if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || it == null) return false;
+            if (!_emoji.TryGetValue(it.emojiIcon.ToString(), out var e)) return false;
+            // an item without its own emoji has the default value (drone_heal) – only trust it for real heal drones
+            if (it.emojiIcon == default(SemiFunc.emojiIcon) && it.itemType != SemiFunc.itemType.drone) return false;
+            tex = e.tex; px = e.px;
+            return tex != null;
+        }
+
+        private static void DrawTexturePart(Rect r, Texture tex, Rect px)
+        {
+            var uv = new Rect(px.x / tex.width, px.y / tex.height, px.width / tex.width, px.height / tex.height);
+            float aspect = px.width / Mathf.Max(1f, px.height);
+            Rect d = r;
+            if (aspect > 1f) { d.height = r.width / aspect; d.y += (r.height - d.height) / 2f; }
+            else { d.width = r.height * aspect; d.x += (r.width - d.width) / 2f; }
+            GUI.DrawTextureWithTexCoords(d, tex, uv);
         }
 
         private static SemiFunc.itemType? ItemTypeOf(string key)
@@ -294,8 +357,10 @@ namespace HideAndSeekMonster
                         float yy = y + (k / cols) * (cell + 28 * u + g);
                         var cr = new Rect(x, yy, cell, cell + 28 * u);
                         if (GUI.Button(cr, GUIContent.none, i == _freePickSel ? _cardSelStyle : _cardStyle)) _freePickSel = i;
+                        var iconRect = new Rect(cr.x + 14 * u, cr.y + 6 * u, cell - 28 * u, cell - 28 * u);
                         var icon = ItemIcon(list[i]);
-                        if (icon != null) DrawSprite(new Rect(cr.x + 14 * u, cr.y + 6 * u, cell - 28 * u, cell - 28 * u), icon);
+                        if (icon != null) DrawSprite(iconRect, icon);
+                        else if (EmojiFor(list[i], out var etex, out var epx)) DrawTexturePart(iconRect, etex, epx);
                         GUI.Label(new Rect(cr.x + 2 * u, cr.y + cell - 18 * u, cell - 4 * u, 44 * u), ItemLabel(list[i]), _cellLabel);
                     }
                     y += Mathf.CeilToInt(gr.idx.Count / (float)cols) * (cell + 28 * u + g);
