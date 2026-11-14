@@ -126,9 +126,23 @@ namespace HideAndSeekMonster
         private bool CanPickFreeItem => _roundFreeItem && RoundActive && Phase == Phase.Hiding && !_freeItemTaken && LocalHider(out _);
 
         /// <summary>Per frame: I opens / closes the picker while hiding.</summary>
+        private bool PickerAvailable => CanPickFreeItem || CanPickStartWeapon;
+
+        private System.Collections.Generic.List<string> _startWeaponList;
+        private System.Collections.Generic.List<string> StartWeaponList()
+        {
+            if (_startWeaponList != null && _startWeaponList.Count > 0) return _startWeaponList;
+            _startWeaponList = new System.Collections.Generic.List<string>();
+            var sm = StatsManager.instance;
+            if (sm == null || sm.itemDictionary == null) return _startWeaponList;
+            foreach (var kv in sm.itemDictionary) if (IsStartWeapon(kv.Value)) _startWeaponList.Add(kv.Key);
+            _startWeaponList.Sort((a, b) => string.Compare(ItemLabel(a), ItemLabel(b), System.StringComparison.OrdinalIgnoreCase));
+            return _startWeaponList;
+        }
+
         private void FreeItemKeys()
         {
-            if (!CanPickFreeItem) { _freePickOpen = false; return; }
+            if (!PickerAvailable) { _freePickOpen = false; return; }
             var kb = UnityEngine.InputSystem.Keyboard.current;
             if (kb != null && kb[UnityEngine.InputSystem.Key.I].wasPressedThisFrame && !GameRefs.IsTyping) _freePickOpen = !_freePickOpen;
         }
@@ -137,31 +151,35 @@ namespace HideAndSeekMonster
         {
             if (!IsHost || !RoundActive || Phase != Phase.Hiding || !_roundFreeItem) return;
             var who = AvatarOfActor(actor);
-            if (who == null || !IsAlive(who) || !_hiderViewIds.Contains(who.photonView.ViewID)) return;
+            if (who == null || !IsAlive(who)) return;
+            bool hunter = who == Seeker;
+            if (hunter ? !_roundClassic : !_hiderViewIds.Contains(who.photonView.ViewID)) return; // monster-mode hunter gets nothing
             if (!_hostFreeItemGiven.Add(actor)) { Plugin.Log.LogInfo($"[FreeItem] {NameOf(who)} already took one"); return; }
             var sm = StatsManager.instance;
-            if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || !AllowedFreeItemForHider(it))
+            if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || !(hunter ? IsStartWeapon(it) : AllowedFreeItemForHider(it)))
             {
                 _hostFreeItemGiven.Remove(actor);
                 Plugin.Log.LogInfo($"[FreeItem] '{key}' not allowed");
                 return;
             }
             Vector3 f = who.transform.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = Vector3.forward;
-            SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(who) + f.normalized * 1.2f + Vector3.up * 1f);
+            var go = SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(who) + f.normalized * 1.2f + Vector3.up * 1f);
+            HostRegisterOwner(go, actor);
             Plugin.Log.LogInfo($"[FreeItem] {NameOf(who)} gets '{key}'");
         }
 
         private void DrawFreeItemPicker(float sw, float sh, float u)
         {
-            if (!_freePickOpen || !CanPickFreeItem) return;
+            if (!_freePickOpen || !PickerAvailable) return;
             EnsureMenuStyles(u);
-            var list = FreeItemList();
+            bool weapon = CanPickStartWeapon;
+            var list = weapon ? StartWeaponList() : FreeItemList();
             float w = Mathf.Min(520 * u, sw - 40 * u), h = Mathf.Min(640 * u, sh - 80 * u);
             var r = new Rect((sw - w) / 2f, (sh - h) / 2f, w, h);
             GUI.DrawTexture(r, Tex(new Color(0.05f, 0.07f, 0.1f, 0.97f)));
             GUI.DrawTexture(new Rect(r.x, r.y, r.width, 4 * u), Tex(new Color(0.3f, 0.55f, 1f, 1f)));
-            GUI.Label(new Rect(r.x + 16 * u, r.y + 10 * u, r.width - 32 * u, 32 * u), L.FreeItemTitle, _mSection);
-            GUI.Label(new Rect(r.x + 16 * u, r.y + 42 * u, r.width - 32 * u, 40 * u), L.FreeItemHint, _mSmall);
+            GUI.Label(new Rect(r.x + 16 * u, r.y + 10 * u, r.width - 32 * u, 32 * u), weapon ? L.StartWeaponTitle : L.FreeItemTitle, _mSection);
+            GUI.Label(new Rect(r.x + 16 * u, r.y + 42 * u, r.width - 32 * u, 40 * u), weapon ? L.StartWeaponHint : L.FreeItemHint, _mSmall);
             var area = new Rect(r.x + 16 * u, r.y + 88 * u, r.width - 32 * u, r.height - 150 * u);
             float rowH = 38 * u, g = 5 * u;
             var content = new Rect(0, 0, area.width - 18 * u, Mathf.Max(1, list.Count) * (rowH + g));
@@ -221,6 +239,17 @@ namespace HideAndSeekMonster
     [HarmonyLib.HarmonyPatch(typeof(ItemBattery), "ChargeBattery")]
     internal static class PistolNoRechargePatch
     {
-        private static bool Prefix(ItemBattery __instance) => !HideAndSeekManager.PistolRuleActive(__instance);
+        private static bool Prefix(ItemBattery __instance)
+        {
+            if (HideAndSeekManager.PistolRuleActive(__instance)) return false;
+            // Classic: guns have limited ammo – no recharging during a round
+            var mgr = HideAndSeekManager.Instance;
+            if (mgr != null && mgr.ClassicActive)
+            {
+                var attr = __instance.GetComponent<ItemAttributes>() ?? __instance.GetComponentInParent<ItemAttributes>();
+                if (attr != null && attr.item != null && attr.item.itemType == SemiFunc.itemType.gun) return false;
+            }
+            return true;
+        }
     }
 }

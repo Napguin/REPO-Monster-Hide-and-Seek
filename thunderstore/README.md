@@ -86,6 +86,12 @@ Points add up over all rounds. They are shown after each round and in the F8 men
 
 Normal enemies are despawned while a round is running (can be turned off).
 
+### Classic mode
+Switch it on in the F8 menu (`Round / Mode`). The hunter stays a normal player: while the others hide they press **I**
+and pick a **melee weapon of choice** (it appears in front of them). Melee weapons never break, guns can't be
+recharged. Hiders may not grab the hunter's melee weapons or put the hunter's weapons into their inventory.
+Items handed out by the mod (start weapon, free items) go back to their owner at the start of the next round.
+
 ### After the round
 Surviving hiders are shown to everyone for a few seconds. Then all dead players are revived and healed and everyone
 is teleported back into the truck. A vote follows: volunteer to be the next monster (a random volunteer gets it)
@@ -105,7 +111,8 @@ The round settings of the **host** are used for everyone.
 | Round / RoundTime | 300 | Seconds the monster has to hunt |
 | Round / DisableEnemies | true | Despawn normal enemies during a round |
 | Round / MapLevel | 0 | Level (map size) for new maps from the menu / map vote, 0 = keep current |
-| Round / FreeItem | true | Every hider may take 1 free item while hiding (I key) |
+| Round / Mode | Monster | Monster: hunter becomes a monster. Classic: hunter stays a player with a melee weapon of choice |
+| Round / FreeItem | true | Every hider may take 1 free item while hiding (I key); in Classic mode the hunter picks the start weapon |
 | Round / BanWeapons | true | Monster mode: guns, melee weapons and cart cannons can't be grabbed (tranq / pulse pistol allowed, but only 2 shots per round and no recharging) |
 | Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
 | Seeker / AttackRange | 2.8 | Reach of the attack in metres |

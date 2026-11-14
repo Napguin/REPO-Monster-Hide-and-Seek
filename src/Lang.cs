@@ -263,6 +263,16 @@ namespace HideAndSeekMonster
             : "Spawned enemies stay even with \"disable normal enemies\". Dummies count as hiders during a round (only visible on the host).";
         public static string BanWeaponsToggle => De ? "Waffen verboten (Schuss + Nahkampf)" : "Ban weapons (guns + melee)";
         public static string FreeItemToggle => De ? "Gratis-Item für Hider (Taste I)" : "Free item for hiders (I key)";
+        public static string TheHunter => De ? "der Jäger" : "the hunter";
+        public static string StartWeaponPress => De ? "Drück I und wähl deine Startwaffe!" : "Press I and pick your start weapon!";
+        public static string StartWeaponTitle => De ? "Deine Startwaffe" : "Your start weapon";
+        public static string StartWeaponHint => De ? "Nahkampfwaffe deiner Wahl – unendlich haltbar. Sie erscheint vor dir." : "Melee weapon of your choice – infinite uses. It appears in front of you.";
+        public static string HunterMeleeNo => De ? "Die Nahkampfwaffe des Jägers darfst du nicht greifen!" : "You can't grab the hunter's melee weapon!";
+        public static string HunterItemNoInventory => De ? "Waffen des Jägers dürfen nicht ins Inventar!" : "The hunter's weapons can't go into your inventory!";
+        public static string ClassicToggle => De ? "Klassik-Modus (Jäger mit Waffe statt Monster)" : "Classic mode (hunter with a weapon, no monster)";
+        public static string ModeLabel => De ? "Modus" : "Mode";
+        public static string ModeMonster => De ? "Monster" : "Monster";
+        public static string ModeClassic => De ? "Klassik" : "Classic";
         public static string FreeItemTitle => De ? "Gratis-Item für diese Runde" : "Free item for this round";
         public static string FreeItemHint => De ? "Wähle 1 Item – es erscheint vor dir. Nur Items, die Hider benutzen dürfen." : "Pick 1 item – it appears in front of you. Only items hiders are allowed to use.";
         public static string FreeItemTake => De ? "Nehmen" : "Take";

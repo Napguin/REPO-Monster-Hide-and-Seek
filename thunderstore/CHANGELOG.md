@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.55 (beta)
+- **Classic mode** (F8 menu, `Round / Mode`): the hunter stays a normal player and picks a **melee weapon of choice**
+  while the others hide (I key). Melee weapons have infinite uses, guns can't be recharged. The hunter dying still
+  means the hiders win.
+- **Item ownership:** the mod remembers who got which item (start weapon, free items). Hiders can't grab the
+  hunter's melee weapons and can't put the hunter's weapons into their inventory. At the start of the next round
+  every remembered item is brought back to its owner.
+
 ## 1.5.54 (beta)
 - **Free item per round:** while hiding, every hider presses **I** and takes 1 item for free – it appears in front of
   them. Only items hiders may use: no guns / melee / cart cannons / scouts, and of the grenades and mines only those

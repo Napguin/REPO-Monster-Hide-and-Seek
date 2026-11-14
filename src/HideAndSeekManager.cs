@@ -159,6 +159,7 @@ namespace HideAndSeekMonster
             DebugMenuKey();
             Safe("weapon ban", WeaponBanTick);
             Safe("free item", FreeItemKeys);
+            Safe("hunter melee", HunterMeleeTick);
 
             if (CursorWanted)
             {
@@ -205,7 +206,13 @@ namespace HideAndSeekMonster
         private void LocalSeekerTick()
         {
             bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
-            ThirdPersonCamera.Active = localSeeker && Phase == Phase.Hunting && _thirdPerson;
+            ThirdPersonCamera.Active = localSeeker && Phase == Phase.Hunting && _thirdPerson && !_roundClassic;
+            if (_roundClassic)
+            {
+                // Classic: the hunter is a normal player with a weapon – frozen while the others hide, nothing else
+                if (localSeeker && Phase == Phase.Hiding) Safe("freeze", () => Compat.Call(PlayerController.instance, "InputDisable", 0.2f));
+                return;
+            }
             float h = _monster != null ? _monster.BodyHeight : 2f;
             ThirdPersonCamera.Distance = Mathf.Max(Plugin.CameraDistance.Value, h * 1.1f + 1.5f);
             ThirdPersonCamera.Height = Mathf.Clamp(h - 1.3f, 0.6f, 3f);
@@ -741,6 +748,8 @@ namespace HideAndSeekMonster
             return string.IsNullOrEmpty(p.playerName) ? "Player" : p.playerName;
         }
 
+        internal void BannerPublic(string text) => Banner(text, new Color(1f, 0.4f, 0.3f), 1.5f);
+
         private void Banner(string text, Color color, float seconds)
         {
             _bannerText = text;
@@ -820,6 +829,7 @@ namespace HideAndSeekMonster
                             (string)data[11], (float)data[12], data.Length > 13 && (bool)data[13]);
                         _roundBanWeapons = data.Length > 14 && (bool)data[14];
                         _roundFreeItem = data.Length > 15 && (bool)data[15];
+                        ApplyClassic(data.Length > 16 && (bool)data[16]);
                         break;
                     case MsgKill:
                         if (!SenderIsMaster(sender)) return;
@@ -926,6 +936,10 @@ namespace HideAndSeekMonster
                         }
                         Send(MsgMonsterSet, chosen);
                         break;
+                    case MsgOwner:
+                        if (!SenderIsMaster(sender)) return;
+                        OnOwner((int)data[2], (int)data[3]);
+                        break;
                     case MsgFreeItem:
                         if (IsHost) HostGiveFreeItem(sender, (string)data[2]);
                         break;
@@ -1009,8 +1023,9 @@ namespace HideAndSeekMonster
                 monster,
                 Plugin.AttackRange.Value,
                 Plugin.SeekerChoosesMonster.Value,
-                Plugin.BanWeapons.Value,
-                Plugin.FreeItem.Value);
+                Plugin.BanWeapons.Value && Plugin.Mode.Value == GameMode.Monster, // classic: weapons are the point
+                Plugin.FreeItem.Value,
+                Plugin.Mode.Value == GameMode.Classic);
             _menuOpen = false;
         }
 
@@ -1202,12 +1217,12 @@ namespace HideAndSeekMonster
                     GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
                     GUI.color = Color.white;
                     DrawRevealMarkers(u);
-                    DrawAbilityBar(sw, sh, u);
+                    if (!_roundClassic) DrawAbilityBar(sw, sh, u);
                 }
                 else if (Phase == Phase.Hiding)
                 {
                     GUI.color = new Color(1f, 0.85f, 0.2f);
-                    ShadowLabel(new Rect(0, sh * 0.15f, sw, 80 * u), L.HideNow(NameOf(Seeker), _monsterName, secs), _bigStyle);
+                    ShadowLabel(new Rect(0, sh * 0.15f, sw, 80 * u), L.HideNow(NameOf(Seeker), _roundClassic ? L.TheHunter : _monsterName, secs), _bigStyle);
                     if (_monster != null)
                     {
                         GUI.color = Abilities.UnityColor(_monster.Ability);

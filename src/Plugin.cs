@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.5.54";
+        public const string Version = "1.5.55";
 
         internal static ManualLogSource Log;
 
@@ -28,6 +28,7 @@ namespace HideAndSeekMonster
         internal static ConfigEntry<int> ConfigVersion;
         internal static ConfigEntry<bool> BanWeapons;
         internal static ConfigEntry<bool> FreeItem;
+        internal static ConfigEntry<GameMode> Mode;
         internal static ConfigEntry<UiLanguage> Language;
         internal static ConfigEntry<float> HideTime;
         internal static ConfigEntry<float> RoundTime;
@@ -90,6 +91,8 @@ namespace HideAndSeekMonster
                 SeekerInvincible.Value = false; // rules changed: the monster can die
                 ConfigVersion.Value = 2;
             }
+            Mode = Config.Bind("Round", "Mode", GameMode.Monster,
+                "Monster: the hunter becomes a monster with a special (guns / melee banned). Classic: the hunter stays a player and starts with a melee weapon of choice (infinite uses, guns can't be recharged).");
             FreeItem = Config.Bind("Round", "FreeItem", true,
                 "Every hider may take 1 free item while hiding (I key). Only items that are allowed for hiders.");
             BanWeapons = Config.Bind("Round", "BanWeapons", true,
