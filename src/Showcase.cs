@@ -137,9 +137,9 @@ namespace HideAndSeekMonster
             new ShowcaseEntry { Key = "pony", Ability = AbilityType.Lasso },
             new ShowcaseEntry { Key = "upscream", Ability = AbilityType.Launch },
             new ShowcaseEntry { Key = "trudge", Ability = AbilityType.Impulse },
-            new ShowcaseEntry { Key = null, Ability = AbilityType.BalloonMines },
-            new ShowcaseEntry { Key = null, Ability = AbilityType.TumbleBash },
-            new ShowcaseEntry { Key = null, Ability = AbilityType.Gamble },
+            new ShowcaseEntry { Key = "balloon", Ability = AbilityType.BalloonMines },
+            new ShowcaseEntry { Key = "tick", Ability = AbilityType.TumbleBash },
+            new ShowcaseEntry { Key = "gambit", Ability = AbilityType.Gamble },
         };
 
         private static string ShowcaseTitle(ShowcaseEntry e) =>

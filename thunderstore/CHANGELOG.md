@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.51 (beta)
+- Monster Showcase: new drawings for **Tick (Tumble-Bash)**, **Birthday Boy (Balloon Mines)** and **Gambit (Gamble)**;
+  the Clown's laser is animated now. Every special has a drawing.
+
 ## 1.5.50 (beta)
 - Debug menu: spawn **valuables** (every valuable of every level) and **shop items** in front of you – pick one
   with ◀ ▶ or spawn a random one.

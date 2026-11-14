@@ -12,7 +12,12 @@ for f in glob.glob(os.path.join(out, "*")):
     os.remove(f)
 
 lines = []
-for path in sorted(glob.glob(os.path.join(src, "*"))):
+paths = sorted(glob.glob(os.path.join(src, "*")))
+# an animated GIF wins over a still PNG of the same drawing (e.g. clown.gif and clown.png)
+gifs = {os.path.splitext(os.path.basename(p))[0].lower() for p in paths if p.lower().endswith(".gif")}
+for path in paths:
+    if path.lower().endswith(".png") and os.path.splitext(os.path.basename(path))[0].lower() in gifs:
+        print("skipped", os.path.basename(path), "(gif exists)"); continue
     name = os.path.basename(path)
     m = re.match(r"monster_rulz_(\d+)_(.+)\.(gif|png)$", name, re.I)
     if not m:
@@ -26,7 +31,7 @@ for path in sorted(glob.glob(os.path.join(src, "*"))):
         im.seek(i)
         fr = im.convert("RGB")
         d = im.info.get("duration", 100) or 100
-        if prev is not None and list(fr.getdata()) == list(prev.getdata()):
+        if prev is not None and fr.tobytes() == prev.tobytes():
             durs[-1] += d   # identical frame: just show the previous one longer
             continue
         prev = fr
