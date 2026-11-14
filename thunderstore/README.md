@@ -73,10 +73,9 @@ Hiders see which special the monster has while they hide and get a warning when 
 
 ### Scores
 Points add up over all rounds. They are shown after each round and in the F8 menu (the host can reset them).
-- **Monster:** 1 point per hider killed.
-- **Hiders:** the hider who lasts longest gets as many points as there were hiders, the next one 1 less, and so on –
-  the first hider eliminated gets 0. Everyone still alive at the end gets the full points.
-  Example with 3 hiders: Anna eaten first (0), Ben second (2), Carl survives (3).
+- **Monster:** 1 point for every hider that dies – no matter what killed them (monster, traps, map hazards ...).
+- **Hiders:** 1st to die = 0 points, 2nd = 1, 3rd = 2 and so on. Everyone who survives gets as many points as there
+  were hiders. Example with 3 hiders: Anna dies first (0), Ben second (1), Carl survives (3).
 
 ### Phases
 | Phase | What happens |
@@ -106,6 +105,7 @@ The round settings of the **host** are used for everyone.
 | Round / RoundTime | 300 | Seconds the monster has to hunt |
 | Round / DisableEnemies | true | Despawn normal enemies during a round |
 | Round / MapLevel | 0 | Level (map size) for new maps from the menu / map vote, 0 = keep current |
+| Round / BanWeapons | true | Monster mode: guns, melee weapons and cart cannons can't be grabbed (tranq / pulse pistol allowed) |
 | Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
 | Seeker / AttackRange | 2.8 | Reach of the attack in metres |
 | Seeker / AttackCooldown | 1.2 | Seconds between attacks |
@@ -115,7 +115,7 @@ The round settings of the **host** are used for everyone.
 | Seeker / CameraDistance | 3.2 | Third-person camera distance |
 | Seeker / SpeedMultiplier | 1.35 | Monster movement speed |
 | Seeker / InfiniteStamina | true | Monster never runs out of stamina |
-| Seeker / Invincible | true | Monster can't be damaged |
+| Seeker / Invincible | false | Monster can't be damaged (off: hiders may kill it with traps and win) |
 | Seeker / BlindWhileHiding | true | Black screen for the monster while the others hide |
 | Seeker / MonsterScale | 1.0 | Size of the monster model |
 | Round / SeekerChoosesMonster | true | Seeker picks their monster while the others hide |

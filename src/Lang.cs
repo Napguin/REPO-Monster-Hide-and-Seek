@@ -261,6 +261,8 @@ namespace HideAndSeekMonster
         public static string DebugHint => De
             ? "Gespawnte Gegner bleiben auch bei „Normale Gegner aus“. Puppen zählen in einer Runde als Hider (nur auf dem Host sichtbar)."
             : "Spawned enemies stay even with \"disable normal enemies\". Dummies count as hiders during a round (only visible on the host).";
+        public static string BanWeaponsToggle => De ? "Waffen verboten (Schuss + Nahkampf)" : "Ban weapons (guns + melee)";
+        public static string WeaponBanned => De ? "Waffen sind im Monster-Modus verboten!" : "Weapons are banned in Monster mode!";
         public static string Close => De ? "Schließen" : "Close";
         public static string NotEnoughPlayers => De ? "Mindestens 2 lebende Spieler nötig." : "At least 2 living players are needed.";
         public static string RoundRunning => De ? "Eine Runde läuft gerade." : "A round is currently running.";

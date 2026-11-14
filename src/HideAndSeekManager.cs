@@ -157,6 +157,7 @@ namespace HideAndSeekMonster
                 if (_menuOpen && IsHost) ResolveNextSeeker();
             }
             DebugMenuKey();
+            Safe("weapon ban", WeaponBanTick);
 
             if (CursorWanted)
             {
@@ -448,19 +449,16 @@ namespace HideAndSeekMonster
                 if (_hiderOutTime.ContainsKey(id)) continue;
                 if (aliveHiders.Any(p => p.photonView.ViewID == id)) continue;
                 _hiderOutTime[id] = Time.time;
-                if (!_roundTest && RecentlyHitByMonster(id)) _seekerKilled.Add(id); // died from monster damage
-                else if (!_roundTest && _summoned.Count > 0)
-                {
-                    var dead = FindByViewId(id);
-                    if (dead != null && NearSummoned(PlayerPos(dead))) _seekerKilled.Add(id); // killed by the Swarm
-                }
+                // rules: the hunter gets a point for EVERY hider that dies, no matter what killed them (traps, map
+                // hazards, the Swarm ...) – only players who left the game don't count
+                if (!_roundTest && FindByViewId(id) != null) _seekerKilled.Add(id);
             }
         }
 
         /// <summary>
-        /// Hiders: the one who lasts longest gets as many points as there were hiders, the next one 1 less, ...
-        /// whoever was eliminated first gets 0. Everyone still alive at the end shares the top score.
-        /// Seeker: 1 point per hider eaten.
+        /// Hiders (rules): 1st to die = 0 points, 2nd = 1, 3rd = 2 ...; everyone who survives gets as many points as
+        /// there were hiders. Hiders dying at the same moment get the same points.
+        /// Hunter: 1 point per hider that died, whatever killed them.
         /// </summary>
         private void HostSendScores()
         {
@@ -469,14 +467,12 @@ namespace HideAndSeekMonster
 
             int h = _hiderViewIds.Count;
             var round = new Dictionary<int, int>();
-            float firstOut = _hiderOutTime.Count > 0 ? _hiderOutTime.Values.Min() : float.MaxValue;
             foreach (int id in _hiderViewIds)
             {
                 bool survived = !_hiderOutTime.TryGetValue(id, out float t);
                 if (survived) { round[id] = h; continue; }
-                if (Mathf.Approximately(t, firstOut)) { round[id] = 0; continue; }
-                int outlasting = _hiderViewIds.Count(o => o != id && (!_hiderOutTime.TryGetValue(o, out float ot) || ot > t));
-                round[id] = Mathf.Max(0, h - outlasting);
+                // number of hiders who died before this one
+                round[id] = _hiderOutTime.Count(kv => kv.Key != id && kv.Value < t - 0.05f);
             }
             round[_roundSeekerId] = _seekerKilled.Count;
 
@@ -821,6 +817,7 @@ namespace HideAndSeekMonster
                         OnStart((int)data[2], (float)data[3], (float)data[4], (float)data[5],
                             (bool)data[6], (bool)data[7], (bool)data[8], (float)data[9], (int[])data[10],
                             (string)data[11], (float)data[12], data.Length > 13 && (bool)data[13]);
+                        _roundBanWeapons = data.Length > 14 && (bool)data[14];
                         break;
                     case MsgKill:
                         if (!SenderIsMaster(sender)) return;
@@ -1006,7 +1003,8 @@ namespace HideAndSeekMonster
                 hiders,
                 monster,
                 Plugin.AttackRange.Value,
-                Plugin.SeekerChoosesMonster.Value);
+                Plugin.SeekerChoosesMonster.Value,
+                Plugin.BanWeapons.Value);
             _menuOpen = false;
         }
 

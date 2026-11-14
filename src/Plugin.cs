@@ -18,13 +18,15 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "1.5.52";
+        public const string Version = "1.5.53";
 
         internal static ManualLogSource Log;
 
         // ---- Config ----
         internal static ConfigEntry<Key> MenuKey;
         internal static ConfigEntry<Key> DebugMenuKey;
+        internal static ConfigEntry<int> ConfigVersion;
+        internal static ConfigEntry<bool> BanWeapons;
         internal static ConfigEntry<UiLanguage> Language;
         internal static ConfigEntry<float> HideTime;
         internal static ConfigEntry<float> RoundTime;
@@ -79,8 +81,16 @@ namespace HideAndSeekMonster
                     new AcceptableValueRange<float>(0.5f, 3f)));
             SeekerInfiniteStamina = Config.Bind("Seeker", "InfiniteStamina", true,
                 "Monster never runs out of stamina.");
-            SeekerInvincible = Config.Bind("Seeker", "Invincible", true,
-                "Monster can not take damage during a round.");
+            SeekerInvincible = Config.Bind("Seeker", "Invincible", false,
+                "Monster can not take damage during a round. Off by default (rules: hiders may kill the monster with traps / map hazards and then win).");
+            ConfigVersion = Config.Bind("General", "ConfigVersion", 1, "Internal – used to update old settings once.");
+            if (ConfigVersion.Value < 2)
+            {
+                SeekerInvincible.Value = false; // rules changed: the monster can die
+                ConfigVersion.Value = 2;
+            }
+            BanWeapons = Config.Bind("Round", "BanWeapons", true,
+                "Monster mode: firearms, melee weapons and cart cannons can't be grabbed during a round (tranq and pulse pistol are allowed).");
             BlindSeekerWhileHiding = Config.Bind("Seeker", "BlindWhileHiding", true,
                 "Black screen for the seeker during the hiding phase.");
             MonsterScale = Config.Bind("Seeker", "MonsterScale", 1f,

@@ -195,6 +195,7 @@ namespace HideAndSeekMonster
                 GUILayout.Space(6 * u);
                 Plugin.SeekerInvincible.Value = MenuToggle(L.Invincible, Plugin.SeekerInvincible.Value, u);
                 Plugin.DisableEnemies.Value = MenuToggle(L.DisableEnemies, Plugin.DisableEnemies.Value, u);
+                Plugin.BanWeapons.Value = MenuToggle(L.BanWeaponsToggle, Plugin.BanWeapons.Value, u);
                 Plugin.BlindSeekerWhileHiding.Value = MenuToggle(L.Blind, Plugin.BlindSeekerWhileHiding.Value, u);
                 Plugin.MonsterCanGrab.Value = MenuToggle(L.CanGrab, Plugin.MonsterCanGrab.Value, u);
                 Plugin.AfterRound.Value = MenuToggle(L.AfterRoundToggle, Plugin.AfterRound.Value, u);

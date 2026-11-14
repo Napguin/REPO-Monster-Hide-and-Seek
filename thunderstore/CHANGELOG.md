@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.53 (beta)
+- **Scoring like the rules:** hiders get 0 / 1 / 2 ... in the order they die, survivors get as many points as there
+  were hiders. The monster gets 1 point for **every** hider that dies, whatever killed them.
+- **The monster can die now** (invincibility is off by default, your old setting is switched off once). Hiders may
+  kill it with traps / map hazards – then they win.
+- **Weapons banned in Monster mode:** guns, melee weapons and cart cannons can't be grabbed during a round; tranq and
+  pulse pistol, grenades, mines, drones, orbs, health packs etc. are fine. Toggle in the F8 menu (`Round / BanWeapons`).
+
 ## 1.5.52 (beta)
 - **How To Play** in the F8 menu: the 18 drawn rule pages ("Da Rulz", game start, classic / monster mode, bonus shop
   rules, scoring, item gallery, credits). Flip with the buttons or the arrow keys / A / D.
