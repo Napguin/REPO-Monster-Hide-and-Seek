@@ -301,7 +301,7 @@ namespace HideAndSeekMonster
         public static string FreeItemTake => De ? "Nehmen" : "Take";
         public static string FreeItemPress => De ? "Drück I für dein Gratis-Item!" : "Press I for your free item!";
         public static string WeaponBanned => De ? "Waffen sind im Monster-Modus verboten!" : "Weapons are banned in Monster mode!";
-        public static string CreditsLine => De ? "Art & Animation: Flyguy  ·  Programmierung: Napguin  ·  Ideen & Playtesting: looley18, madkitkat, SongoCat" : "Art & animation: Flyguy  ·  Programming: Napguin  ·  Ideas & playtesting: looley18, madkitkat, SongoCat";
+        public static string CreditsLine => De ? "Art & Animation: Flyguy  ·  Programmierung: Napguin  ·  Ideen & Playtesting: Looley18, MadKitKat, SongoCat" : "Art & animation: Flyguy  ·  Programming: Napguin  ·  Ideas & playtesting: Looley18, MadKitKat, SongoCat";
         public static string DrawnBy => De ? "Zeichnungen: Flyguy" : "Drawings by Flyguy";
         public static string Close => De ? "Schließen" : "Close";
         public static string NotEnoughPlayers => De ? "Mindestens 2 lebende Spieler nötig." : "At least 2 living players are needed.";
