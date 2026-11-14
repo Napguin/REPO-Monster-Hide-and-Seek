@@ -171,22 +171,44 @@ namespace HideAndSeekMonster
         // ---- picker window: item icons in a grid, grouped by category ----
         private readonly System.Collections.Generic.Dictionary<string, Sprite> _itemIcons = new System.Collections.Generic.Dictionary<string, Sprite>();
 
+        private bool _iconLogged;
+        private readonly System.Collections.Generic.Dictionary<string, float> _iconRetryAt = new System.Collections.Generic.Dictionary<string, float>();
+
         private Sprite ItemIcon(string key)
         {
             if (_itemIcons.TryGetValue(key, out var sp)) return sp;
+            if (_iconRetryAt.TryGetValue(key, out float retry) && Time.realtimeSinceStartup < retry) return null;
+            _iconRetryAt[key] = Time.realtimeSinceStartup + 3f; // look again in 3 s (not every GUI call)
             sp = null;
+            string why = "";
             try
             {
                 var sm = StatsManager.instance;
-                if (sm != null && sm.itemDictionary != null && sm.itemDictionary.TryGetValue(key, out var it) && it?.prefab != null)
+                Item it = null;
+                if (sm != null && sm.itemDictionary != null) sm.itemDictionary.TryGetValue(key, out it);
+                if (it == null) why = "item not found";
+                else
                 {
-                    var prefab = it.prefab.Prefab;
+                    // 1) the item's prefab
+                    GameObject prefab = null;
+                    try { prefab = it.prefab?.Prefab; } catch (System.Exception ex) { why += "prefab: " + ex.Message + "; "; }
+                    // 2) loaded by its resource path
+                    if (prefab == null && it.prefab != null && !string.IsNullOrEmpty(it.prefab.ResourcePath))
+                        prefab = Resources.Load<GameObject>(it.prefab.ResourcePath);
                     var attr = prefab != null ? prefab.GetComponentInChildren<ItemAttributes>(true) : null;
                     if (attr != null) sp = attr.icon;
+                    if (sp == null) why += prefab == null ? "no prefab; " : attr == null ? "no ItemAttributes; " : "icon empty on prefab; ";
+                    // 3) a copy of that item somewhere in the scene (shop, truck, inventory) – set up at runtime
+                    if (sp == null)
+                        foreach (var a in Object.FindObjectsOfType<ItemAttributes>())
+                            if (a != null && a.item == it && a.icon != null) { sp = a.icon; break; }
+                    if (sp == null) why += "none in scene";
                 }
             }
-            catch (System.Exception ex) { Plugin.Log.LogDebug("icon " + key + ": " + ex.Message); }
-            _itemIcons[key] = sp;
+            catch (System.Exception ex) { why += ex.Message; }
+            if (sp == null && !_iconLogged) { _iconLogged = true; Plugin.Log.LogInfo($"[Picker] no icon for '{key}': {why}"); }
+            // only cache hits – a missing icon is looked for again a bit later (items in the scene can appear)
+            if (sp != null) _itemIcons[key] = sp;
             return sp;
         }
 

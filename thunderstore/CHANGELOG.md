@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.57 (beta)
+- Item picker: icons are also looked up by the item's resource path and on copies of the item in the scene (shop,
+  truck, inventory); the log says why if an icon can't be found (`[Picker] no icon for ...`).
+
 ## 1.5.56 (beta)
 - Items handed out by the mod come back at the next round start **even if they're gone** (left lying in the old map,
   used up, broken) – the owner gets a new one. Before, only items that still existed (e.g. in the inventory) came back.
