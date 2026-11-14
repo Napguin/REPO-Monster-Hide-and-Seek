@@ -61,7 +61,8 @@ namespace HideAndSeekMonster
         private bool CanPickStartWeapon => ClassicActive && Phase == Phase.Hiding && !_startWeaponTaken && Seeker != null && GameRefs.IsLocal(Seeker);
 
         internal static bool IsStartWeapon(Item it) =>
-            it != null && !it.disabled && it.prefab != null && it.prefab.IsValid() && it.itemType == SemiFunc.itemType.melee;
+            it != null && !it.disabled && it.prefab != null && it.prefab.IsValid()
+            && (it.itemType == SemiFunc.itemType.melee || it.itemType == SemiFunc.itemType.gun); // melee or a gun of choice
 
         // ---- ownership ----
         // host: item view id -> which item it was (to give it back if it's gone)

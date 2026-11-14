@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.62 (beta)
+- Classic mode: the hunter's start weapon can also be a **gun** (the list shows melee weapons and guns). Guns
+  still can't be recharged; the second item (I again) stays as it was.
+
 ## 1.5.61 (beta)
 More of the How-To-Play rules:
 - **Weapons owned by hiders stay in the truck:** at round start, weapons that belong to a hider (e.g. last round's

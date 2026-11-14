@@ -88,7 +88,7 @@ Normal enemies are despawned while a round is running (can be turned off).
 
 ### Classic mode
 Switch it on in the F8 menu (`Round / Mode`). The hunter stays a normal player: while the others hide they press **I**
-and pick a **melee weapon of choice** (it appears in front of them). Melee weapons never break, guns can't be
+and pick a **melee weapon or gun of choice** (it appears in front of them). Melee weapons never break, guns can't be
 recharged. The hunter may then press **I** again for a second item. Hiders can't grab melee weapons, may wrestle
 guns but only fire the tranq / pulse pistol, and can't put the hunter's weapons into their inventory.
 Items handed out by the mod (start weapon, free items) go back to their owner at the start of the next round –

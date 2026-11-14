@@ -266,7 +266,7 @@ namespace HideAndSeekMonster
         public static string TheHunter => De ? "der Jäger" : "the hunter";
         public static string StartWeaponPress => De ? "Drück I und wähl deine Startwaffe!" : "Press I and pick your start weapon!";
         public static string StartWeaponTitle => De ? "Deine Startwaffe" : "Your start weapon";
-        public static string StartWeaponHint => De ? "Nahkampfwaffe deiner Wahl – unendlich haltbar. Sie erscheint vor dir." : "Melee weapon of your choice – infinite uses. It appears in front of you.";
+        public static string StartWeaponHint => De ? "Nahkampf- oder Schusswaffe deiner Wahl (Nahkampf: unendlich haltbar, Schusswaffen: nicht aufladbar). Danach nochmal I für ein zweites Item." : "Melee weapon or gun of your choice (melee: infinite uses, guns: no recharging). Then press I again for a second item.";
         public static string ItemLockedInTruck => De ? "Diese Waffe bleibt diese Runde im Truck!" : "This weapon stays in the truck this round!";
         public static string HiderNoFire => De ? "Hider dürfen nur Tranq- und Pulse-Pistole abfeuern!" : "Hiders may only fire the tranq and pulse pistol!";
         public static string HunterExtraPress => De ? "Drück nochmal I für ein zweites Item!" : "Press I again for a second item!";
