@@ -210,6 +210,7 @@ namespace HideAndSeekMonster
             GUI.DrawTexture(img, Tex(Color.black));
             var frame = ShowcaseArt.Frame(sel.Key, Time.realtimeSinceStartup - _showcaseStart);
             if (frame != null) GUI.DrawTexture(img, frame, ScaleMode.ScaleToFit);
+            if (frame != null) { GUI.color = new Color(1f, 1f, 1f, 0.5f); GUI.Label(new Rect(img.x, img.yMax - 20 * u, img.width - 6 * u, 18 * u), L.DrawnBy, CreditsStyle(u)); GUI.color = Color.white; }
             else
             {
                 GUI.color = new Color(1, 1, 1, 0.6f);
@@ -314,6 +315,7 @@ namespace HideAndSeekMonster
             if (GUI.Button(new Rect(body.center.x + bw * 0.5f + 10 * u, by, bw, barH - p), L.NextPage + "  ▶", _chBtn)) next = true;
             GUI.enabled = true;
             GUI.Label(new Rect(body.center.x - bw / 2f, by, bw, barH - p), $"{_htpPage} / {n}", CenterStyle(u));
+            GUI.color = new Color(1f, 1f, 1f, 0.5f); GUI.Label(new Rect(img.x, img.yMax - 20 * u, img.width - 6 * u, 18 * u), L.DrawnBy, CreditsStyle(u)); GUI.color = Color.white;
             if (prev && _htpPage > 1) { _htpPage--; if (e.type == EventType.KeyDown) e.Use(); }
             if (next && _htpPage < n) { _htpPage++; if (e.type == EventType.KeyDown) e.Use(); }
         }

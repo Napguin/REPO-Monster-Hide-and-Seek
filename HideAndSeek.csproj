@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>HideAndSeekMonster</AssemblyName>
     <RootNamespace>HideAndSeekMonster</RootNamespace>
-    <Version>1.5.65</Version>
+    <Version>1.5.66</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <!-- REQUIRED: the game DLLs are publicized (private members made public). Mono only skips its access
@@ -17,7 +17,7 @@
     <AssemblyTitle>Hide And Seek Monster – R.E.P.O. mod (BepInEx plugin)</AssemblyTitle>
     <Description>BepInEx plugin for R.E.P.O.: hide and seek game mode where one player becomes a monster. Source: https://github.com/Napguin/REPO-Monster-Hide-and-Seek</Description>
     <Company>Napguin</Company>
-    <Authors>Napguin</Authors>
+    <Authors>Napguin, Flyguy</Authors>
     <Copyright>Copyright © Napguin 2026</Copyright>
     <NeutralLanguage>en</NeutralLanguage>
     <RepositoryUrl>https://github.com/Napguin/REPO-Monster-Hide-and-Seek</RepositoryUrl>

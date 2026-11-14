@@ -1,11 +1,12 @@
 <p align="center">
-  <img src="thunderstore/icon.png" width="128" alt="Hide And Seek Monster icon">
+  <img src="pictures/logo/logo-1024.png" width="200" alt="R.E.P.O. Hide 'n Seek logo">
 </p>
 
-<h1 align="center">Hide And Seek Monster</h1>
+<h1 align="center">R.E.P.O. Hide 'n Seek</h1>
 
 <p align="center">
-  <b>Hide &amp; Seek for R.E.P.O. – the seeker becomes a real monster of the game.</b><br><br>
+  <b>Hide 'n Seek for R.E.P.O. – hunt as a real monster of the game, or in Classic mode with a weapon of choice.</b><br>
+  <sub>by <b>Flyguy</b> (art &amp; animation) and <b>Napguin</b> (programming) · Thunderstore package: <code>HideAndSeekMonster</code></sub><br><br>
   <!-- Static badges: shields.io can't reach Thunderstore any more ("inaccessible"). Update the version on each release. -->
   <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/Thunderstore-Download-2a9d8f" alt="Download on Thunderstore"></a>
   <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/release-1.5.20-e76f51" alt="Latest release 1.5.20"></a>
@@ -34,10 +35,13 @@ BepInEx is installed automatically.
 2. Download the latest zip from [`release/`](release/) and copy
    `BepInEx/plugins/HideAndSeekMonster/HideAndSeekMonster.dll` into `<REPO>/BepInEx/plugins/`.
 
-A **Hide & Seek** game mode for R.E.P.O. where the seeker **becomes a real monster of the game**.
+A **Hide 'n Seek** game mode for R.E.P.O. with two modes:
 
-One player turns into a monster – e.g. a Huntsman, Robe, Trudge, … (taken from the game's own enemies).
-Everyone else has a short time to hide. Then the monster is released and hunts them down.
+- **Monster mode:** the hunter **becomes a real monster of the game** – e.g. a Huntsman, Robe, Trudge, … – each with
+  its own special ability.
+- **Classic mode:** the hunter stays a player and hunts with a **weapon of choice**.
+
+Everyone else has a short time to hide. Then the hunter is released and hunts them down.
 
 > **Every player in the lobby needs this mod installed.**
 
@@ -170,6 +174,12 @@ The round settings of the **host** are used for everyone.
 | Test / DummyCount | 4 | Dummies spawned around you in test mode |
 | Controls / Attack, Roar, ToggleView | mouse L / mouse R / V | Input System paths, e.g. `<Keyboard>/f` |
 
+
+## Credits
+| | |
+|---|---|
+| **Flyguy** | Art and animation – logo, How To Play pages, Monster Showcase drawings |
+| **Napguin** | Programming |
 
 ## Coming soon
 - More monsters and specials

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.66 (beta)
+- New look: **R.E.P.O. Hide 'n Seek** (Monster · Classic) in the F8 menu, the description and the READMEs. The
+  Thunderstore package stays `HideAndSeekMonster`, so updates keep working.
+- **Credits** for Flyguy (art & animation) and Napguin (programming) in the F8 menu, under the Monster Showcase /
+  How To Play pictures and in the READMEs.
+
 ## 1.5.65 (beta)
 - Fix: teleports (debug menu "everyone to me / to the truck", after-round regroup) didn't work for players lying
   in the ragdoll (tumbling) – they now stand up first, and the host also moves the ragdoll.

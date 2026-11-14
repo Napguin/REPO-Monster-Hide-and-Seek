@@ -1,9 +1,12 @@
-# Hide And Seek Monster
+# R.E.P.O. Hide 'n Seek
 
-A **Hide & Seek** game mode for R.E.P.O. where the seeker **becomes a real monster of the game**.
+A **Hide 'n Seek** game mode for R.E.P.O. with two modes:
 
-One player turns into a monster – e.g. a Huntsman, Robe, Trudge, … (taken from the game's own enemies).
-Everyone else has a short time to hide. Then the monster is released and hunts them down.
+- **Monster mode:** the hunter **becomes a real monster of the game** – e.g. a Huntsman, Robe, Trudge, … – each with
+  its own special ability.
+- **Classic mode:** the hunter stays a player and hunts with a **weapon of choice**.
+
+Everyone else has a short time to hide. Then the hunter is released and hunts them down.
 
 > **Every player in the lobby needs this mod installed.**
 
@@ -134,6 +137,12 @@ The round settings of the **host** are used for everyone.
 | Test / TestMode | false | Solo test mode with training dummies |
 | Test / DummyCount | 4 | Dummies spawned around you in test mode |
 | Controls / Attack, Roar, ToggleView | mouse L / mouse R / V | Input System paths, e.g. `<Keyboard>/f` |
+
+## Credits
+| | |
+|---|---|
+| **Flyguy** | Art and animation – logo, How To Play pages, Monster Showcase drawings |
+| **Napguin** | Programming |
 
 ## Coming soon
 - More monsters and specials

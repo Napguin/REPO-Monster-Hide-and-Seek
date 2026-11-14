@@ -14,7 +14,7 @@ namespace HideAndSeekMonster
             EnsureChoiceStyles(u);
             if (_mHead == null)
             {
-                _mHead = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft };
+                _mHead = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft, richText = true };
                 _mSection = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft };
                 _mSmall = new GUIStyle(GUI.skin.label) { wordWrap = true, richText = true };
                 _mValue = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleRight, fontStyle = FontStyle.Bold };
@@ -33,6 +33,14 @@ namespace HideAndSeekMonster
             _mValue.fontSize = Mathf.RoundToInt(16 * u);
             _pillOn.fontSize = _pillOff.fontSize = Mathf.RoundToInt(16 * u);
             _pillOn.padding = _pillOff.padding = new RectOffset((int)(12 * u), (int)(8 * u), (int)(6 * u), (int)(6 * u));
+        }
+
+        private GUIStyle _mCredits;
+        private GUIStyle CreditsStyle(float u)
+        {
+            if (_mCredits == null) _mCredits = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleRight, richText = true };
+            _mCredits.fontSize = Mathf.RoundToInt(12 * u);
+            return _mCredits;
         }
 
         private void DrawStartMenu(float sw, float sh, float u)
@@ -55,12 +63,16 @@ namespace HideAndSeekMonster
 
             float pad = 24 * u;
             GUI.color = new Color(1f, 0.25f, 0.2f);
-            GUI.Label(new Rect(panel.x + pad, panel.y + 12 * u, pw - 200 * u, 50 * u), "HIDE & SEEK · MONSTER", _mHead);
+            GUI.Label(new Rect(panel.x + pad, panel.y + 12 * u, pw - 200 * u, 50 * u), "HIDE 'N SEEK  <size=" + Mathf.RoundToInt(16 * u) + "><color=#a89a9c>MONSTER · CLASSIC</color></size>", _mHead);
             GUI.color = Color.white;
             if (GUI.Button(new Rect(panel.xMax - pad - 120 * u, panel.y + 18 * u, 120 * u, 38 * u), L.Close + "  (F8)", _chBtn)) { _menuOpen = false; SetMenuPage(MenuPage.Main); }
             DrawMenuPageButtons(panel, pad, u);
 
             var body = new Rect(panel.x + pad, panel.y + 74 * u, pw - 2 * pad, ph - 74 * u - pad);
+            // credits, bottom right of the panel
+            GUI.color = new Color(1f, 1f, 1f, 0.45f);
+            GUI.Label(new Rect(panel.x + pad, panel.yMax - 22 * u, pw - 2 * pad, 20 * u), L.CreditsLine, CreditsStyle(u));
+            GUI.color = Color.white;
             if (_menuPage == MenuPage.Showcase) { MenuPart("showcase", () => DrawShowcase(body, u)); return; }
             if (_menuPage == MenuPage.HowToPlay) { MenuPart("how to play", () => DrawHowToPlay(body, u)); return; }
             if (!full) { DrawSimpleMenu(body, u); return; }
