@@ -255,15 +255,6 @@ namespace HideAndSeekMonster
         public static string DebugRandom => De ? "Zufällig" : "Random";
         public static string DebugNothingFound => De ? "Nichts gefunden (erst in einem Level verfügbar)" : "Nothing found (available in a level)";
         public static string DebugSpawned(string n) => De ? $"{n} gespawnt" : $"Spawned {n}";
-        public static string PhotoHead => De ? "Fotos (für die Mod-Seite)" : "Photos (for the mod page)";
-        public static string PhotoMonster(string m) => De ? $"Monster-Bild: {m}  (oben auswählen)" : $"Monster picture: {m}  (pick it above)";
-        public static string PhotoMenus => De ? "Menüs fotografieren" : "Photograph the menus";
-        public static string PhotoLater => De ? "Screenshot in 5 s" : "Screenshot in 5 s";
-        public static string PhotoWhere => De ? "Gespeichert in BepInEx/HideAndSeekPhotos (Mod-Manager: Profilordner öffnen)." : "Saved to BepInEx/HideAndSeekPhotos (mod manager: open the profile folder).";
-        public static string PhotoSaved(string f) => De ? $"Gespeichert: {f}" : $"Saved: {f}";
-        public static string PhotoFailed => De ? "Foto fehlgeschlagen – siehe Log" : "Photo failed – see the log";
-        public static string PhotoMenusDone => De ? "Menü-Fotos gespeichert (BepInEx/HideAndSeekPhotos)" : "Menu photos saved (BepInEx/HideAndSeekPhotos)";
-        public static string PhotoIn(int s) => De ? $"Screenshot in {s} …" : $"Screenshot in {s} …";
         public static string DebugCantSpawn => De ? "Kann hier nichts spawnen" : "Can't spawn here";
         public static string DebugRevived(int n) => De ? $"{n} Spieler wiederbelebt" : $"Revived {n} player(s)";
         public static string DebugKilled(int n) => De ? $"{n} Gegner getötet" : $"Killed {n} enemies";

@@ -253,7 +253,7 @@ namespace HideAndSeekMonster
                 return;
             }
             float bh = 36 * u, g = 6 * u;
-            var content = new Rect(0, 0, area.width - 18 * u, 1520 * u);
+            var content = new Rect(0, 0, area.width - 18 * u, 1250 * u);
             _debugScroll = GUI.BeginScrollView(area, _debugScroll, content);
             try
             {
@@ -301,23 +301,6 @@ namespace HideAndSeekMonster
                 SpawnPicker(ref y, cw, bh, g, u, _dbgValuables, ref _debugValuable, L.DebugSpawnHere);
                 Head(L.DebugItems);
                 SpawnPicker(ref y, cw, bh, g, u, _dbgItems, ref _debugItem, L.DebugSpawnHere);
-
-                Head(L.PhotoHead);
-                if (list.Count > 0)
-                {
-                    GUI.enabled = !_photoBusy;
-                    if (Btn(L.PhotoMonster(list[_debugEnemy].Name), 0, cw)) StartCoroutine(PhotoMonster(list[_debugEnemy].Name));
-                    Row();
-                }
-                GUI.enabled = !_photoBusy;
-                if (Btn(L.PhotoMenus, 0, half)) StartCoroutine(PhotoMenus());
-                if (Btn(L.PhotoLater, half + g, half)) StartCoroutine(PhotoDelayed());
-                GUI.enabled = true;
-                Row();
-                GUI.color = new Color(1, 1, 1, 0.6f);
-                GUI.Label(new Rect(0, y, cw, 40 * u), L.PhotoWhere, _mSmall);
-                GUI.color = Color.white;
-                y += 44 * u;
 
                 Head(L.DebugDummies);
                 if (Btn(L.DebugSpawnDummy, 0, half)) SpawnDummyAt(HostFront(4f));

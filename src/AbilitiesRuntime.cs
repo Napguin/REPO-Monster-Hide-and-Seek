@@ -663,6 +663,20 @@ namespace HideAndSeekMonster
         private Vector3 _dashFrom;
         private float _dashDoneAt;
 
+        /// <summary>Ground right under the player's feet (ignores player colliders).</summary>
+        private static bool GroundBelow(Vector3 feet, out Vector3 normal)
+        {
+            normal = Vector3.up;
+            var hits = Physics.RaycastAll(feet + Vector3.up * 0.3f, Vector3.down, 0.75f, ~0, QueryTriggerInteraction.Ignore);
+            float best = float.MaxValue; bool found = false;
+            foreach (var h in hits)
+            {
+                if (h.collider == null || IsPlayerCollider(h.collider) || h.distance >= best) continue;
+                best = h.distance; normal = h.normal; found = true;
+            }
+            return found;
+        }
+
         private void DashTick()
         {
             if (Seeker == null || Time.time >= _dashEnd + 0.6f) return;
@@ -700,7 +714,16 @@ namespace HideAndSeekMonster
                     else
                     {
                         Vector3 v = _dashDir * Abilities.DashSpeed;
-                        if (_dashType == AbilityType.Charge) v.y = rb.velocity.y; // stays on the ground
+                        if (_dashType == AbilityType.Charge)
+                        {
+                            // stays on the ground: follow slopes, and over a ramp / edge fall down instead of flying
+                            if (GroundBelow(rb.position, out var groundNormal))
+                            {
+                                v = Vector3.ProjectOnPlane(_dashDir, groundNormal).normalized * Abilities.DashSpeed;
+                                v.y = Mathf.Min(v.y, 3f);
+                            }
+                            else v.y = Mathf.Min(rb.velocity.y, 0f) - 25f * Time.deltaTime;
+                        }
                         else Compat.Call(pc, "AntiGravity", 0.2f);
                         rb.velocity = v;
                     }
