@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.59 (beta)
+- Item picker: mines (Shockwave Mine, Trapzap …) and other items without their own emoji get one by name; the first
+  tile is selected when the picker opens (was an upgrade further down).
+
 ## 1.5.58 (beta)
 - Item picker icons: the game only makes an item's icon when the item exists in the world, so the picker now uses
   the game's item emojis (grenades, mines, drones, orbs, weapons, health packs, trackers …) and remembers real icons of

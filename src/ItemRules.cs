@@ -163,7 +163,7 @@ namespace HideAndSeekMonster
             HarvestItemIcons();
             if (!PickerAvailable) { _freePickOpen = false; return; }
             var kb = UnityEngine.InputSystem.Keyboard.current;
-            if (kb != null && kb[UnityEngine.InputSystem.Key.I].wasPressedThisFrame && !GameRefs.IsTyping) _freePickOpen = !_freePickOpen;
+            if (kb != null && kb[UnityEngine.InputSystem.Key.I].wasPressedThisFrame && !GameRefs.IsTyping) { _freePickOpen = !_freePickOpen; if (_freePickOpen) _freePickSel = -1; }
         }
 
         private void HostGiveFreeItem(int actor, string key)
@@ -258,9 +258,21 @@ namespace HideAndSeekMonster
             }
             var sm = StatsManager.instance;
             if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || it == null) return false;
-            if (!_emoji.TryGetValue(it.emojiIcon.ToString(), out var e)) return false;
-            // an item without its own emoji has the default value (drone_heal) – only trust it for real heal drones
-            if (it.emojiIcon == default(SemiFunc.emojiIcon) && it.itemType != SemiFunc.itemType.drone) return false;
+            bool own = _emoji.TryGetValue(it.emojiIcon.ToString(), out var e)
+                       // an item without its own emoji has the default value (drone_heal) – only trust it for heal drones
+                       && !(it.emojiIcon == default(SemiFunc.emojiIcon) && !(key.ToLowerInvariant().Contains("drone") && key.ToLowerInvariant().Contains("heal")));
+            if (!own)
+            {
+                // guess by name (some items have no / a wrong emoji set, e.g. the mines)
+                string k = key.ToLowerInvariant();
+                string guess = null;
+                if (k.Contains("mine")) guess = k.Contains("shockwave") ? "item_mine_shockwave" : k.Contains("explosive") ? "item_mine_explosive" : "item_mine_stun";
+                else if (k.Contains("trapzap") || k.Contains("trap zap")) guess = "item_mine_stun";
+                else if (k.Contains("grenade")) guess = k.Contains("shockwave") ? "item_grenade_shockwave" : k.Contains("stun") ? "grenade_stun" : k.Contains("duct") ? "item_grenade_duct_taped" : k.Contains("human") ? "item_grenade_human" : "grenade_explosive";
+                else if (k.Contains("tracker")) guess = k.Contains("extraction") ? "item_extraction_tracker" : "item_valuable_tracker";
+                else if (k.Contains("health")) guess = k.Contains("small") ? "item_health_pack_S" : k.Contains("large") || k.Contains("big") ? "item_health_pack_L" : "item_health_pack_M";
+                if (guess == null || !_emoji.TryGetValue(guess, out e)) return false;
+            }
             tex = e.tex; px = e.px;
             return tex != null;
         }
@@ -313,7 +325,7 @@ namespace HideAndSeekMonster
             _cellLabel.fontSize = Mathf.RoundToInt(13 * u);
             bool weapon = CanPickStartWeapon;
             var list = weapon ? StartWeaponList() : FreeItemList();
-            if (_freePickSel >= list.Count) _freePickSel = 0;
+            if (_freePickSel >= list.Count) _freePickSel = -1;
 
             float w = Mathf.Min(900 * u, sw - 40 * u), h = Mathf.Min(760 * u, sh - 60 * u);
             var r = new Rect((sw - w) / 2f, (sh - h) / 2f, w, h);
@@ -335,6 +347,7 @@ namespace HideAndSeekMonster
             for (int i = 0; i < list.Count; i++) if (!used.Contains(i)) rest.Add(i);
             if (rest.Count > 0) groups.Add((L.ItemCategoryOther, rest));
 
+            if (_freePickSel < 0 && groups.Count > 0) _freePickSel = groups[0].idx[0]; // first tile is selected at the start
             var area = new Rect(r.x + 16 * u, r.y + 88 * u, r.width - 32 * u, r.height - 150 * u);
             float cell = 104 * u, g = 8 * u, headH = 30 * u;
             int cols = Mathf.Max(1, Mathf.FloorToInt((area.width - 18 * u + g) / (cell + g)));
