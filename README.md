@@ -9,7 +9,7 @@
   <sub>by <b>Flyguy</b> (art &amp; animation) and <b>Napguin</b> (programming) · Thunderstore package: <code>HideAndSeekMonster</code></sub><br><br>
   <!-- Static badges: shields.io can't reach Thunderstore any more ("inaccessible"). Update the version on each release. -->
   <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/Thunderstore-Download-2a9d8f" alt="Download on Thunderstore"></a>
-  <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/release-1.5.20-e76f51" alt="Latest release 1.5.20"></a>
+  <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/release-2.0.0-e76f51" alt="Latest release 2.0.0"></a>
   <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/R.E.P.O.-BepInEx_mod-6c5ce7" alt="R.E.P.O. BepInEx mod"></a>
   <a href="https://github.com/Napguin/REPO-Monster-Hide-and-Seek/issues"><img src="https://img.shields.io/github/issues/Napguin/REPO-Monster-Hide-and-Seek?label=Issues" alt="GitHub issues"></a>
 </p>

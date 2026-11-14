@@ -1,241 +1,56 @@
 # Changelog
 
-## 1.5.69 (beta)
-- Credits: name spelling (Looley18, MadKitKat).
+## 2.0.0 – R.E.P.O. Hide 'n Seek
 
-## 1.5.68 (beta)
-- New icon (R.E.P.O. Hide 'n Seek logo).
+The mod has a new look and name: **R.E.P.O. Hide 'n Seek** – now with two game modes, new specials, item rules,
+a drawn How To Play and a Monster Showcase. (The Thunderstore package stays `HideAndSeekMonster`, so updates keep
+working.)
 
-## 1.5.67 (beta)
-- Honorable mentions for ideas & playtesting: Looley18, MadKitKat, SongoCat (twitch.tv/songocat) – in the
-  READMEs and the F8 menu's credits line.
+### Two game modes
+- **Monster mode:** the hunter becomes a real monster of the game, each with its own special.
+- **Classic mode** (new, F8 menu): the hunter stays a player and picks a **start weapon** (melee or gun) plus a
+  second item while the others hide (I key). Melee weapons never break; the hunter's weapons have unlimited energy.
 
-## 1.5.66 (beta)
-- New look: **R.E.P.O. Hide 'n Seek** (Monster · Classic) in the F8 menu, the description and the READMEs. The
-  Thunderstore package stays `HideAndSeekMonster`, so updates keep working.
-- **Credits** for Flyguy (art & animation) and Napguin (programming) in the F8 menu, under the Monster Showcase /
-  How To Play pictures and in the READMEs.
+### Rules from the How To Play
+- **Scoring:** 1st hider to die = 0 points, 2nd = 1, 3rd = 2 …, survivors get as many points as there were hiders.
+  The hunter gets a point for **every** hider that dies, whatever killed them.
+- **The monster can die** (not invincible by default) – then the hiders win.
+- **Monster mode – weapons banned:** guns, melee weapons and cart cannons can't be grabbed (toggle in the F8 menu).
+- **Free item each round:** every hider presses **I** while hiding and picks one item from a picker with icons and
+  categories – only items hiders may use (no guns / melee / cart cannons / scouts / explosives).
+- **Hider weapons:** tranq and pulse pistol have **2 shots per round** and can't be recharged.
+- **Classic – hiders:** can't grab melee weapons, may wrestle guns but only fire the tranq / pulse pistol, can't put
+  the hunter's weapons into their inventory.
+- **Item ownership:** items the mod hands out go back to their owner next round (weapons and explosives even when
+  used up); weapons owned by a hider stay locked in the truck for that round.
 
-## 1.5.65 (beta)
-- Fix: teleports (debug menu "everyone to me / to the truck", after-round regroup) didn't work for players lying
-  in the ragdoll (tumbling) – they now stand up first, and the host also moves the ragdoll.
+### New and changed specials
+- **Bowtie – Tornado:** sucks in items, weapons and players, whirls them around and flings everything away.
+- **Snatcher – Lasso Grab:** lasso in the camera direction, reels a hider in for 5 s.
+- **Birthday Boy – Balloon Mines:** up to 5 hovering balloon mines (40 damage); the oldest is moved while popped ones
+  recharge (40 s).
+- **Tick – Tumble-Bash:** roll around for up to 5 s (steer with the camera, jump, press again to stop), soft wall
+  bounces, rolls under tables; hits knock hiders over (15 damage).
+- **Upscream – Launch**, **Trudge – Impulse**, **Rugrat – Item Throw** (held items no longer push the Rugrat).
+- **Swarm:** the real Gnomes / Bangers chase hiders they can see and hurt on contact; a Gambit roll summons real
+  Gnomes too.
+- **Zero-G Grab** floats caught hiders (8 s); **Gambit** only rolls the specials monsters currently have.
+- **New cooldowns** for all specials (see the table in the README); Laser 50 damage per second; Charge / Lunge 50
+  damage; Noxious Gas slows in 5 s blocks.
 
-## 1.5.64 (beta)
-- **Hunter's weapons have unlimited energy** (whatever the hunter holds or was given) – not the hiders'.
-- **Hiders: 2 shots** per tranq / pulse pistol per round, now in **both** modes (the hunter has no limit).
+### Menus
+- **How To Play** (18 drawn pages) and **Monster Showcase** (every special with a drawn animation, cooldown and
+  monsters) in the F8 menu – art by Flyguy.
+- **Debug menu (F7, host only):** revive / heal, teleport everyone (also knocked-over players), skip hiding, end the
+  round, reset cooldowns, spawn real enemies, valuables, shop items and dummies.
 
-## 1.5.63 (beta)
-- Fix (Classic): hiders could still fire the hunter's gun – the shot is sent by the host, so the mod checked the
-  wrong player. It now checks who is **holding** the gun.
-- Fix: used-up items (player upgrades, health packs …) no longer come back the next round – only weapons and
-  explosives (grenades, mines) are given back when they're gone.
+### Fixes
+- Everyone always sees the same monster (the host decides the pick).
+- Balloon mines hang in the same place for everyone; the mouse cursor shows in all menus; no "ROAR!" text on the
+  player scan; no red screen flash for hiders.
 
-## 1.5.62 (beta)
-- Classic mode: the hunter's start weapon can also be a **gun** (the list shows melee weapons and guns). Guns
-  still can't be recharged; the second item (I again) stays as it was.
-
-## 1.5.61 (beta)
-More of the How-To-Play rules:
-- **Weapons owned by hiders stay in the truck:** at round start, weapons that belong to a hider (e.g. last round's
-  hunter weapon) are put into the truck instead of in front of the owner, and **nobody can use them** this round.
-- **Classic – hiders and weapons:** hiders can't grab **any** melee weapon; they may grab / wrestle guns, but only
-  **fire** the tranq and pulse pistol (2 shots).
-- **Classic – hunter's second item:** after the start weapon the hunter presses **I** again and takes one more
-  item (anything except cart cannons and scouts) – "a bought secondary weapon plus the free start weapon".
-
-## 1.5.60 (beta)
-- **Tumble-Bash (Tick):** lasts up to 5 s, **press the special again to stop rolling**, you can **jump** while rolling,
-  and a hit does **15 damage** again (plus tumbling).
-- **Charge / Lunge:** 50 damage (was 60). **Flying Charge:** 30 s cooldown (was 20 s).
-- **Gambit rolling Swarm** now summons the game's real Gnomes (with real vision and pathfinding) instead of fake
-  Gambit copies that walked through walls and knew where everyone was.
-- Item picker: mines etc. look for a matching emoji by name; if none is found the log lists what exists.
-
-## 1.5.59 (beta)
-- Item picker: mines (Shockwave Mine, Trapzap …) and other items without their own emoji get one by name; the first
-  tile is selected when the picker opens (was an upgrade further down).
-
-## 1.5.58 (beta)
-- Item picker icons: the game only makes an item's icon when the item exists in the world, so the picker now uses
-  the game's item emojis (grenades, mines, drones, orbs, weapons, health packs, trackers …) and remembers real icons of
-  items seen in the shop / truck / inventory.
-
-## 1.5.57 (beta)
-- Item picker: icons are also looked up by the item's resource path and on copies of the item in the scene (shop,
-  truck, inventory); the log says why if an icon can't be found (`[Picker] no icon for ...`).
-
-## 1.5.56 (beta)
-- Items handed out by the mod come back at the next round start **even if they're gone** (left lying in the old map,
-  used up, broken) – the owner gets a new one. Before, only items that still existed (e.g. in the inventory) came back.
-- The host no longer gets a "Spawned …" message when a hider takes a free item.
-- No more red screen flash for hiders (player scan, explosions) – the message is enough.
-- Item picker (I key) shows **item icons** in a grid, grouped by **category** (grenades, mines, drones, orbs, health …).
-
-## 1.5.55 (beta)
-- **Classic mode** (F8 menu, `Round / Mode`): the hunter stays a normal player and picks a **melee weapon of choice**
-  while the others hide (I key). Melee weapons have infinite uses, guns can't be recharged. The hunter dying still
-  means the hiders win.
-- **Item ownership:** the mod remembers who got which item (start weapon, free items). Hiders can't grab the
-  hunter's melee weapons and can't put the hunter's weapons into their inventory. At the start of the next round
-  every remembered item is brought back to its owner.
-
-## 1.5.54 (beta)
-- **Free item per round:** while hiding, every hider presses **I** and takes 1 item for free – it appears in front of
-  them. Only items hiders may use: no guns / melee / cart cannons / scouts, and of the grenades and mines only those
-  that do no damage. Toggle in the F8 menu (`Round / FreeItem`).
-- **Tranq and pulse pistol:** only 2 shots per round and no recharging (when weapons are banned).
-
-## 1.5.53 (beta)
-- **Scoring like the rules:** hiders get 0 / 1 / 2 ... in the order they die, survivors get as many points as there
-  were hiders. The monster gets 1 point for **every** hider that dies, whatever killed them.
-- **The monster can die now** (invincibility is off by default, your old setting is switched off once). Hiders may
-  kill it with traps / map hazards – then they win.
-- **Weapons banned in Monster mode:** guns, melee weapons and cart cannons can't be grabbed during a round; tranq and
-  pulse pistol, grenades, mines, drones, orbs, health packs etc. are fine. Toggle in the F8 menu (`Round / BanWeapons`).
-
-## 1.5.52 (beta)
-- **How To Play** in the F8 menu: the 18 drawn rule pages ("Da Rulz", game start, classic / monster mode, bonus shop
-  rules, scoring, item gallery, credits). Flip with the buttons or the arrow keys / A / D.
-
-## 1.5.51 (beta)
-- Monster Showcase: new drawings for **Tick (Tumble-Bash)**, **Birthday Boy (Balloon Mines)** and **Gambit (Gamble)**;
-  the Clown's laser is animated now. Every special has a drawing.
-
-## 1.5.50 (beta)
-- Debug menu: spawn **valuables** (every valuable of every level) and **shop items** in front of you – pick one
-  with ◀ ▶ or spawn a random one.
-
-## 1.5.49 (beta)
-- **Debug menu (F7, host only):** revive all, heal all, everyone to me / to the truck, skip the hiding phase, end
-  the round, reset all cooldowns, spawn any real game enemy in front of you (stays even with "disable normal
-  enemies"), kill all enemies, spawn / remove training dummies. Key: `General / DebugMenuKey`.
-
-## 1.5.48 (beta)
-- **Monster Showcase** in the F8 menu: every special with its hand-drawn animation, cooldown, which monsters have it
-  and what it does (values come straight from the mod, so they're always current). Drawings for Balloon Mines,
-  Tumble-Bash and Gamble are still to come.
-- **How To Play** button in the F8 menu (page with text and pictures coming soon).
-
-## 1.5.47 (beta)
-- Balloon Mines: a popped balloon can be placed again **40 s after it popped**. As long as no balloon is free,
-  using the special **moves your oldest hanging balloon** to you (3 s cooldown).
-
-## 1.5.46 (beta)
-- Balloon Mines: with all 5 out, using it again **moves the oldest balloon** to where you stand (3 s cooldown, like
-  placing). The 40 s cooldown only comes when the last hanging balloon pops.
-
-## 1.5.45 (beta)
-- Fix: Balloon Mines were in different places for the monster and the hiders (the hiders' PCs used their own,
-  slightly outdated copy of the monster's position). Now the monster player's exact position is sent along.
-
-## 1.5.44 (beta)
-- Balloon Mines: 3 s between two balloons. A popped balloon can be replaced after 3 s as long as at least one other
-  balloon still hangs. When the last hanging balloon pops, all 5 come back together after 40 s.
-
-## 1.5.43 (beta)
-- Tumble-Bash: no damage any more – hiders only tumble and get knocked away. The rolling Tick crouches / crawls,
-  so it fits under tables, beds etc.
-
-## 1.5.42 (beta)
-- Tumble-Bash: no more steering pause after a bounce – you can steer all the time.
-
-## 1.5.41 (beta)
-- Tumble-Bash: much weaker bounces – it barely pushes off the wall, mostly slides along it.
-
-## 1.5.40 (beta)
-- Tumble-Bash: less bouncing – at most one bounce every 0.2 s, and a slightly weaker push off the wall.
-
-## 1.5.39 (beta)
-- Tumble-Bash: turning has drag – it turns more gradually (160°/s) and every turn costs speed (sharp turns more,
-  down to 45 %); it speeds up again on straights.
-
-## 1.5.38 (beta)
-- Tumble-Bash: livelier bounces, but never straight back – head-on hits turn the Tick off to the side. It keeps
-  60–90 % of its speed, and camera steering pauses for 0.4 s after a bounce so it doesn't steer back into the wall.
-- Fix: the mouse cursor didn't show in the menus (F8 menu, monster choice, vote) – the game hid it again later in
-  the frame. It's now freed again right before the menu is drawn.
-
-## 1.5.37 (beta)
-- Tumble-Bash: no more bouncing back at full force – a head-on hit slows the Tick to 20 % speed (glancing hits
-  only a little) and it takes about a second to get back to full speed. The push off the wall is weaker too.
-
-## 1.5.36 (beta)
-- Tumble-Bash: much more control (turns 300°/s with the camera instead of 120°/s) and softer wall bounces – it
-  mostly slides along the wall, only pushes off a little and loses half its speed for a moment.
-
-## 1.5.35 (beta)
-- **Tick – Tumble-Bash** (was Leap attack): rolls around fast for 4 s and bounces off walls; steer a little with the
-  camera. Anyone hit tumbles, gets knocked away and takes 30 damage (once per bash). Cooldown 30 s.
-
-## 1.5.34 (beta)
-- **Fix: players saw different monsters** after the monster switched models while hiding. Each PC decided on its own,
-  so a pick near the end of the hiding time was taken by the monster player but refused by the host. Now only the
-  host decides and tells everyone; when the hunt starts the host sends the monster once more, so everyone matches.
-- Swarm (Banger) confirmed working: the summoned Bangers chase visible hiders and explode next to them.
-
-## 1.5.33 (beta)
-- Swarm (Banger): the game spawns Bangers as a whole group. The mod destroyed the extra ones right away, which broke
-  the group on the other players' PCs (error in the game's Banger director). Now the whole group (up to 8) is kept.
-
-## 1.5.32 (beta)
-- Balloon Mines: with all 5 balloons out you get "All 5 balloons are out – one has to pop first" (was "next in 0 s").
-  When none is left but one is recharging, the ability bar shows that countdown.
-- Swarm: positions of the real Gnomes / Bangers are taken from their physics body (Bangers roll around), and the host
-  log shows every 2 s what each one sees (`[Swarm] Banger ...: nearest hider X m, sees ...`).
-
-## 1.5.31 (beta)
-- Noxious Gas: the slowdown comes in 5 s blocks – touching the gas gives 5 s, still inside when it runs out gives
-  another 5 s (before, it lasted 5 s after leaving the gas).
-
-## 1.5.30 (beta)
-- Player Scan no longer flashes a "ROAR!" text first – only the scan result is shown. Remaining "Roar" labels
-  in the help text are now "Scan".
-
-## 1.5.29 (beta)
-- **New cooldowns:** Rapid Charge 40 s, Flying Charge 20 s, Swarm 70 s, Tornado 40 s, Lunge 30 s, Charge 30 s,
-  Head bomb 40 s, Laser 40 s, Gamble 30 s, Noxious Gas 40 s, Shot 15 s, Radar Ping 120 s, Flying / Zero-G Grab 30 s,
-  Item Throw 6 s (1 s after picking up), Lasso 25 s, Puke 30 s, Leap (Tick) 30 s, Impulse 30 s, Launch 30 s.
-- **Laser:** 50 damage per second for 3 s (was 50 every 0.5 s). The `LaserCooldown` config is gone (fixed 40 s).
-- **Balloon Mines:** 5 balloons; each one comes back 40 s after it popped (no more popping the oldest).
-- **Noxious Gas:** clouds last 10 s. Touching the gas tranquilizes you for 5 s; still inside after that = another 5 s.
-- **Zero-G Grab (Mentalist):** lasts 8 s (was 4 s).
-
-## 1.5.28 (beta)
-- **Swarm attacks now:** the host sends every summoned Gnome / Banger after the closest hider it can actually see
-  (15 m, line of sight), and touching a hider hurts – Gnome 10 damage per second, Banger 35 damage (3 m) and pops.
-- **Zero-G Grab floats again:** the host (who runs the ragdoll physics) now lifts caught hiders slowly to ~2.5 m and
-  lets them hover until the ability ends. Log lines `[Zero-G] host floats ...`.
-
-## 1.5.27 (beta)
-- **Gambit** now only rolls the specials the other monsters currently have (built from the monster list, so it
-  follows every change automatically). Old specials no monster has anymore (Scream, Ground slam, Heart gas,
-  Levitate, Throw) are gone from the pool. Item Throw stays out (needs two presses).
-
-## 1.5.26 (beta)
-- **Birthday Boy – Balloon Mines:** each use places a balloon hovering in the air (max 5 – the oldest pops when you
-  place a 6th). Armed after 1 s; when a hider comes within ~1.8 m it explodes: 40 damage within 2.5 m.
-- Snatcher Lasso reels players in a bit slower (2.5 m/s instead of 3.5 m/s).
-
-## 1.5.25 (beta)
-- Rugrat: the "no collision with the held item" fix now also works in single player / for the host (it
-  didn't find the item there).
-
-## 1.5.24 (beta)
-- Rugrat Item Throw: the held item no longer collides with the Rugrat – big items can't push the monster around
-  anymore when looking around. Collision comes back shortly after the throw.
-
-## 1.5.23 (beta)
-- **Snatcher (the pony)** now has **Lasso Grab** (was Leap attack).
-
-## 1.5.22 (beta)
-- **Pony – Lasso Grab:** throws a lasso where the camera looks (18 m). A hit hider is reeled in towards the monster at
-  a steady speed for 5 s – they can still dodge sideways. The monster is very slow while it holds the rope.
-  (Also in the Gambit's pool.)
-
-## 1.5.21 (beta)
-- **Bowtie Tornado traps players:** hiders that get within 2.5 m are knocked over and spun around inside the
-  tornado until it fades, then flung out. While trapped they can't grab anything. Equipment / weapons are sucked in
-  like valuables. Training dummies are carried around too.
+### Credits
+Art and animation: **Flyguy** · Programming: **Napguin** · Ideas & playtesting: Looley18, MadKitKat, SongoCat
 
 ## 1.5.20
 
