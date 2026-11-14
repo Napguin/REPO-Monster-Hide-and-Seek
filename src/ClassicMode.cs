@@ -34,7 +34,6 @@ namespace HideAndSeekMonster
             _roundSpeed = 1f;
             _roundInfStamina = false;
             Later(1f, () => { if (CanPickStartWeapon) Banner(L.StartWeaponPress, new Color(1f, 0.5f, 0.4f), 5f); });
-            if (IsHost) HostReturnOwnedItems();
             Plugin.Log.LogInfo("[Classic] round in classic mode");
         }
 
@@ -47,11 +46,15 @@ namespace HideAndSeekMonster
             it != null && !it.disabled && it.prefab != null && it.prefab.IsValid() && it.itemType == SemiFunc.itemType.melee;
 
         // ---- ownership ----
-        private void HostRegisterOwner(GameObject go, int actor)
+        // host: item view id -> which item it was (to give it back if it's gone)
+        private readonly Dictionary<int, string> _hostItemKey = new Dictionary<int, string>();
+
+        private void HostRegisterOwner(GameObject go, int actor, string key)
         {
             if (go == null) return;
             var pv = go.GetComponent<PhotonView>() ?? go.GetComponentInChildren<PhotonView>();
             if (pv == null || pv.ViewID == 0) return;
+            _hostItemKey[pv.ViewID] = key;
             Send(MsgOwner, pv.ViewID, actor);
         }
 
@@ -98,13 +101,26 @@ namespace HideAndSeekMonster
         /// <summary>Host, at round start: every remembered item goes back to its owner (in front of them).</summary>
         private void HostReturnOwnedItems()
         {
-            int n = 0;
+            int n = 0, respawned = 0;
             foreach (var kv in _itemOwner.ToList())
             {
                 var pv = PhotonView.Find(kv.Key);
                 var owner = AvatarOfActor(kv.Value);
-                if (pv == null) { _itemOwner.Remove(kv.Key); continue; }
-                if (owner == null) continue;
+                if (owner == null) continue; // owner left – keep it for later
+                if (pv == null)
+                {
+                    // gone (left lying in the old level, used up, broken ...): the owner gets a new one
+                    _itemOwner.Remove(kv.Key);
+                    if (!_hostItemKey.TryGetValue(kv.Key, out string key)) continue;
+                    _hostItemKey.Remove(kv.Key);
+                    var sm = StatsManager.instance;
+                    if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || it?.prefab == null) continue;
+                    Vector3 fw = owner.transform.forward; fw.y = 0; if (fw.sqrMagnitude < 0.01f) fw = Vector3.forward;
+                    var go = SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(owner) + fw.normalized * 1.2f + Vector3.up * (1f + 0.3f * n), true);
+                    HostRegisterOwner(go, kv.Value, key);
+                    n++; respawned++;
+                    continue;
+                }
                 Vector3 f = owner.transform.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = Vector3.forward;
                 Vector3 pos = PlayerPos(owner) + f.normalized * 1.2f + Vector3.up * (1f + 0.3f * n);
                 var rb = pv.GetComponent<Rigidbody>();
@@ -112,7 +128,7 @@ namespace HideAndSeekMonster
                 pv.transform.position = pos;
                 n++;
             }
-            if (n > 0) Plugin.Log.LogInfo($"[Items] {n} item(s) returned to their owners");
+            if (n > 0) Plugin.Log.LogInfo($"[Items] {n} item(s) returned to their owners ({respawned} spawned new)");
         }
     }
 

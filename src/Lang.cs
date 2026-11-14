@@ -273,6 +273,26 @@ namespace HideAndSeekMonster
         public static string ModeLabel => De ? "Modus" : "Mode";
         public static string ModeMonster => De ? "Monster" : "Monster";
         public static string ModeClassic => De ? "Klassik" : "Classic";
+        public static string ItemCategoryOther => De ? "Sonstiges" : "Other";
+        public static string ItemCategory(SemiFunc.itemType t)
+        {
+            switch (t)
+            {
+                case SemiFunc.itemType.melee: return De ? "Nahkampf" : "Melee";
+                case SemiFunc.itemType.gun: return De ? "Pistolen" : "Guns";
+                case SemiFunc.itemType.grenade: return De ? "Granaten" : "Grenades";
+                case SemiFunc.itemType.mine: return De ? "Minen" : "Mines";
+                case SemiFunc.itemType.drone: return De ? "Drohnen" : "Drones";
+                case SemiFunc.itemType.orb: return "Orbs";
+                case SemiFunc.itemType.healthPack: return De ? "Heilung" : "Health";
+                case SemiFunc.itemType.tool: return De ? "Werkzeuge" : "Tools";
+                case SemiFunc.itemType.tracker: return "Tracker";
+                case SemiFunc.itemType.pocket_cart: return De ? "Taschen-Cart" : "Pocket cart";
+                case SemiFunc.itemType.player_upgrade: return De ? "Spieler-Upgrades" : "Player upgrades";
+                case SemiFunc.itemType.item_upgrade: return De ? "Item-Upgrades" : "Item upgrades";
+                default: return t.ToString();
+            }
+        }
         public static string FreeItemTitle => De ? "Gratis-Item für diese Runde" : "Free item for this round";
         public static string FreeItemHint => De ? "Wähle 1 Item – es erscheint vor dir. Nur Items, die Hider benutzen dürfen." : "Pick 1 item – it appears in front of you. Only items hiders are allowed to use.";
         public static string FreeItemTake => De ? "Nehmen" : "Take";

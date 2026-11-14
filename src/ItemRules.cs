@@ -163,38 +163,128 @@ namespace HideAndSeekMonster
                 return;
             }
             Vector3 f = who.transform.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = Vector3.forward;
-            var go = SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(who) + f.normalized * 1.2f + Vector3.up * 1f);
-            HostRegisterOwner(go, actor);
+            var go = SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(who) + f.normalized * 1.2f + Vector3.up * 1f, true); // no message for the host
+            HostRegisterOwner(go, actor, key);
             Plugin.Log.LogInfo($"[FreeItem] {NameOf(who)} gets '{key}'");
         }
+
+        // ---- picker window: item icons in a grid, grouped by category ----
+        private readonly System.Collections.Generic.Dictionary<string, Sprite> _itemIcons = new System.Collections.Generic.Dictionary<string, Sprite>();
+
+        private Sprite ItemIcon(string key)
+        {
+            if (_itemIcons.TryGetValue(key, out var sp)) return sp;
+            sp = null;
+            try
+            {
+                var sm = StatsManager.instance;
+                if (sm != null && sm.itemDictionary != null && sm.itemDictionary.TryGetValue(key, out var it) && it?.prefab != null)
+                {
+                    var prefab = it.prefab.Prefab;
+                    var attr = prefab != null ? prefab.GetComponentInChildren<ItemAttributes>(true) : null;
+                    if (attr != null) sp = attr.icon;
+                }
+            }
+            catch (System.Exception ex) { Plugin.Log.LogDebug("icon " + key + ": " + ex.Message); }
+            _itemIcons[key] = sp;
+            return sp;
+        }
+
+        private static SemiFunc.itemType? ItemTypeOf(string key)
+        {
+            var sm = StatsManager.instance;
+            if (sm != null && sm.itemDictionary != null && sm.itemDictionary.TryGetValue(key, out var it) && it != null) return it.itemType;
+            return null;
+        }
+
+        private static readonly SemiFunc.itemType[] CategoryOrder =
+        {
+            SemiFunc.itemType.melee, SemiFunc.itemType.gun, SemiFunc.itemType.grenade, SemiFunc.itemType.mine,
+            SemiFunc.itemType.drone, SemiFunc.itemType.orb, SemiFunc.itemType.healthPack, SemiFunc.itemType.tool,
+            SemiFunc.itemType.tracker, SemiFunc.itemType.pocket_cart, SemiFunc.itemType.player_upgrade, SemiFunc.itemType.item_upgrade,
+        };
+
+        private static void DrawSprite(Rect r, Sprite sp)
+        {
+            if (sp == null || sp.texture == null) return;
+            var tr = sp.textureRect;
+            var tex = sp.texture;
+            var uv = new Rect(tr.x / tex.width, tr.y / tex.height, tr.width / tex.width, tr.height / tex.height);
+            // keep the aspect ratio
+            float aspect = tr.width / Mathf.Max(1f, tr.height);
+            Rect d = r;
+            if (aspect > 1f) { d.height = r.width / aspect; d.y += (r.height - d.height) / 2f; }
+            else { d.width = r.height * aspect; d.x += (r.width - d.width) / 2f; }
+            GUI.DrawTextureWithTexCoords(d, tex, uv);
+        }
+
+        private GUIStyle _cellLabel;
 
         private void DrawFreeItemPicker(float sw, float sh, float u)
         {
             if (!_freePickOpen || !PickerAvailable) return;
             EnsureMenuStyles(u);
+            if (_cellLabel == null) _cellLabel = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperCenter, wordWrap = true, richText = true };
+            _cellLabel.fontSize = Mathf.RoundToInt(13 * u);
             bool weapon = CanPickStartWeapon;
             var list = weapon ? StartWeaponList() : FreeItemList();
-            float w = Mathf.Min(520 * u, sw - 40 * u), h = Mathf.Min(640 * u, sh - 80 * u);
+            if (_freePickSel >= list.Count) _freePickSel = 0;
+
+            float w = Mathf.Min(900 * u, sw - 40 * u), h = Mathf.Min(760 * u, sh - 60 * u);
             var r = new Rect((sw - w) / 2f, (sh - h) / 2f, w, h);
             GUI.DrawTexture(r, Tex(new Color(0.05f, 0.07f, 0.1f, 0.97f)));
             GUI.DrawTexture(new Rect(r.x, r.y, r.width, 4 * u), Tex(new Color(0.3f, 0.55f, 1f, 1f)));
             GUI.Label(new Rect(r.x + 16 * u, r.y + 10 * u, r.width - 32 * u, 32 * u), weapon ? L.StartWeaponTitle : L.FreeItemTitle, _mSection);
             GUI.Label(new Rect(r.x + 16 * u, r.y + 42 * u, r.width - 32 * u, 40 * u), weapon ? L.StartWeaponHint : L.FreeItemHint, _mSmall);
+
+            // group by category
+            var groups = new System.Collections.Generic.List<(string title, System.Collections.Generic.List<int> idx)>();
+            var used = new System.Collections.Generic.HashSet<int>();
+            foreach (var cat in CategoryOrder)
+            {
+                var idx = new System.Collections.Generic.List<int>();
+                for (int i = 0; i < list.Count; i++) if (ItemTypeOf(list[i]) == cat && used.Add(i)) idx.Add(i);
+                if (idx.Count > 0) groups.Add((L.ItemCategory(cat), idx));
+            }
+            var rest = new System.Collections.Generic.List<int>();
+            for (int i = 0; i < list.Count; i++) if (!used.Contains(i)) rest.Add(i);
+            if (rest.Count > 0) groups.Add((L.ItemCategoryOther, rest));
+
             var area = new Rect(r.x + 16 * u, r.y + 88 * u, r.width - 32 * u, r.height - 150 * u);
-            float rowH = 38 * u, g = 5 * u;
-            var content = new Rect(0, 0, area.width - 18 * u, Mathf.Max(1, list.Count) * (rowH + g));
+            float cell = 104 * u, g = 8 * u, headH = 30 * u;
+            int cols = Mathf.Max(1, Mathf.FloorToInt((area.width - 18 * u + g) / (cell + g)));
+            float contentH = 0;
+            foreach (var gr in groups) contentH += headH + Mathf.CeilToInt(gr.idx.Count / (float)cols) * (cell + 28 * u + g);
+            var content = new Rect(0, 0, area.width - 18 * u, Mathf.Max(contentH, 10));
             _freePickScroll = GUI.BeginScrollView(area, _freePickScroll, content);
             try
             {
-                if (list.Count == 0) GUI.Label(new Rect(0, 0, content.width, rowH), L.DebugNothingFound, _mSmall);
-                for (int i = 0; i < list.Count; i++)
-                    if (GUI.Button(new Rect(0, i * (rowH + g), content.width, rowH), ItemLabel(list[i]), i == _freePickSel ? _cardSelStyle : _cardStyle))
-                        _freePickSel = i;
+                if (list.Count == 0) GUI.Label(new Rect(0, 0, content.width, 40 * u), L.DebugNothingFound, _mSmall);
+                float y = 0;
+                foreach (var gr in groups)
+                {
+                    GUI.Label(new Rect(0, y, content.width, headH), gr.title, _mSection);
+                    y += headH;
+                    for (int k = 0; k < gr.idx.Count; k++)
+                    {
+                        int i = gr.idx[k];
+                        float x = (k % cols) * (cell + g);
+                        float yy = y + (k / cols) * (cell + 28 * u + g);
+                        var cr = new Rect(x, yy, cell, cell + 28 * u);
+                        if (GUI.Button(cr, GUIContent.none, i == _freePickSel ? _cardSelStyle : _cardStyle)) _freePickSel = i;
+                        var icon = ItemIcon(list[i]);
+                        if (icon != null) DrawSprite(new Rect(cr.x + 14 * u, cr.y + 6 * u, cell - 28 * u, cell - 28 * u), icon);
+                        GUI.Label(new Rect(cr.x + 2 * u, cr.y + cell - 18 * u, cell - 4 * u, 44 * u), ItemLabel(list[i]), _cellLabel);
+                    }
+                    y += Mathf.CeilToInt(gr.idx.Count / (float)cols) * (cell + 28 * u + g);
+                }
             }
             finally { GUI.EndScrollView(); }
+
             float bw = (r.width - 48 * u) / 2f, by = r.yMax - 52 * u;
             GUI.enabled = list.Count > 0;
-            if (GUI.Button(new Rect(r.x + 16 * u, by, bw, 40 * u), L.FreeItemTake, _chBtnMain) && list.Count > 0)
+            string take = list.Count > 0 ? $"{L.FreeItemTake}: {ItemLabel(list[Mathf.Clamp(_freePickSel, 0, list.Count - 1)])}" : L.FreeItemTake;
+            if (GUI.Button(new Rect(r.x + 16 * u, by, bw, 40 * u), take, _chBtnMain) && list.Count > 0)
             {
                 Send(MsgFreeItem, list[Mathf.Clamp(_freePickSel, 0, list.Count - 1)]);
                 _freeItemTaken = true;

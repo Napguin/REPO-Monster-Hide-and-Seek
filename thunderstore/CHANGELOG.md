@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.56 (beta)
+- Items handed out by the mod come back at the next round start **even if they're gone** (left lying in the old map,
+  used up, broken) – the owner gets a new one. Before, only items that still existed (e.g. in the inventory) came back.
+- The host no longer gets a "Spawned …" message when a hider takes a free item.
+- No more red screen flash for hiders (player scan, explosions) – the message is enough.
+- Item picker (I key) shows **item icons** in a grid, grouped by **category** (grenades, mines, drones, orbs, health …).
+
 ## 1.5.55 (beta)
 - **Classic mode** (F8 menu, `Round / Mode`): the hunter stays a normal player and picks a **melee weapon of choice**
   while the others hide (I key). Melee weapons have infinite uses, guns can't be recharged. The hunter dying still

@@ -830,6 +830,7 @@ namespace HideAndSeekMonster
                         _roundBanWeapons = data.Length > 14 && (bool)data[14];
                         _roundFreeItem = data.Length > 15 && (bool)data[15];
                         ApplyClassic(data.Length > 16 && (bool)data[16]);
+                        if (IsHost) Later(1.5f, HostReturnOwnedItems);
                         break;
                     case MsgKill:
                         if (!SenderIsMaster(sender)) return;
@@ -1231,11 +1232,7 @@ namespace HideAndSeekMonster
                 }
 
                 if (!localIsSeeker) { DrawStunOverlay(sw, sh); DrawTranqOverlay(sw, sh); }
-                if (!localIsSeeker && Time.time < _flashUntil)
-                {
-                    GUI.color = new Color(0.8f, 0f, 0f, 0.18f * Mathf.Clamp01((_flashUntil - Time.time) / 0.6f));
-                    GUI.DrawTexture(new Rect(0, 0, sw, sh), _white);
-                }
+                // (no red screen flash for hiders any more – the message is enough)
 
                 GUI.color = Color.white;
                 string hud = Phase == Phase.Hiding ? L.Hiding(secs) : L.Hunt(secs, CountAliveHidersLocal());
