@@ -181,6 +181,8 @@ The round settings of the **host** are used for everyone.
 | **Flyguy** | Art and animation – logo, How To Play pages, Monster Showcase drawings |
 | **Napguin** | Programming |
 
+**Honorable mentions – ideas & playtesting:** looley18, madkitkat, SongoCat ([twitch.tv/songocat](https://www.twitch.tv/songocat))
+
 ## Coming soon
 - More monsters and specials
 - A **How to Play** with hand-drawn animations
