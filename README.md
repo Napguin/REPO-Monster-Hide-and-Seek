@@ -124,8 +124,10 @@ Normal enemies are despawned while a round is running (can be turned off).
 ### Classic mode
 Switch it on in the F8 menu (`Round / Mode`). The hunter stays a normal player: while the others hide they press **I**
 and pick a **melee weapon of choice** (it appears in front of them). Melee weapons never break, guns can't be
-recharged. Hiders may not grab the hunter's melee weapons or put the hunter's weapons into their inventory.
-Items handed out by the mod (start weapon, free items) go back to their owner at the start of the next round.
+recharged. The hunter may then press **I** again for a second item. Hiders can't grab melee weapons, may wrestle
+guns but only fire the tranq / pulse pistol, and can't put the hunter's weapons into their inventory.
+Items handed out by the mod (start weapon, free items) go back to their owner at the start of the next round –
+weapons owned by a hider stay in the truck for that round and can't be used.
 
 ### After the round
 Surviving hiders are shown to everyone for a few seconds. Then all dead players are revived and healed and everyone

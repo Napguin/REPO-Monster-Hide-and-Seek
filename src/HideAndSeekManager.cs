@@ -937,6 +937,10 @@ namespace HideAndSeekMonster
                         }
                         Send(MsgMonsterSet, chosen);
                         break;
+                    case MsgItemLock:
+                        if (!SenderIsMaster(sender)) return;
+                        OnItemLock((int[])data[2]);
+                        break;
                     case MsgBashStop:
                         if (!SenderIsSeeker(sender)) return;
                         OnBashStop();
@@ -1069,8 +1073,9 @@ namespace HideAndSeekMonster
             _attackReadyAt = _roarReadyAt = 0f;
 
             Phase = Phase.Hiding;
-            _freeItemTaken = false; _freePickOpen = false;
-            _hostFreeItemGiven.Clear();
+            _freeItemTaken = false; _startWeaponTaken = false; _freePickOpen = false;
+            _hostFreeItemGiven.Clear(); _hostStartWeaponGiven.Clear();
+            _lockedItems.Clear();
             ResetPistolShots();
             Later(1f, () => { if (CanPickFreeItem) Banner(L.FreeItemPress, new Color(0.4f, 0.7f, 1f), 4f); });
             _phaseEndTime = Time.time + hide;

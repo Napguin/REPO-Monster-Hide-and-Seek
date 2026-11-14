@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.61 (beta)
+More of the How-To-Play rules:
+- **Weapons owned by hiders stay in the truck:** at round start, weapons that belong to a hider (e.g. last round's
+  hunter weapon) are put into the truck instead of in front of the owner, and **nobody can use them** this round.
+- **Classic – hiders and weapons:** hiders can't grab **any** melee weapon; they may grab / wrestle guns, but only
+  **fire** the tranq and pulse pistol (2 shots).
+- **Classic – hunter's second item:** after the start weapon the hunter presses **I** again and takes one more
+  item (anything except cart cannons and scouts) – "a bought secondary weapon plus the free start weapon".
+
 ## 1.5.60 (beta)
 - **Tumble-Bash (Tick):** lasts up to 5 s, **press the special again to stop rolling**, you can **jump** while rolling,
   and a hit does **15 damage** again (plus tumbling).

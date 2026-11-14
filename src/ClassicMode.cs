@@ -37,10 +37,28 @@ namespace HideAndSeekMonster
             Plugin.Log.LogInfo("[Classic] round in classic mode");
         }
 
+        // ---- weapons parked in the truck (every PC) ----
+        private const int MsgItemLock = 29;
+        private static readonly HashSet<int> _lockedItems = new HashSet<int>();
+        private void OnItemLock(int[] ids) { _lockedItems.Clear(); if (ids != null) foreach (var i in ids) _lockedItems.Add(i); }
+
+        /// <summary>Weapons in the sense of the rules: guns (except tranq / pulse), melee, cart cannons, explosive grenades / mines.</summary>
+        internal static bool IsWeaponItem(Item it)
+        {
+            if (it == null) return false;
+            if (IsBannedWeapon(it)) return true;
+            if (it.itemType == SemiFunc.itemType.grenade || it.itemType == SemiFunc.itemType.mine)
+            {
+                string n = ((it.itemName ?? "") + " " + it.name).ToLowerInvariant();
+                return n.Contains("explosive") || n.Contains("duct") || n.Contains("human");
+            }
+            return false;
+        }
+
         private int SeekerActor => Seeker != null ? ActorOf(Seeker) : -999;
 
         /// <summary>The local player is the hunter of a classic round and hasn't taken the start weapon yet.</summary>
-        private bool CanPickStartWeapon => ClassicActive && Phase == Phase.Hiding && !_freeItemTaken && Seeker != null && GameRefs.IsLocal(Seeker);
+        private bool CanPickStartWeapon => ClassicActive && Phase == Phase.Hiding && !_startWeaponTaken && Seeker != null && GameRefs.IsLocal(Seeker);
 
         internal static bool IsStartWeapon(Item it) =>
             it != null && !it.disabled && it.prefab != null && it.prefab.IsValid() && it.itemType == SemiFunc.itemType.melee;
@@ -89,19 +107,23 @@ namespace HideAndSeekMonster
             if (!RoundActive) return;
             var grabber = Compat.Static("PhysGrabber", "instance") as PhysGrabber;
             var held = grabber != null ? grabber.grabbedPhysGrabObject : null;
-            if (held == null || !IsHunterItemForLocalHider(held)) return;
+            if (held == null) return;
             var it = ItemOf(held);
-            if (it == null || it.itemType != SemiFunc.itemType.melee) return;
             var pv = held.GetComponent<PhotonView>();
+            bool locked = pv != null && _lockedItems.Contains(pv.ViewID);           // a hider's weapon parked in the truck
+            bool hiderMelee = it != null && it.itemType == SemiFunc.itemType.melee && LocalHider(out _)
+                              && (_roundClassic || IsHunterItemForLocalHider(held)); // rules: hiders may not use melee
+            if (!locked && !hiderMelee) return;
             Compat.Call(grabber, "ReleaseObject", pv != null ? pv.ViewID : -1, 0.5f);
             Compat.Set(grabber, "grabDisableTimer", 0.3f);
-            if (Time.time >= _banMsgAt) { _banMsgAt = Time.time + 2f; Banner(L.HunterMeleeNo, new Color(1f, 0.4f, 0.3f), 1.5f); }
+            if (Time.time >= _banMsgAt) { _banMsgAt = Time.time + 2f; Banner(locked ? L.ItemLockedInTruck : L.HunterMeleeNo, new Color(1f, 0.4f, 0.3f), 1.5f); }
         }
 
         /// <summary>Host, at round start: every remembered item goes back to its owner (in front of them).</summary>
         private void HostReturnOwnedItems()
         {
             int n = 0, respawned = 0;
+            var locked = new List<int>();
             foreach (var kv in _itemOwner.ToList())
             {
                 var pv = PhotonView.Find(kv.Key);
@@ -123,12 +145,19 @@ namespace HideAndSeekMonster
                 }
                 Vector3 f = owner.transform.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = Vector3.forward;
                 Vector3 pos = PlayerPos(owner) + f.normalized * 1.2f + Vector3.up * (1f + 0.3f * n);
+                // rules: weapons owned by hiders stay in the truck this round and can't be used by anyone
+                if (owner != Seeker && IsWeaponItem(ItemOf(pv)))
+                {
+                    pos = TruckPosition() + Quaternion.Euler(0, locked.Count * 40f, 0) * Vector3.forward * 1.2f + Vector3.up * (1f + 0.2f * locked.Count);
+                    locked.Add(kv.Key);
+                }
                 var rb = pv.GetComponent<Rigidbody>();
                 if (rb != null) { rb.position = pos; rb.velocity = Vector3.zero; }
                 pv.transform.position = pos;
                 n++;
             }
-            if (n > 0) Plugin.Log.LogInfo($"[Items] {n} item(s) returned to their owners ({respawned} spawned new)");
+            Send(MsgItemLock, locked.ToArray());
+            if (n > 0) Plugin.Log.LogInfo($"[Items] {n} item(s) returned to their owners ({respawned} spawned new, {locked.Count} hider weapon(s) parked in the truck)");
         }
     }
 

@@ -267,7 +267,10 @@ namespace HideAndSeekMonster
         public static string StartWeaponPress => De ? "Drück I und wähl deine Startwaffe!" : "Press I and pick your start weapon!";
         public static string StartWeaponTitle => De ? "Deine Startwaffe" : "Your start weapon";
         public static string StartWeaponHint => De ? "Nahkampfwaffe deiner Wahl – unendlich haltbar. Sie erscheint vor dir." : "Melee weapon of your choice – infinite uses. It appears in front of you.";
-        public static string HunterMeleeNo => De ? "Die Nahkampfwaffe des Jägers darfst du nicht greifen!" : "You can't grab the hunter's melee weapon!";
+        public static string ItemLockedInTruck => De ? "Diese Waffe bleibt diese Runde im Truck!" : "This weapon stays in the truck this round!";
+        public static string HiderNoFire => De ? "Hider dürfen nur Tranq- und Pulse-Pistole abfeuern!" : "Hiders may only fire the tranq and pulse pistol!";
+        public static string HunterExtraPress => De ? "Drück nochmal I für ein zweites Item!" : "Press I again for a second item!";
+        public static string HunterMeleeNo => De ? "Hider dürfen keine Nahkampfwaffen greifen!" : "Hiders can't grab melee weapons!";
         public static string HunterItemNoInventory => De ? "Waffen des Jägers dürfen nicht ins Inventar!" : "The hunter's weapons can't go into your inventory!";
         public static string ClassicToggle => De ? "Klassik-Modus (Jäger mit Waffe statt Monster)" : "Classic mode (hunter with a weapon, no monster)";
         public static string ModeLabel => De ? "Modus" : "Mode";

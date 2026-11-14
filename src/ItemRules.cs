@@ -81,6 +81,7 @@ namespace HideAndSeekMonster
         private Vector2 _freePickScroll;
         private System.Collections.Generic.List<string> _freeItemList;
         private readonly System.Collections.Generic.HashSet<int> _hostFreeItemGiven = new System.Collections.Generic.HashSet<int>();
+        private readonly System.Collections.Generic.HashSet<int> _hostStartWeaponGiven = new System.Collections.Generic.HashSet<int>();
 
         internal static bool AllowedFreeItemForHider(Item it)
         {
@@ -124,10 +125,38 @@ namespace HideAndSeekMonster
         }
 
         private bool _roundFreeItem;
-        private bool CanPickFreeItem => _roundFreeItem && RoundActive && Phase == Phase.Hiding && !_freeItemTaken && LocalHider(out _);
+        private bool _startWeaponTaken;
+        private bool CanPickFreeItem => _roundFreeItem && RoundActive && Phase == Phase.Hiding && !_freeItemTaken
+            && (LocalHider(out _) || (ClassicActive && _startWeaponTaken && Seeker != null && GameRefs.IsLocal(Seeker)));
 
         /// <summary>Per frame: I opens / closes the picker while hiding.</summary>
         private bool PickerAvailable => CanPickFreeItem || CanPickStartWeapon;
+
+        /// <summary>Classic hunter's second item: anything except cart cannons and scouts.</summary>
+        private System.Collections.Generic.List<string> _hunterExtraList;
+        private System.Collections.Generic.List<string> HunterExtraList()
+        {
+            if (_hunterExtraList != null && _hunterExtraList.Count > 0) return _hunterExtraList;
+            _hunterExtraList = new System.Collections.Generic.List<string>();
+            var sm = StatsManager.instance;
+            if (sm == null || sm.itemDictionary == null) return _hunterExtraList;
+            foreach (var kv in sm.itemDictionary)
+                if (AllowedHunterExtra(kv.Value)) _hunterExtraList.Add(kv.Key);
+            _hunterExtraList.Sort((a, b) => string.Compare(ItemLabel(a), ItemLabel(b), System.StringComparison.OrdinalIgnoreCase));
+            return _hunterExtraList;
+        }
+
+        internal static bool AllowedHunterExtra(Item it)
+        {
+            if (it == null || it.disabled || it.prefab == null || !it.prefab.IsValid()) return false;
+            string n = ((it.itemName ?? "") + " " + it.name).ToLowerInvariant();
+            if (n.Contains("scout")) return false;
+            switch (it.itemType)
+            {
+                case SemiFunc.itemType.launcher: case SemiFunc.itemType.cart: case SemiFunc.itemType.power_crystal: case SemiFunc.itemType.vehicle: return false;
+                default: return true;
+            }
+        }
 
         private System.Collections.Generic.List<string> _startWeaponList;
         private System.Collections.Generic.List<string> StartWeaponList()
@@ -174,14 +203,17 @@ namespace HideAndSeekMonster
             if (who == null || !IsAlive(who)) return;
             bool hunter = who == Seeker;
             if (hunter ? !_roundClassic : !_hiderViewIds.Contains(who.photonView.ViewID)) return; // monster-mode hunter gets nothing
-            if (!_hostFreeItemGiven.Add(actor)) { Plugin.Log.LogInfo($"[FreeItem] {NameOf(who)} already took one"); return; }
+            bool startWeapon = hunter && !_hostStartWeaponGiven.Contains(actor);
+            if (!startWeapon && !_hostFreeItemGiven.Add(actor)) { Plugin.Log.LogInfo($"[FreeItem] {NameOf(who)} already took one"); return; }
             var sm = StatsManager.instance;
-            if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || !(hunter ? IsStartWeapon(it) : AllowedFreeItemForHider(it)))
+            if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it)
+                || !(startWeapon ? IsStartWeapon(it) : hunter ? AllowedHunterExtra(it) : AllowedFreeItemForHider(it)))
             {
-                _hostFreeItemGiven.Remove(actor);
+                if (!startWeapon) _hostFreeItemGiven.Remove(actor);
                 Plugin.Log.LogInfo($"[FreeItem] '{key}' not allowed");
                 return;
             }
+            if (startWeapon) _hostStartWeaponGiven.Add(actor);
             Vector3 f = who.transform.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = Vector3.forward;
             var go = SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(who) + f.normalized * 1.2f + Vector3.up * 1f, true); // no message for the host
             HostRegisterOwner(go, actor, key);
@@ -344,7 +376,8 @@ namespace HideAndSeekMonster
             if (_cellLabel == null) _cellLabel = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperCenter, wordWrap = true, richText = true };
             _cellLabel.fontSize = Mathf.RoundToInt(13 * u);
             bool weapon = CanPickStartWeapon;
-            var list = weapon ? StartWeaponList() : FreeItemList();
+            bool hunterExtra = !weapon && Seeker != null && GameRefs.IsLocal(Seeker);
+            var list = weapon ? StartWeaponList() : hunterExtra ? HunterExtraList() : FreeItemList();
             if (_freePickSel >= list.Count) _freePickSel = -1;
 
             float w = Mathf.Min(900 * u, sw - 40 * u), h = Mathf.Min(760 * u, sh - 60 * u);
@@ -407,7 +440,8 @@ namespace HideAndSeekMonster
             if (GUI.Button(new Rect(r.x + 16 * u, by, bw, 40 * u), take, _chBtnMain) && list.Count > 0)
             {
                 Send(MsgFreeItem, list[Mathf.Clamp(_freePickSel, 0, list.Count - 1)]);
-                _freeItemTaken = true;
+                if (weapon) { _startWeaponTaken = true; Banner(L.HunterExtraPress, new Color(1f, 0.5f, 0.4f), 3f); }
+                else _freeItemTaken = true;
                 _freePickOpen = false;
             }
             GUI.enabled = true;
@@ -438,12 +472,29 @@ namespace HideAndSeekMonster
         }
 
         private static void ResetPistolShots() => _pistolShots.Clear();
+
+        /// <summary>Classic rules: hiders may grab / wrestle guns but only fire the tranq and pulse pistol.</summary>
+        internal static bool HiderMayFire(Component gun, Photon.Pun.PhotonMessageInfo info)
+        {
+            var mgr = Instance;
+            if (mgr == null || !mgr.ClassicActive || info.Sender == null || gun == null) return true;
+            var shooter = mgr.AvatarOfActor(info.Sender.ActorNumber);
+            if (shooter == null || shooter == mgr.Seeker) return true;
+            var attr = gun.GetComponent<ItemAttributes>() ?? gun.GetComponentInParent<ItemAttributes>();
+            if (attr == null || !IsBannedWeapon(attr.item)) return true;
+            if (shooter.photonView != null && shooter.photonView.IsMine) mgr.BannerPublic(L.HiderNoFire);
+            return false;
+        }
     }
 
     [HarmonyLib.HarmonyPatch(typeof(ItemGun), "ShootRPC")]
     internal static class PistolShotLimitPatch
     {
-        private static bool Prefix(ItemGun __instance) => HideAndSeekManager.PistolMayShoot(__instance);
+        private static bool Prefix(ItemGun __instance, Photon.Pun.PhotonMessageInfo _info)
+        {
+            if (!HideAndSeekManager.HiderMayFire(__instance, _info)) return false;
+            return HideAndSeekManager.PistolMayShoot(__instance);
+        }
     }
 
     [HarmonyLib.HarmonyPatch(typeof(ItemBattery), "ChargeBattery")]
