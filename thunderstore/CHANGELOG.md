@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1 (beta)
+- **Photo tool** in the debug menu (F7): a picture of the chosen monster on a transparent background, screenshots
+  of the menus (F8, Monster Showcase, How To Play, debug menu) and a "screenshot in 5 s". Saved to
+  `BepInEx/HideAndSeekPhotos`.
+
 ## 2.0.0 – R.E.P.O. Hide 'n Seek
 
 The mod has a new look and name: **R.E.P.O. Hide 'n Seek** – now with two game modes, new specials, item rules,

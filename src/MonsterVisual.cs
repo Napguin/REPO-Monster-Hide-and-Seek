@@ -41,6 +41,19 @@ namespace HideAndSeekMonster
         private int _stripped, _stripFailed;
         private string _subtree = "-";
 
+        /// <summary>Photo tool: a monster model standing on its own (no player, nothing hidden), for a portrait.</summary>
+        public static MonsterVisual CreatePhoto(string monsterName, Vector3 pos, float yaw)
+        {
+            var go = new GameObject("HNS_PhotoMonster");
+            go.transform.position = pos;
+            var mv = go.AddComponent<MonsterVisual>();
+            mv._photo = true;
+            mv.Init(null, monsterName, 1f);
+            go.transform.SetPositionAndRotation(pos, Quaternion.Euler(0, yaw, 0));
+            return mv;
+        }
+        private bool _photo;
+
         public static MonsterVisual Create(PlayerAvatar avatar, string monsterName, float scale)
         {
             if (avatar == null) return null;
@@ -53,7 +66,7 @@ namespace HideAndSeekMonster
         private void Init(PlayerAvatar avatar, string monsterName, float scale)
         {
             _avatar = avatar;
-            _isLocal = GameRefs.IsLocal(avatar);
+            _isLocal = avatar != null && GameRefs.IsLocal(avatar);
             _entry = MonsterCatalog.Find(monsterName);
 
             var target = FollowTarget();
@@ -97,7 +110,7 @@ namespace HideAndSeekMonster
                 $"Sounds: roar {_entry?.RoarClips.Count ?? 0}, attack {_entry?.AttackClips.Count ?? 0}\n" +
                 $"Animator: {animInfo}";
             Plugin.Log.LogInfo($"[Monster] '{MonsterName}' built for {(_isLocal ? "local" : "remote")} player\n{DebugInfo}");
-            if (_isLocal) LogModelDump();
+            if (_isLocal && !_photo) LogModelDump();
             if (!IsFallback && _entry != null && _entry.Ability == AbilityType.FlyingCharge) BuildAttackBody();
 
             _audio = gameObject.AddComponent<AudioSource>();
@@ -585,6 +598,7 @@ namespace HideAndSeekMonster
 
         private void LateUpdate()
         {
+            if (_photo) return; // photo model stays where it was put
             var target = FollowTarget();
             if (target == null) { Destroy(gameObject); return; }
 
