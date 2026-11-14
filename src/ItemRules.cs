@@ -477,12 +477,23 @@ namespace HideAndSeekMonster
         internal static bool HiderMayFire(Component gun, Photon.Pun.PhotonMessageInfo info)
         {
             var mgr = Instance;
-            if (mgr == null || !mgr.ClassicActive || info.Sender == null || gun == null) return true;
-            var shooter = mgr.AvatarOfActor(info.Sender.ActorNumber);
-            if (shooter == null || shooter == mgr.Seeker) return true;
+            if (mgr == null || !mgr.ClassicActive || gun == null) return true;
             var attr = gun.GetComponent<ItemAttributes>() ?? gun.GetComponentInParent<ItemAttributes>();
             if (attr == null || !IsBannedWeapon(attr.item)) return true;
-            if (shooter.photonView != null && shooter.photonView.IsMine) mgr.BannerPublic(L.HiderNoFire);
+            // who fires = who holds it (the shot RPC itself is sent by the host, who runs the item physics)
+            var pgo = gun.GetComponent<PhysGrabObject>() ?? gun.GetComponentInParent<PhysGrabObject>();
+            PlayerAvatar shooter = null;
+            if (pgo != null)
+            {
+                if (pgo.playerGrabbing != null)
+                    foreach (var g in pgo.playerGrabbing)
+                        if (g != null && g.playerAvatar != null) { shooter = g.playerAvatar; break; }
+                if (shooter == null) shooter = pgo.lastPlayerGrabbing;
+            }
+            if (shooter == null && info.Sender != null) shooter = mgr.AvatarOfActor(info.Sender.ActorNumber);
+            if (shooter == null || shooter == mgr.Seeker || !mgr._hiderViewIds.Contains(shooter.photonView.ViewID)) return true;
+            if (shooter.photonView.IsMine) mgr.BannerPublic(L.HiderNoFire);
+            Plugin.Log.LogInfo($"[Rules] shot blocked: hider {NameOf(shooter)} holds '{attr.item.itemName}'");
             return false;
         }
     }

@@ -55,6 +55,29 @@ namespace HideAndSeekMonster
             return false;
         }
 
+        /// <summary>Gone items that are given back: weapons and explosives (grenades, mines) – never used-up upgrades,
+        /// health packs, orbs, drones etc.</summary>
+        private static bool ComesBackWhenGone(Item it)
+        {
+            if (it == null) return false;
+            switch (it.itemType)
+            {
+                case SemiFunc.itemType.grenade: case SemiFunc.itemType.mine: case SemiFunc.itemType.melee: case SemiFunc.itemType.gun:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>The hiders' weapons (tranq and pulse pistol): unlimited energy during a round.</summary>
+        internal static bool IsHiderWeapon(Component c)
+        {
+            var mgr = Instance;
+            if (mgr == null || !mgr.RoundActive || c == null) return false;
+            var it = ItemOf(c);
+            return it != null && it.itemType == SemiFunc.itemType.gun && !IsBannedWeapon(it);
+        }
+
         private int SeekerActor => Seeker != null ? ActorOf(Seeker) : -999;
 
         /// <summary>The local player is the hunter of a classic round and hasn't taken the start weapon yet.</summary>
@@ -132,12 +155,14 @@ namespace HideAndSeekMonster
                 if (owner == null) continue; // owner left – keep it for later
                 if (pv == null)
                 {
-                    // gone (left lying in the old level, used up, broken ...): the owner gets a new one
+                    // gone (left in the old level, used up, broken ...). Rules: only explosives always come back;
+                    // used-up things like player upgrades or health packs stay used.
                     _itemOwner.Remove(kv.Key);
                     if (!_hostItemKey.TryGetValue(kv.Key, out string key)) continue;
                     _hostItemKey.Remove(kv.Key);
                     var sm = StatsManager.instance;
                     if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || it?.prefab == null) continue;
+                    if (!ComesBackWhenGone(it)) continue;
                     Vector3 fw = owner.transform.forward; fw.y = 0; if (fw.sqrMagnitude < 0.01f) fw = Vector3.forward;
                     var go = SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(owner) + fw.normalized * 1.2f + Vector3.up * (1f + 0.3f * n), true);
                     HostRegisterOwner(go, kv.Value, key);
@@ -178,17 +203,19 @@ namespace HideAndSeekMonster
     {
         private static bool Prefix(ItemBattery __instance)
         {
+            if (HideAndSeekManager.IsHiderWeapon(__instance)) return false; // tranq / pulse pistol: unlimited energy
             var mgr = HideAndSeekManager.Instance;
             if (mgr == null || !mgr.ClassicActive) return true;
             var attr = __instance.GetComponent<ItemAttributes>() ?? __instance.GetComponentInParent<ItemAttributes>();
-            return attr == null || attr.item == null || attr.item.itemType != SemiFunc.itemType.melee;
+            if (attr == null || attr.item == null) return true;
+            return attr.item.itemType != SemiFunc.itemType.melee;
         }
     }
 
     [HarmonyLib.HarmonyPatch(typeof(ItemBattery), "RemoveFullBar")]
     internal static class ClassicMeleeBarPatch
     {
-        private static bool Prefix(ItemBattery __instance) => ClassicMeleeDrainPatch_Allow(__instance);
+        private static bool Prefix(ItemBattery __instance) => !HideAndSeekManager.IsHiderWeapon(__instance) && ClassicMeleeDrainPatch_Allow(__instance);
         internal static bool ClassicMeleeDrainPatch_Allow(ItemBattery b)
         {
             var mgr = HideAndSeekManager.Instance;
