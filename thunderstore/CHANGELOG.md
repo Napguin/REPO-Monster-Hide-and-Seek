@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.68 (beta)
+- New icon (R.E.P.O. Hide 'n Seek logo).
+
 ## 1.5.67 (beta)
 - Honorable mentions for ideas & playtesting: looley18, madkitkat, SongoCat (twitch.tv/songocat) – in the
   READMEs and the F8 menu's credits line.
