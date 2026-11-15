@@ -723,7 +723,7 @@ namespace HideAndSeekMonster
             if (_clips != null) _clips.Tick(Time.deltaTime, _hSpeed, _grounded, _vy);
             if (_proc != null)
             {
-                float ap = (Time.time - _attackAt) / 0.5f;
+                float ap = (Time.time - _attackAt) / Mathf.Max(0.1f, _profile.ActTime);
                 float el = Time.time - _specAt;
                 float spec = el >= 0f && el < _specDur ? Mathf.Clamp01(Mathf.Min(el / 0.2f, (_specDur - el) / 0.2f)) : 0f;
                 _proc.Tick(Time.deltaTime, _hSpeed, ap >= 0f && ap < 1f ? ap : -1f, spec, el);

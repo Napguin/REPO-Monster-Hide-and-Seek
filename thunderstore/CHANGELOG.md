@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.14 (beta)
+- Elsa: stands still in idle (only a slight breathing sway, no more walking on the spot); the slap is about twice as
+  fast.
+
 ## 2.0.13 (beta)
 - Elsa: standing still plays her chase slowly with a breathing sway instead of a frozen pose.
 - Elsa: the slap swings the right arm forward across the body (it only moved outwards before), the upper body turns
