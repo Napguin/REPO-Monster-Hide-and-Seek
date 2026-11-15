@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.10 (beta)
+- Elsa: plays her big-form clips directly now (idle, chase, jump, fall, sprint) plus the slap on attack.
+- Gambit: no longer floats – the model's base pose is the first idle frame, not the end of the spawn animation.
+- Pony: rears up and bites on attack.
+
 ## 2.0.9 (beta)
 - Fix: the monster player's own robot became visible inside the monster (2.0.7). The robot is hidden again and still
   casts no shadow.

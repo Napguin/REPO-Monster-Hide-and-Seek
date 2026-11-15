@@ -42,7 +42,8 @@ namespace HideAndSeekMonster
         {
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
-            { "elsa", "noclips; proc=act ANIM BIG_arm_01_R:x:-80, act ANIM BIG_arm_02_R:x:-40, act ANIM BIG BODY UPPER:y:-25" },  // game's controller (big form) + a procedural slap
+            { "elsa", "init=small spawn > big transform; idle=big chase@0.5-0.55*0; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
+                    + "proc=act ANIM BIG_arm_01_R:x:-80, act ANIM BIG_arm_02_R:x:-40, act ANIM BIG BODY UPPER:y:-25" },  // big form only + a procedural slap
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },
             { "banger", "attack=bang fuse" },
@@ -71,7 +72,7 @@ namespace HideAndSeekMonster
 
         private const string Pony = "proc=swing L Front Upper Leg Main:x:28:0, swing R Front Upper Leg Main:x:28:180, swing L Hind Thigh Main:x:28:180, swing R Hind Thigh Main:x:28:0, "
             + "swing L Front Forearm Main:x:18:60, swing R Front Forearm Main:x:18:240, swing L Hind Gaskin Main:x:18:240, swing R Hind Gaskin Main:x:18:60, "
-            + "bounce @root:y:0.06, idle Neck Main:x:4, chomp Head Main:x:-15";
+            + "bounce @root:y:0.06, idle Neck Main:x:4, act @root:x:-20, act Neck Main:x:-25, chomp Head Main:x:-35";
 
         // Overrides saved with the animation tuner (debug menu), per monster.
         private static Dictionary<string, Dictionary<string, string>> _user;
@@ -349,8 +350,19 @@ namespace HideAndSeekMonster
         {
             _anim.enabled = false; // from now on only the sampled clips move the model
             // finish the spawn animation, so the base pose is the visible monster
-            var spawn = AnimProfiles.FindClip(_profile.Specs.TryGetValue("init", out var init) ? init : "spawn !despawn", Clips);
-            if (spawn != null) spawn.SampleAnimation(_root, spawn.length);
+            // init: clips sampled at their end one after another (Elsa: spawn, then grow big); then the first idle frame,
+            // so whatever the spawn moved (Gambit's lift) is back where the monster normally stands
+            AnimationClip spawn = null;
+            string initSpec = _profile.Specs.TryGetValue("init", out var init) ? init : "spawn !despawn";
+            foreach (var part in initSpec.Split('>'))
+            {
+                var c = AnimProfiles.FindClip(part, Clips);
+                if (c == null) continue;
+                c.SampleAnimation(_root, c.length);
+                spawn = c;
+            }
+            var idleTrack = AnimProfiles.Parse("idle", _profile.Specs.TryGetValue("idle", out var idleSpec) ? idleSpec : null, Clips);
+            if (idleTrack != null) { var st0 = idleTrack.Steps[0]; st0.Clip.SampleAnimation(_root, st0.A * st0.Clip.length); }
             _rends = _root.GetComponentsInChildren<Renderer>(true).Where(r => !(r is ParticleSystemRenderer)).ToArray();
             if (!_rends.Any(r => r.enabled && r.gameObject.activeInHierarchy))
                 foreach (var r in _rends) { r.enabled = true; r.gameObject.SetActive(true); }
