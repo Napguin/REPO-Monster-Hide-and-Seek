@@ -42,7 +42,7 @@ namespace HideAndSeekMonster
         {
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
-            { "elsa", "init=small spawn > small transform | small spawn > big transform | big transform | small transform; idle=small transform@0.97-1*0; keepscale=Head Constraint Parent, ANIM SHR_head, *HEAD SHARED*; acttime=0.28; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
+            { "elsa", "init=small spawn > small transform | small spawn > big transform | big transform | small transform; idle=small transform@0.97-1*0; keepscale=Head Constraint Parent, ANIM SHR_head, *HEAD SHARED*; smooth=ANIM ROOT; acttime=0.28; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
                     + "proc=idle ANIM BIG BODY UPPER:x:3, act ANIM BIG_arm_01_R:Y:-110, act ANIM BIG_arm_01_R:X:-45, act ANIM BIG_arm_02_R:Y:-30, act ANIM BIG BODY UPPER:Y:-30" },  // big form only + a procedural slap
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },
@@ -85,6 +85,7 @@ namespace HideAndSeekMonster
             public readonly List<string> Proc = new List<string>();     // procedural rules (ProcAnim)
             public readonly List<string> HideParts = new List<string>(); // parts only visible while attacking
             public readonly List<string> KeepScale = new List<string>(); // parts that always keep their base size
+            public readonly List<string> Smooth = new List<string>();    // parts whose height is smoothed (no bouncing)
             public float Bob;
             public float ActTime = 0.5f; // seconds of a procedural attack (act / chomp)
         }
@@ -114,6 +115,7 @@ namespace HideAndSeekMonster
                 else if (k == "hidden") p.Hidden = v != "0" && v != "false";
                 else if (k == "noclips") p.NoClips = v != "0" && v != "false";
                 else if (k == "proc") p.Proc.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+                else if (k == "smooth") p.Smooth.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
                 else if (k == "keepscale") p.KeepScale.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
                 else if (k == "hidepart") p.HideParts.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
                 else if (k == "bob") float.TryParse(v, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out p.Bob);
@@ -417,12 +419,20 @@ namespace HideAndSeekMonster
                 }
             }
             _keepScale = keep.ToArray();
+            var sm = new List<int>();
+            for (int i = 0; i < n; i++)
+                if (_profile.Smooth.Any(k => _bones[i].name.Trim().Equals(k.Trim(), System.StringComparison.OrdinalIgnoreCase))) sm.Add(i);
+            _smooth = sm.ToArray();
+            _smoothY = _smooth.Select(i => _bPos[i].y).ToArray();
             if (_keepScale.Length > 0) Plugin.Log.LogInfo($"[Anim] '{_monster}': {_keepScale.Length} part(s) keep their size");
             Plugin.Log.LogInfo($"[Anim] '{_monster}': base pose from '{(spawn != null ? spawn.name : "current")}', {n} bones, {_rOn.Count(x => x)}/{_rends.Length} renderers on");
         }
 
         private readonly HashSet<Renderer> _keepOff = new HashSet<Renderer>();
         private int[] _keepScale = new int[0];
+        private int[] _smooth = new int[0];
+        private float[] _smoothY = new float[0];
+        private bool _walking;
         public void KeepOff(IEnumerable<Renderer> rs)
         {
             foreach (var r in rs) if (r != null) _keepOff.Add(r);
@@ -526,7 +536,8 @@ namespace HideAndSeekMonster
                 if (want == null && !grounded && vy > 0.8f) want = TrackOf(c + "jump") ?? TrackOf("jump");
                 if (want == null && !grounded && vy < -1.5f) want = TrackOf(c + "fall") ?? TrackOf("fall");
                 if (want == null && speed > 4.5f && !Carrying && Has("run")) { want = TrackOf("run"); rate = Mathf.Clamp(speed / 6f, 0.8f, 1.6f); }
-                if (want == null && speed > 0.3f) { want = TrackOf(c + "walk") ?? TrackOf("walk") ?? TrackOf("run"); rate = Mathf.Clamp(speed / 3f, 0.6f, 1.8f); }
+                _walking = _walking ? speed > 0.15f : speed > 0.6f;
+                if (want == null && _walking) { want = TrackOf(c + "walk") ?? TrackOf("walk") ?? TrackOf("run"); rate = Mathf.Clamp(speed / 3f, 0.6f, 1.8f); }
                 if (want == null) want = TrackOf(c + "idle") ?? TrackOf("idle") ?? TrackOf("walk");
                 if (want != null && want != _cur) Start(want);
                 if (want == TrackOf("charge")) rate = 1f;
@@ -585,6 +596,16 @@ namespace HideAndSeekMonster
             }
             if (fading && _fade >= 1f) { _lastClip = st.Clip; _lastTime = time; }
             foreach (int i in _keepScale) if (_bones[i] != null) _bones[i].localScale = _bScale[i]; // also after the cross-fade
+            // smoothed height: the body doesn't bounce with every step or when switching between standing and walking
+            float k = 1f - Mathf.Exp(-dt / 0.35f);
+            for (int j = 0; j < _smooth.Length; j++)
+            {
+                var b = _bones[_smooth[j]];
+                if (b == null) continue;
+                var lp = b.localPosition;
+                _smoothY[j] = dt <= 0f ? lp.y : Mathf.Lerp(_smoothY[j], lp.y, k);
+                b.localPosition = new Vector3(lp.x, _smoothY[j], lp.z);
+            }
         }
 
         private static bool IsLoco(AnimProfiles.Track t) =>

@@ -1,6 +1,8 @@
 # Changelog
 
-## 2.0.16 (beta)
+## 2.0.17 (beta)
+- Elsa: no more bouncing up and down while running or attacking – her body height is smoothed.
+- All monsters: no flickering between standing and walking at very low speed.
 - Elsa: her head no longer grows while walking – it keeps the size of her standing pose.
 - Elsa: stands in the upright pose from the end of her transformation in idle (only a slight breathing sway, no more walking on the spot); the slap is about twice as
   fast.
