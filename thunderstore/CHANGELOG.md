@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.6 (beta)
+- **Procedural animations** for the monsters the game animates by code (no animation clips):
+  - Pony (Snatcher): legs walk, body bounces, head bites on attack
+  - Spewer: floats and sways, tentacle wiggles, mouth opens while puking, bites on attack
+  - Heart Hugger: stem and arms sway, heart breathes, the heart halves open on attack / gas
+  - Loom: hunches while moving, arms swing, reaches out on attack, jaw moves
+  - Oogly: idle float, fingers move, grabs on attack
+  - Headman: floats, chomps on attack
+  - Elsa: slaps on attack
+- Bella: the girl is invisible (the tricycle stays visible) and only shows herself while attacking or sprinting; the
+  wheels and pedals turn while moving.
+- Headgrab: the normal attack animation while charging. Gambit: no longer floats up when gambling.
+
 ## 2.0.5 (beta)
 - Fix: monsters were **invisible / flattened** with the new animations (Reaper, Trudge, Banger, Clown, Headgrab,
   Huntsman, Mentalist, Chef's lunge). The clips are now played on top of the monster's spawned, visible pose.

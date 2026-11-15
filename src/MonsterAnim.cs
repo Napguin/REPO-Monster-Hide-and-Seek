@@ -42,18 +42,18 @@ namespace HideAndSeekMonster
         {
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
-            { "elsa", "noclips" },  // the game's controller (big form) works better
+            { "elsa", "noclips; proc=act ANIM BIG_arm_01_R:x:-80, act ANIM BIG_arm_02_R:x:-40, act ANIM BIG BODY UPPER:y:-25" },  // game's controller (big form) + a procedural slap
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },
             { "banger", "attack=bang fuse" },
             { "upscream", "special=upscream - attack" },
             { "bowtie", "special=scream intro > scream@0-0.5" },
-            { "gambit", "walk=walk cycle; special=trap player@0-0.6" },
+            { "gambit", "walk=walk cycle; special=player notice" },
             { "mentalist", "special=floater - chargeattack > floater - attack" },
             { "birthday boy", "special=blow balloon" },
             { "chef", "charge=tumbler - tell~; bob=0.15" },
-            { "headman", "noclips" }, // animated by its own code system, the clips are empty
-            { "headgrab", "walk=headgrabber - move !intro !outro !fast !head; run=move fast !intro !outro; attack=attack 01@0-0.5; charge=attack 01@0.5-1~" },
+            { "headman", "noclips; proc=hover @root:y:0.08, idle @root:z:4, chomp Tilt:x:-30" }, // its clips are empty: procedural
+            { "headgrab", "walk=headgrabber - move !intro !outro !fast !head; run=move fast !intro !outro; attack=attack 01@0-0.5; charge=attack 01~" },
             { "robe", "walk=robe targetplayer|robe idle; charge=robe attack~; attack=robe attack" },
             { "clown", "walk=beamer - move !intro !outro !fast; run=move fast; attack=beamer - melee; special=attack intro > beamer - attack !intro !outro~" },
             { "huntsman", "walk=hunter - move !intro !outro; attack=hunter - aim > hunter - shoot@0-0.4; special=hunter - aim > hunter - shoot@0-0.4" },
@@ -61,10 +61,19 @@ namespace HideAndSeekMonster
             { "heart hugger", "attack=chomp|bite|attack" },
             { "trudge", "walk=slow walker - move !intro !outro; attack=slow walker - attack@0.3-0.7; special=slow walker - attack@0.3-0.7" },
             { "cleanup crew", "walk=bomb thrower - move !intro !outro !fast !head; run=move fast !intro !outro; attack=bomb thrower - melee !torso; special=bomb thrower - attack !torso" },
-            { "bella", "hidden" },
-            { "loom", "noclips" },
+            { "bella", "hidepart=Whole mesh CODE Main*, Hand ANIM*, Feet ANIM*, Foot ANIM*; proc=spin rotation_transform:x:300, spin pedal_crank:x:250" },
+            { "loom", "noclips; proc=hunch Torso CODE*:x:25, hunch Neck CODE*:x:10, idle Head CODE*:z:5, swing Arm Bend Point LEFT Main:x:20:0, swing Arm Bend Point LEFT Main (1):x:20:180, act Arm Bend Point LEFT Main*:x:-70, chomp Jaw CODE*:x:20" },
+            { "oogly", "proc=hover @root:y:0.1, idle Hand Left Main*:x:6, idle Finger1_Index_Main:x:10:1, idle Finger1_middle_Main:x:10:2, idle Finger1_little_Main:x:10:3, idle Thumb1_Main:x:10:1.5, chomp Hand Left Main*:x:-30" },
+            { "snatcher", Pony },
+            { "pony", Pony },
+            { "spewer", "proc=hover @root:y:0.12, idle Head:z:5, idle Start Source:x:15:0, idle Mid Source:x:12:1, idle End Source:x:12:2, spec enemy slow mouth flying top:x:-30, spec enemy slow mouth flying bot:x:30, chomp enemy slow mouth flying top:x:-25, chomp enemy slow mouth flying bot:x:25" },
+            { "heart hugger", "proc=idle Segment 1:z:4:0, idle Segment 2:z:5:1, idle Segment 3:z:6:2, idle Segment 4:z:6:3, idle Segment 5:x:5:1, idle Arm Left Segment 1:z:10:0, idle Arm Right Segment 1:z:10:2, breathe Breathe Scale Parent 1::0.04, breathe Breathe Scale Parent 2::0.04:1, chomp Head Segment 1:y:-30, chomp Head Segment 2:y:30, spec Head Segment 1:y:-20, spec Head Segment 2:y:20" },
             { "peeper", "noclips" },
         };
+
+        private const string Pony = "proc=swing L Front Upper Leg Main:x:28:0, swing R Front Upper Leg Main:x:28:180, swing L Hind Thigh Main:x:28:180, swing R Hind Thigh Main:x:28:0, "
+            + "swing L Front Forearm Main:x:18:60, swing R Front Forearm Main:x:18:240, swing L Hind Gaskin Main:x:18:240, swing R Hind Gaskin Main:x:18:60, "
+            + "bounce @root:y:0.06, idle Neck Main:x:4, chomp Head Main:x:-15";
 
         // Overrides saved with the animation tuner (debug menu), per monster.
         private static Dictionary<string, Dictionary<string, string>> _user;
@@ -74,6 +83,8 @@ namespace HideAndSeekMonster
         {
             public readonly Dictionary<string, string> Specs = new Dictionary<string, string>();
             public bool Flip, Hidden, NoClips;
+            public readonly List<string> Proc = new List<string>();     // procedural rules (ProcAnim)
+            public readonly List<string> HideParts = new List<string>(); // parts only visible while attacking
             public float Bob;
         }
 
@@ -101,6 +112,8 @@ namespace HideAndSeekMonster
                 if (k == "flip") p.Flip = v != "0" && v != "false";
                 else if (k == "hidden") p.Hidden = v != "0" && v != "false";
                 else if (k == "noclips") p.NoClips = v != "0" && v != "false";
+                else if (k == "proc") p.Proc.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+                else if (k == "hidepart") p.HideParts.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
                 else if (k == "bob") float.TryParse(v, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out p.Bob);
                 else if (v == "" || v == "-") p.Specs.Remove(k);
                 else p.Specs[k] = v;
@@ -506,5 +519,117 @@ namespace HideAndSeekMonster
             t.Role == "idle" || t.Role == "walk" || t.Role == "run" || t.Role == "c-idle" || t.Role == "c-walk";
 
         public void Destroy() { }
+    }
+
+    /// <summary>
+    /// Procedural animation for monsters the game animates by code (no clips): rotates / moves / scales named parts
+    /// while walking, idling, attacking or using the special. Rule: "kind part name:axis:amount[:phase]",
+    /// part "@root" = the whole model, a trailing '*' = name contains.
+    /// Kinds: spin (deg per metre), swing (walk cycle), idle, hover (move), bounce (move while walking), breathe (scale),
+    /// hunch (while moving), act (once per attack), chomp (bites during attack / special), spec (held during the special).
+    /// </summary>
+    internal class ProcAnim
+    {
+        private class Rule { public string Kind; public List<Transform> Parts; public int Axis; public float Amount, Phase; }
+        private class State { public Quaternion RawRot, SetRot; public Vector3 RawPos, SetPos, RawScale, SetScale; public bool Init; }
+
+        private readonly List<Rule> _rules = new List<Rule>();
+        private readonly Dictionary<Transform, State> _state = new Dictionary<Transform, State>();
+        private float _dist, _walkPhase;
+
+        public bool Empty => _rules.Count == 0;
+
+        public static ProcAnim Create(Transform root, IEnumerable<string> specs, string monster)
+        {
+            var pa = new ProcAnim();
+            var all = root.GetComponentsInChildren<Transform>(true);
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            var found = new List<string>();
+            foreach (var spec in specs)
+            {
+                int sp = spec.IndexOf(' ');
+                if (sp < 0) continue;
+                var parts = spec.Substring(sp + 1).Split(':');
+                if (parts.Length < 2) continue;
+                var rule = new Rule { Kind = spec.Substring(0, sp).Trim().ToLowerInvariant(), Parts = Find(root, all, parts[0].Trim()) };
+                string ax = parts.Length > 1 ? parts[1].Trim().ToLowerInvariant() : "x";
+                rule.Axis = ax == "y" ? 1 : ax == "z" ? 2 : 0;
+                if (parts.Length > 2) float.TryParse(parts[2].Trim(), System.Globalization.NumberStyles.Float, inv, out rule.Amount);
+                if (parts.Length > 3) float.TryParse(parts[3].Trim(), System.Globalization.NumberStyles.Float, inv, out rule.Phase);
+                if (rule.Parts.Count == 0) { found.Add(parts[0].Trim() + " (not found)"); continue; }
+                found.Add($"{rule.Kind} {parts[0].Trim()} x{rule.Parts.Count}");
+                pa._rules.Add(rule);
+            }
+            Plugin.Log.LogInfo($"[Anim] '{monster}' procedural: " + string.Join(", ", found));
+            return pa;
+        }
+
+        private static List<Transform> Find(Transform root, Transform[] all, string name)
+        {
+            if (name == "@root") return new List<Transform> { root };
+            bool contains = name.EndsWith("*");
+            string n = name.TrimEnd('*').Trim().ToLowerInvariant();
+            return all.Where(t => t != root && (contains ? t.name.ToLowerInvariant().Contains(n) : t.name.Trim().ToLowerInvariant() == n)).ToList();
+        }
+
+        private static Vector3 Axis(int a) => a == 1 ? Vector3.up : a == 2 ? Vector3.forward : Vector3.right;
+
+        /// <param name="attack">0..1 progress of the current attack, -1 = none</param>
+        /// <param name="special">0..1 strength of the special (ramps in / out), 0 = none</param>
+        public void Tick(float dt, float speed, float attack, float special, float specialTime)
+        {
+            float walk = Mathf.Clamp01(speed / 2.5f);
+            _dist += speed * dt;
+            _walkPhase += speed * dt * 3.2f;
+            float t = Time.time;
+
+            // what each part gets this frame
+            var rot = new Dictionary<Transform, Quaternion>();
+            var pos = new Dictionary<Transform, Vector3>();
+            var scl = new Dictionary<Transform, float>();
+            foreach (var r in _rules)
+            {
+                float v = 0f;
+                bool move = false, scale = false;
+                switch (r.Kind)
+                {
+                    case "spin": v = _dist * r.Amount; break;
+                    case "swing": v = Mathf.Sin(_walkPhase + r.Phase * Mathf.Deg2Rad) * r.Amount * walk; break;
+                    case "idle": v = Mathf.Sin(t * 2f + r.Phase) * r.Amount; break;
+                    case "hunch": v = r.Amount * walk; break;
+                    case "act": v = attack >= 0f ? Mathf.Sin(attack * Mathf.PI) * r.Amount : 0f; break;
+                    case "chomp":
+                        v = attack >= 0f ? Mathf.Abs(Mathf.Sin(attack * Mathf.PI * 2f)) * r.Amount
+                          : special > 0f ? Mathf.Abs(Mathf.Sin(specialTime * Mathf.PI * 2.5f)) * r.Amount * special : 0f;
+                        break;
+                    case "spec": v = special * r.Amount; break;
+                    case "hover": v = Mathf.Sin(t * 1.6f + r.Phase) * r.Amount; move = true; break;
+                    case "bounce": v = Mathf.Abs(Mathf.Sin(_walkPhase)) * r.Amount * walk; move = true; break;
+                    case "breathe": v = Mathf.Sin(t * 2f + r.Phase) * r.Amount; scale = true; break;
+                }
+                foreach (var p in r.Parts)
+                {
+                    if (p == null) continue;
+                    if (move) pos[p] = (pos.TryGetValue(p, out var o) ? o : Vector3.zero) + Axis(r.Axis) * v;
+                    else if (scale) scl[p] = (scl.TryGetValue(p, out var s0) ? s0 : 1f) * (1f + v);
+                    else rot[p] = (rot.TryGetValue(p, out var q) ? q : Quaternion.identity) * Quaternion.AngleAxis(v, Axis(r.Axis));
+                }
+            }
+
+            foreach (var r in _rules)
+                foreach (var p in r.Parts)
+                {
+                    if (p == null) continue;
+                    if (!_state.TryGetValue(p, out var st)) _state[p] = st = new State();
+                    // the game's animator may have written a fresh pose: then that is the new raw pose
+                    if (!st.Init || p.localRotation != st.SetRot) st.RawRot = p.localRotation;
+                    if (!st.Init || p.localPosition != st.SetPos) st.RawPos = p.localPosition;
+                    if (!st.Init || p.localScale != st.SetScale) st.RawScale = p.localScale;
+                    st.Init = true;
+                    p.localRotation = st.SetRot = st.RawRot * (rot.TryGetValue(p, out var q) ? q : Quaternion.identity);
+                    p.localPosition = st.SetPos = st.RawPos + (pos.TryGetValue(p, out var o) ? o : Vector3.zero);
+                    p.localScale = st.SetScale = st.RawScale * (scl.TryGetValue(p, out var s1) ? s1 : 1f);
+                }
+        }
     }
 }

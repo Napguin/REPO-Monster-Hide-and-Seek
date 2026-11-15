@@ -34,6 +34,9 @@ namespace HideAndSeekMonster
         private float _revealUntil, _vy, _hSpeed;
         private Vector3 _lastTargetPos;
         public ClipAnimator Clips => _clips;
+        private ProcAnim _proc;
+        private readonly List<Renderer> _hideParts = new List<Renderer>();
+        private float _attackAt = -99f, _specAt = -99f, _specDur;
         public AnimProfiles.Profile Profile => _profile;
 
         // fallback parts
@@ -94,6 +97,22 @@ namespace HideAndSeekMonster
                 _savedCtrl = _animator.runtimeAnimatorController;
                 _clips = ClipAnimator.TryCreate(_animator, MonsterName, _profile);
                 if (_clips != null) _clips.Tick(0f, 0f, true, 0f);
+            }
+            if (!IsFallback && _profile.Proc.Count > 0)
+            {
+                var model = _body.childCount > 0 ? _body.GetChild(0) : _body;
+                _proc = ProcAnim.Create(model, _profile.Proc, MonsterName);
+            }
+            if (!IsFallback && _profile.HideParts.Count > 0)
+            {
+                foreach (var t in _body.GetComponentsInChildren<Transform>(true))
+                {
+                    string n = t.name.ToLowerInvariant();
+                    bool hit = _profile.HideParts.Any(h => h.EndsWith("*") ? n.Contains(h.TrimEnd('*').Trim().ToLowerInvariant()) : n == h.Trim().ToLowerInvariant());
+                    if (!hit) continue;
+                    foreach (var r in t.GetComponentsInChildren<Renderer>(true)) if (!_hideParts.Contains(r)) _hideParts.Add(r);
+                }
+                Plugin.Log.LogInfo($"[Monster] '{MonsterName}': {_hideParts.Count} hidden part(s) (only visible while attacking)");
             }
             if (!IsFallback) TrimStrayRenderers(scale);
             SetLayerRecursive(gameObject, 0);
@@ -666,6 +685,20 @@ namespace HideAndSeekMonster
             if (hide != _stealthHidden) { _stealthHidden = hide; ApplyVisibility(); }
 
             if (_clips != null) _clips.Tick(Time.deltaTime, _hSpeed, _grounded, _vy);
+            if (_proc != null)
+            {
+                float ap = (Time.time - _attackAt) / 0.5f;
+                float el = Time.time - _specAt;
+                float spec = el >= 0f && el < _specDur ? Mathf.Clamp01(Mathf.Min(el / 0.2f, (_specDur - el) / 0.2f)) : 0f;
+                _proc.Tick(Time.deltaTime, _hSpeed, ap >= 0f && ap < 1f ? ap : -1f, spec, el);
+            }
+            if (_hideParts.Count > 0)
+            {
+                // Bella: the girl only shows herself while attacking / sprinting, the tricycle stays visible
+                bool bodyOn = _bodyVisible && !_stealthHidden && !(_attackForm && _attackBody != null);
+                bool show = _charging || Time.time < _revealUntil;
+                foreach (var r in _hideParts) if (r != null) r.forceRenderingOff = !bodyOn || !show;
+            }
             Animate(speed);
         }
 
@@ -742,6 +775,8 @@ namespace HideAndSeekMonster
         public void PlaySpecial(AbilityType ability, float duration)
         {
             _revealUntil = Time.time + Mathf.Max(1.2f, duration);
+            _specAt = Time.time;
+            _specDur = Mathf.Max(0.8f, duration);
             if (_clips != null) _clips.PlayAction("special", duration);
         }
 
@@ -749,6 +784,7 @@ namespace HideAndSeekMonster
         {
             _lungeTimer = 0.45f;
             _revealUntil = Mathf.Max(_revealUntil, Time.time + 1.2f);
+            _attackAt = Time.time;
             if (_clips != null) _clips.PlayAction("attack");
             if (_animator != null && _animator.runtimeAnimatorController != null)
             {
