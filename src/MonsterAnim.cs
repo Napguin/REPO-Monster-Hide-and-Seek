@@ -42,7 +42,7 @@ namespace HideAndSeekMonster
         {
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
-            { "elsa", "init=small spawn > small transform | small spawn > big transform | big transform | small transform; idle=big chase@0-0.05*0; acttime=0.28; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
+            { "elsa", "init=small spawn > small transform | small spawn > big transform | big transform | small transform; idle=small transform@0.97-1*0; acttime=0.28; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
                     + "proc=idle ANIM BIG BODY UPPER:x:3, act ANIM BIG_arm_01_R:Y:-110, act ANIM BIG_arm_01_R:X:-45, act ANIM BIG_arm_02_R:Y:-30, act ANIM BIG BODY UPPER:Y:-30" },  // big form only + a procedural slap
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },

@@ -1,7 +1,7 @@
 # Changelog
 
-## 2.0.14 (beta)
-- Elsa: stands still in idle (only a slight breathing sway, no more walking on the spot); the slap is about twice as
+## 2.0.15 (beta)
+- Elsa: stands in the upright pose from the end of her transformation in idle (only a slight breathing sway, no more walking on the spot); the slap is about twice as
   fast.
 
 ## 2.0.13 (beta)
