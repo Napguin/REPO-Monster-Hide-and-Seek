@@ -116,6 +116,7 @@ namespace HideAndSeekMonster
                 Plugin.Log.LogInfo($"[Monster] '{MonsterName}': {_hideParts.Count} hidden part(s) (only visible while attacking)");
             }
             if (!IsFallback) TrimStrayRenderers(scale);
+            if (_clips != null) _clips.KeepOff(_strayRenderers); // the clip player must not switch trimmed parts back on
             SetLayerRecursive(gameObject, 0);
             Vector3 size = GroundBody();
             if (size.y > 0.2f) BodyHeight = size.y;
@@ -328,6 +329,8 @@ namespace HideAndSeekMonster
         /// Some monsters (Oogly) carry trails / grab effects that sit far away from the body and make the model
         /// huge (22 m). Hide everything named like a trail and every renderer far away from the body.
         /// </summary>
+        private readonly List<Renderer> _strayRenderers = new List<Renderer>();
+
         private void TrimStrayRenderers(float scale)
         {
             int hidden = 0;
@@ -342,6 +345,7 @@ namespace HideAndSeekMonster
                     stray = Vector3.Distance(r.bounds.center, _body.position) > maxDist || r.bounds.size.magnitude > 12f * Mathf.Max(1f, scale);
                 if (!stray) continue;
                 r.enabled = false;
+                _strayRenderers.Add(r);
                 hidden++;
             }
             if (hidden > 0) Plugin.Log.LogInfo($"[Monster] '{MonsterName}': hid {hidden} stray renderer(s)");
@@ -511,8 +515,15 @@ namespace HideAndSeekMonster
 
         private Vector3 GroundBody()
         {
-            var renderers = _body.GetComponentsInChildren<Renderer>(false).Where(r => r.enabled && !(r is ParticleSystemRenderer)).ToArray();
-            if (renderers.Length == 0) return Vector3.zero;
+            var all = _body.GetComponentsInChildren<Renderer>(false).Where(r => r.enabled && !(r is ParticleSystemRenderer) && !r.forceRenderingOff).ToArray();
+            if (all.Length == 0) return Vector3.zero;
+            // ignore far-away / huge parts (trails, ropes a clip switched on): they would lift the monster into the air
+            Vector3 mid = Vector3.zero;
+            foreach (var r in all) mid += r.bounds.center;
+            mid /= all.Length;
+            float maxDist = 4f * Mathf.Max(1f, _baseScale.y);
+            var renderers = all.Where(r => Vector3.Distance(r.bounds.center, mid) < maxDist && r.bounds.size.magnitude < 10f * Mathf.Max(1f, _baseScale.y)).ToArray();
+            if (renderers.Length == 0) renderers = all;
             var b = renderers[0].bounds;
             foreach (var r in renderers) b.Encapsulate(r.bounds);
             float feet = b.min.y - transform.position.y;

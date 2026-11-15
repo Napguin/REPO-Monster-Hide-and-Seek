@@ -42,7 +42,7 @@ namespace HideAndSeekMonster
         {
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
-            { "elsa", "init=small spawn > big transform; idle=big chase@0.5-0.55*0; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
+            { "elsa", "init=small spawn > small transform | small spawn > big transform | big transform | small transform; idle=big chase@0.5-0.55*0; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
                     + "proc=act ANIM BIG_arm_01_R:x:-80, act ANIM BIG_arm_02_R:x:-40, act ANIM BIG BODY UPPER:y:-25" },  // big form only + a procedural slap
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },
@@ -354,7 +354,32 @@ namespace HideAndSeekMonster
             // so whatever the spawn moved (Gambit's lift) is back where the monster normally stands
             AnimationClip spawn = null;
             string initSpec = _profile.Specs.TryGetValue("init", out var init) ? init : "spawn !despawn";
-            foreach (var part in initSpec.Split('>'))
+            // "a > b | c > d": several ways to start – the one that makes the model tallest wins (Elsa's big form)
+            var options = initSpec.Split('|');
+            string best = options[0];
+            if (options.Length > 1)
+            {
+                float bestH = -1f;
+                var ts = _root.GetComponentsInChildren<Transform>(true);
+                var sp = ts.Select(t => t.localPosition).ToArray(); var sr = ts.Select(t => t.localRotation).ToArray();
+                var ss = ts.Select(t => t.localScale).ToArray(); var sa = ts.Select(t => t.gameObject.activeSelf).ToArray();
+                var rs0 = _root.GetComponentsInChildren<Renderer>(true); var re0 = rs0.Select(r => r.enabled).ToArray();
+                void Reset()
+                {
+                    for (int i = 0; i < ts.Length; i++) { ts[i].localPosition = sp[i]; ts[i].localRotation = sr[i]; ts[i].localScale = ss[i]; if (ts[i].gameObject.activeSelf != sa[i]) ts[i].gameObject.SetActive(sa[i]); }
+                    for (int i = 0; i < rs0.Length; i++) rs0[i].enabled = re0[i];
+                }
+                foreach (var opt in options)
+                {
+                    Reset();
+                    foreach (var part in opt.Split('>')) { var c = AnimProfiles.FindClip(part, Clips); if (c != null) c.SampleAnimation(_root, c.length); }
+                    float h = Height();
+                    Plugin.Log.LogInfo($"[Anim] '{_monster}' start '{opt.Trim()}': {h:0.0} m");
+                    if (h > bestH) { bestH = h; best = opt; }
+                }
+                Reset();
+            }
+            foreach (var part in best.Split('>'))
             {
                 var c = AnimProfiles.FindClip(part, Clips);
                 if (c == null) continue;
@@ -379,6 +404,13 @@ namespace HideAndSeekMonster
             Plugin.Log.LogInfo($"[Anim] '{_monster}': base pose from '{(spawn != null ? spawn.name : "current")}', {n} bones, {_rOn.Count(x => x)}/{_rends.Length} renderers on");
         }
 
+        private readonly HashSet<Renderer> _keepOff = new HashSet<Renderer>();
+        public void KeepOff(IEnumerable<Renderer> rs)
+        {
+            foreach (var r in rs) if (r != null) _keepOff.Add(r);
+            for (int i = 0; i < _rends.Length; i++) if (_keepOff.Contains(_rends[i])) _rOn[i] = false;
+        }
+
         private void RestoreBase()
         {
             for (int i = 0; i < _bones.Length; i++)
@@ -389,6 +421,15 @@ namespace HideAndSeekMonster
                 if (b.gameObject.activeSelf != _bActive[i]) b.gameObject.SetActive(_bActive[i]);
             }
             for (int i = 0; i < _rends.Length; i++) if (_rends[i] != null) _rends[i].enabled = _rOn[i];
+        }
+
+        private float Height()
+        {
+            var rs = _root.GetComponentsInChildren<Renderer>(false).Where(r => r.enabled && !(r is ParticleSystemRenderer) && r.bounds.size.magnitude < 15f).ToArray();
+            if (rs.Length == 0) return 0f;
+            var b = rs[0].bounds;
+            foreach (var r in rs) b.Encapsulate(r.bounds);
+            return b.size.y;
         }
 
         /// <summary>Gives the game's animator back (for copies of the body).</summary>
@@ -505,6 +546,7 @@ namespace HideAndSeekMonster
             }
             RestoreBase();
             st.Clip.SampleAnimation(_root, time);
+            foreach (var r in _keepOff) if (r != null) r.enabled = false;
             if (fading)
             {
                 float f = Mathf.SmoothStep(0f, 1f, _fade);

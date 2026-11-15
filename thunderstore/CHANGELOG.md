@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.11 (beta)
+- Fix: Elsa stayed in her small form – the start animation that makes her tallest is picked automatically now.
+- Fix: Gambit floated: a far-away part (switched on again by the animations) lifted the model when it was put on the
+  ground. Trimmed parts stay off, and far-away / huge parts no longer count for the ground position.
+
 ## 2.0.10 (beta)
 - Elsa: plays her big-form clips directly now (idle, chase, jump, fall, sprint) plus the slap on attack.
 - Gambit: no longer floats – the model's base pose is the first idle frame, not the end of the spawn animation.
