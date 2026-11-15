@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.9 (beta)
+- Fix: the monster player's own robot became visible inside the monster (2.0.7). The robot is hidden again and still
+  casts no shadow.
+
 ## 2.0.8 (beta)
 - Fix: since 2.0.6 no monster was shown and the monster couldn't be changed (a broken animation table stopped the
   monster from being built).

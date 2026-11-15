@@ -628,6 +628,13 @@ namespace HideAndSeekMonster
                 {
                     if (r == null || r.transform.IsChildOf(transform)) continue;
                     if (r.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.Off) continue;
+                    if (r.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                    {
+                        // a body that only exists as a shadow (the own robot in first person): switch it off completely –
+                        // "shadow off" would make Unity draw it as a normal, visible mesh
+                        if (r.enabled) { r.enabled = false; if (!_hiddenRenderers.Contains(r)) _hiddenRenderers.Add(r); }
+                        continue;
+                    }
                     if (!_shadowOff.ContainsKey(r)) _shadowOff[r] = r.shadowCastingMode;
                     r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 }
@@ -1055,12 +1062,12 @@ namespace HideAndSeekMonster
         private void OnDestroy()
         {
             if (_clips != null) { _clips.Destroy(); _clips = null; }
-            foreach (var r in _hiddenRenderers)
-                if (r != null) r.enabled = true;
-            _hiddenRenderers.Clear();
             foreach (var kv in _shadowOff)
                 if (kv.Key != null) kv.Key.shadowCastingMode = kv.Value;
             _shadowOff.Clear();
+            foreach (var r in _hiddenRenderers)
+                if (r != null) r.enabled = true;
+            _hiddenRenderers.Clear();
         }
     }
 }
