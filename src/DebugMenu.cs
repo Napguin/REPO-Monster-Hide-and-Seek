@@ -223,13 +223,13 @@ namespace HideAndSeekMonster
                 return;
             }
             sel = Mathf.Clamp(sel, 0, list.Count - 1);
-            if (GUI.Button(new Rect(0, y, 44 * u, bh), "◀", _chBtn)) sel = (sel - 1 + list.Count) % list.Count;
-            GUI.Label(new Rect(50 * u, y, cw - 100 * u, bh), $"<b>{list[sel].name}</b>  <color=#a89a9c>({sel + 1}/{list.Count})</color>", CenterStyleSmall(u));
-            if (GUI.Button(new Rect(cw - 44 * u, y, 44 * u, bh), "▶", _chBtn)) sel = (sel + 1) % list.Count;
+            if (FitButton(new Rect(0, y, 44 * u, bh), "◀")) sel = (sel - 1 + list.Count) % list.Count;
+            FitLabel(new Rect(50 * u, y, cw - 100 * u, bh), $"<b>{list[sel].name}</b>  <color=#a89a9c>({sel + 1}/{list.Count})</color>", CenterStyleSmall(u));
+            if (FitButton(new Rect(cw - 44 * u, y, 44 * u, bh), "▶")) sel = (sel + 1) % list.Count;
             y += bh + g;
             GUI.enabled = InLevel();
-            if (GUI.Button(new Rect(0, y, half, bh), button, _chBtn)) DebugSpawnPrefab(list[sel].name, list[sel].prefab);
-            if (GUI.Button(new Rect(half + g, y, half, bh), L.DebugRandom, _chBtn)) { sel = Random.Range(0, list.Count); DebugSpawnPrefab(list[sel].name, list[sel].prefab); }
+            if (FitButton(new Rect(0, y, half, bh), button)) DebugSpawnPrefab(list[sel].name, list[sel].prefab);
+            if (FitButton(new Rect(half + g, y, half, bh), L.DebugRandom)) { sel = Random.Range(0, list.Count); DebugSpawnPrefab(list[sel].name, list[sel].prefab); }
             GUI.enabled = true;
             y += bh + g;
         }
@@ -244,13 +244,13 @@ namespace HideAndSeekMonster
             GUI.DrawTexture(r, Tex(new Color(0.06f, 0.06f, 0.08f, 0.97f)));
             GUI.DrawTexture(new Rect(r.x, r.y, r.width, 4 * u), Tex(new Color(0.3f, 0.6f, 1f, 1f)));
             GUI.Label(new Rect(r.x + 16 * u, r.y + 10 * u, r.width - 140 * u, 36 * u), "DEBUG  (F7)", _mSection);
-            if (GUI.Button(new Rect(r.xMax - 116 * u, r.y + 10 * u, 100 * u, 32 * u), L.Close, _chBtn)) _debugOpen = false;
+            if (FitButton(new Rect(r.xMax - 116 * u, r.y + 10 * u, 100 * u, 32 * u), L.Close)) _debugOpen = false;
 
             var area = new Rect(r.x + 16 * u, r.y + 54 * u, r.width - 32 * u, r.height - 70 * u);
             if (!IsHost)
             {
                 GUI.Label(area, L.DebugHostOnly, _mSmall);
-                if (GUI.Button(new Rect(area.x, area.y + 80 * u, area.width, 36 * u), "Animation tuner", _chBtn)) { _animTunerOpen = true; _debugOpen = false; }
+                if (FitButton(new Rect(area.x, area.y + 80 * u, area.width, 36 * u), "Animation tuner")) { _animTunerOpen = true; _debugOpen = false; }
                 return;
             }
             float bh = 36 * u, g = 6 * u;
@@ -259,8 +259,8 @@ namespace HideAndSeekMonster
             try
             {
                 float y = 0, cw = content.width, half = (cw - g) / 2f;
-                void Head(string t) { GUI.Label(new Rect(0, y, cw, 28 * u), t, _mSection); y += 30 * u; }
-                bool Btn(string t, float x, float wid) => GUI.Button(new Rect(x, y, wid, bh), t, _chBtn);
+                void Head(string t) { FitLabel(new Rect(0, y, cw, 28 * u), t, _mSection); y += 30 * u; }
+                bool Btn(string t, float x, float wid) => FitButton(new Rect(x, y, wid, bh), t);
                 void Row() { y += bh + g; }
 
                 Head(L.DebugPlayers);
@@ -287,7 +287,7 @@ namespace HideAndSeekMonster
                 {
                     _debugEnemy = Mathf.Clamp(_debugEnemy, 0, list.Count - 1);
                     if (Btn("◀", 0, 44 * u)) _debugEnemy = (_debugEnemy - 1 + list.Count) % list.Count;
-                    GUI.Label(new Rect(50 * u, y, cw - 100 * u, bh), $"<b>{list[_debugEnemy].Name}</b>", CenterStyleSmall(u));
+                    FitLabel(new Rect(50 * u, y, cw - 100 * u, bh), $"<b>{list[_debugEnemy].Name}</b>", CenterStyleSmall(u));
                     if (Btn("▶", cw - 44 * u, 44 * u)) _debugEnemy = (_debugEnemy + 1) % list.Count;
                     Row();
                     GUI.enabled = InLevel();
@@ -314,7 +314,7 @@ namespace HideAndSeekMonster
                 Row();
 
                 GUI.color = new Color(1, 1, 1, 0.6f);
-                GUI.Label(new Rect(0, y, cw, 80 * u), L.DebugHint, _mSmall);
+                GUI.Label(new Rect(0, y, cw, _mSmall.CalcHeight(new GUIContent(L.DebugHint), cw) + 4 * u), L.DebugHint, _mSmall);
                 GUI.color = Color.white;
             }
             finally { GUI.EndScrollView(); }

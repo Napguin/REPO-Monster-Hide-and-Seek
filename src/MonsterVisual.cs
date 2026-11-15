@@ -674,7 +674,7 @@ namespace HideAndSeekMonster
             float t = Time.time;
             if (_lungeTimer > 0f) _lungeTimer -= Time.deltaTime;
 
-            if (_animator != null && _animator.runtimeAnimatorController != null)
+            if (_clips == null && _animator != null && _animator.runtimeAnimatorController != null)
             {
                 // Big forms without an idle animation (Elsa: only "BIG Chase"): run the animation only as fast as
                 // the monster really moves, so standing still doesn't look like sprinting.
@@ -986,11 +986,7 @@ namespace HideAndSeekMonster
             foreach (var r in go.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = false;
             foreach (var l in go.GetComponentsInChildren<Light>(true)) l.enabled = true;
             var anim = go.GetComponentInChildren<Animator>();
-            if (anim != null && anim.runtimeAnimatorController == null && _savedCtrl != null)
-            {
-                anim.runtimeAnimatorController = _savedCtrl; // the copy has no clip player: give it the game's controller back
-                anim.fireEvents = false;
-            }
+            if (anim != null) anim.enabled = true; // the copy has no clip player: the game's animator runs it
             if (anim != null)
             {
                 anim.applyRootMotion = false;

@@ -42,26 +42,28 @@ namespace HideAndSeekMonster
         {
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
-            { "elsa", "idle=big chase*0; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~" },
+            { "elsa", "noclips" },  // the game's controller (big form) works better
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },
             { "banger", "attack=bang fuse" },
             { "upscream", "special=upscream - attack" },
             { "bowtie", "special=scream intro > scream@0-0.5" },
             { "gambit", "walk=walk cycle; special=trap player@0-0.6" },
-            { "mentalist", "special=chargeattack !delay > floater - attack" },
+            { "mentalist", "special=floater - chargeattack > floater - attack" },
             { "birthday boy", "special=blow balloon" },
-            { "chef", "charge=tumbler - tell > tumbler - tumble !end~; attack=tumbler - tumble !end@0-0.6; bob=0.15" },
-            { "headman", "attack=chase bite|bite|chomp; charge=chase !begin !bite~|chase~" },
-            { "headgrab", "attack=attack01|attack 01|attack@0-0.5; charge=attack01@0.5-1~|attack 01@0.5-1~|attack@0.5-1~" },
-            { "robe", "charge=attack~" },
-            { "clown", "attack=melee|kick; special=beam|laser|shoot|attack !melee~" },
-            { "huntsman", "attack=shoot|fire|aim|attack; special=shoot|fire|aim|attack" },
+            { "chef", "charge=tumbler - tell~; bob=0.15" },
+            { "headman", "noclips" }, // animated by its own code system, the clips are empty
+            { "headgrab", "walk=headgrabber - move !intro !outro !fast !head; run=move fast !intro !outro; attack=attack 01@0-0.5; charge=attack 01@0.5-1~" },
+            { "robe", "walk=robe targetplayer|robe idle; charge=robe attack~; attack=robe attack" },
+            { "clown", "walk=beamer - move !intro !outro !fast; run=move fast; attack=beamer - melee; special=attack intro > beamer - attack !intro !outro~" },
+            { "huntsman", "walk=hunter - move !intro !outro; attack=hunter - aim > hunter - shoot@0-0.4; special=hunter - aim > hunter - shoot@0-0.4" },
             { "spewer", "special=vomit|puke|spew|attack~" },
             { "heart hugger", "attack=chomp|bite|attack" },
-            { "trudge", "special=slam|attack@0.3-1" },
-            { "cleanup crew", "attack=melee; special=throw|attack !melee" },
+            { "trudge", "walk=slow walker - move !intro !outro; attack=slow walker - attack@0.3-0.7; special=slow walker - attack@0.3-0.7" },
+            { "cleanup crew", "walk=bomb thrower - move !intro !outro !fast !head; run=move fast !intro !outro; attack=bomb thrower - melee !torso; special=bomb thrower - attack !torso" },
             { "bella", "hidden" },
+            { "loom", "noclips" },
+            { "peeper", "noclips" },
         };
 
         // Overrides saved with the animation tuner (debug menu), per monster.
@@ -71,7 +73,7 @@ namespace HideAndSeekMonster
         internal class Profile
         {
             public readonly Dictionary<string, string> Specs = new Dictionary<string, string>();
-            public bool Flip, Hidden;
+            public bool Flip, Hidden, NoClips;
             public float Bob;
         }
 
@@ -98,6 +100,7 @@ namespace HideAndSeekMonster
                 string v = eq < 0 ? "" : s.Substring(eq + 1).Trim();
                 if (k == "flip") p.Flip = v != "0" && v != "false";
                 else if (k == "hidden") p.Hidden = v != "0" && v != "false";
+                else if (k == "noclips") p.NoClips = v != "0" && v != "false";
                 else if (k == "bob") float.TryParse(v, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out p.Bob);
                 else if (v == "" || v == "-") p.Specs.Remove(k);
                 else p.Specs[k] = v;
@@ -232,34 +235,51 @@ namespace HideAndSeekMonster
             if (q.Length == 0) return null;
             var exact = clips.FirstOrDefault(c => c.name.ToLowerInvariant() == q);
             if (exact != null) return exact;
-            var words = q.Split(' ').Where(w => w.Length > 0).ToArray();
+            var words = q.Split(' ').Select(w => Regex.Replace(w, "[^a-z0-9!]", "")).Where(w => w.Length > 0 && w != "!").ToArray();
             var need = words.Where(w => w[0] != '!').ToArray();
             var not = words.Where(w => w[0] == '!' && w.Length > 1).Select(w => w.Substring(1)).ToArray();
             if (need.Length == 0) return null;
-            // "BIG Chase" must not match "big chase" inside "bigchaser": compare without spaces only for joined words
-            return clips.Where(c =>
-                {
-                    string n = c.name.ToLowerInvariant(), flat = n.Replace(" ", "");
-                    return need.All(w => n.Contains(w) || flat.Contains(w)) && !not.Any(w => n.Contains(w) || flat.Contains(w));
-                })
+            // whole words only ("walk" must not match "Slow Walker"); long words may also hit a joined name
+            bool Hit(string name, string w)
+            {
+                string n = name.ToLowerInvariant();
+                if (Regex.Split(n, "[^a-z0-9]+").Contains(w)) return true;
+                return w.Length >= 6 && Regex.Replace(n, "[^a-z0-9]", "").Contains(w);
+            }
+            return clips.Where(c => need.All(w => Hit(c.name, w)) && !not.Any(w => Hit(c.name, w)))
                 .OrderBy(c => c.name.Length).FirstOrDefault();
         }
     }
 
     /// <summary>
-    /// Plays a monster's animation clips directly through a PlayableGraph (idle / walk / run / jump / fall,
-    /// attack, special, charge loops, Rugrat carrying), with short cross-fades.
+    /// Plays a monster's animation clips directly (AnimationClip.SampleAnimation, the game's animator is switched
+    /// off): idle / walk / run / jump / fall, attack, special, charge loops, Rugrat carrying.
+    /// Every frame the model first goes back to its spawned, visible base pose and the clip is sampled on top, so
+    /// whatever a clip doesn't animate stays visible (the enemy prefabs start hidden / scaled to 0 before spawning).
     /// </summary>
     internal class ClipAnimator
     {
-        private PlayableGraph _graph;
-        private AnimationMixerPlayable _mixer;
-        private readonly List<AnimationClipPlayable> _inputs = new List<AnimationClipPlayable>();
-        private float[] _weights;
+        private readonly GameObject _root;
+        private readonly Animator _anim;
         public readonly List<AnimationClip> Clips;
         private readonly AnimProfiles.Profile _profile;
         private readonly Dictionary<string, AnimProfiles.Track> _tracks = new Dictionary<string, AnimProfiles.Track>();
         private readonly string _monster;
+
+        // base pose
+        private Transform[] _bones;
+        private Vector3[] _bPos, _bScale;
+        private Quaternion[] _bRot;
+        private bool[] _bActive;
+        private Renderer[] _rends;
+        private bool[] _rOn;
+
+        // cross-fade
+        private Vector3[] _fPos, _fScale;
+        private Quaternion[] _fRot;
+        private float _fade = 1f;
+        private AnimationClip _lastClip;
+        private float _lastTime;
 
         // what plays right now
         private AnimProfiles.Track _cur;
@@ -274,6 +294,7 @@ namespace HideAndSeekMonster
 
         // tuner preview
         private AnimProfiles.Track _preview;
+        private float _previewUntil;
 
         public bool Charging, Carrying;
         private bool _wasCarrying;
@@ -281,50 +302,74 @@ namespace HideAndSeekMonster
 
         private ClipAnimator(Animator anim, List<AnimationClip> clips, AnimProfiles.Profile profile, string monster)
         {
+            _anim = anim;
+            _root = anim.gameObject;
             Clips = clips;
             _profile = profile;
             _monster = monster;
-            anim.fireEvents = false; // the clips call methods of the enemy's scripts, which aren't there
-            _graph = PlayableGraph.Create("HNS_" + monster);
-            _graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
-            var output = AnimationPlayableOutput.Create(_graph, "HNS", anim);
-            _mixer = AnimationMixerPlayable.Create(_graph, clips.Count);
-            output.SetSourcePlayable(_mixer);
-            for (int i = 0; i < clips.Count; i++)
-            {
-                var p = AnimationClipPlayable.Create(_graph, clips[i]);
-                p.SetApplyFootIK(false);
-                p.SetSpeed(0);
-                _graph.Connect(p, 0, _mixer, i);
-                _mixer.SetInputWeight(i, 0f);
-                _inputs.Add(p);
-            }
-            _weights = new float[clips.Count];
             Rebuild();
         }
 
         /// <summary>Takes over the animator, or returns null when the monster's clips don't fit (old behaviour stays).</summary>
         public static ClipAnimator TryCreate(Animator anim, string monster, AnimProfiles.Profile profile)
         {
-            if (anim == null || anim.runtimeAnimatorController == null) return null;
+            if (anim == null || anim.runtimeAnimatorController == null || profile.NoClips) return null;
             try
             {
-                var clips = anim.runtimeAnimatorController.animationClips.Where(c => c != null && !c.legacy)
+                var clips = anim.runtimeAnimatorController.animationClips.Where(c => c != null && !c.legacy && c.length > 0.01f)
                     .GroupBy(c => c.name).Select(g => g.First()).ToList();
                 if (clips.Count == 0) return null;
                 var idle = AnimProfiles.Parse("idle", profile.Specs.TryGetValue("idle", out var s1) ? s1 : null, clips);
                 var walk = AnimProfiles.Parse("walk", profile.Specs.TryGetValue("walk", out var s2) ? s2 : null, clips);
                 if (idle == null && walk == null) { Plugin.Log.LogInfo($"[Anim] '{monster}': no idle/walk clip – keeping the game's animator"); return null; }
                 var ca = new ClipAnimator(anim, clips, profile, monster);
-                anim.runtimeAnimatorController = null; // the graph drives the model from now on
+                ca.TakeOver();
                 return ca;
             }
             catch (System.Exception ex)
             {
                 Plugin.Log.LogWarning($"[Anim] '{monster}': clip player failed ({ex.Message}) – keeping the game's animator");
+                if (anim != null) anim.enabled = true;
                 return null;
             }
         }
+
+        private void TakeOver()
+        {
+            _anim.enabled = false; // from now on only the sampled clips move the model
+            // finish the spawn animation, so the base pose is the visible monster
+            var spawn = AnimProfiles.FindClip(_profile.Specs.TryGetValue("init", out var init) ? init : "spawn !despawn", Clips);
+            if (spawn != null) spawn.SampleAnimation(_root, spawn.length);
+            _rends = _root.GetComponentsInChildren<Renderer>(true).Where(r => !(r is ParticleSystemRenderer)).ToArray();
+            if (!_rends.Any(r => r.enabled && r.gameObject.activeInHierarchy))
+                foreach (var r in _rends) { r.enabled = true; r.gameObject.SetActive(true); }
+            _bones = _root.GetComponentsInChildren<Transform>(true);
+            int n = _bones.Length;
+            _bPos = new Vector3[n]; _bScale = new Vector3[n]; _bRot = new Quaternion[n]; _bActive = new bool[n];
+            _fPos = new Vector3[n]; _fScale = new Vector3[n]; _fRot = new Quaternion[n];
+            for (int i = 0; i < n; i++)
+            {
+                var b = _bones[i];
+                _bPos[i] = b.localPosition; _bRot[i] = b.localRotation; _bScale[i] = b.localScale; _bActive[i] = b.gameObject.activeSelf;
+            }
+            _rOn = _rends.Select(r => r.enabled).ToArray();
+            Plugin.Log.LogInfo($"[Anim] '{_monster}': base pose from '{(spawn != null ? spawn.name : "current")}', {n} bones, {_rOn.Count(x => x)}/{_rends.Length} renderers on");
+        }
+
+        private void RestoreBase()
+        {
+            for (int i = 0; i < _bones.Length; i++)
+            {
+                var b = _bones[i];
+                if (b == null) continue;
+                b.localPosition = _bPos[i]; b.localRotation = _bRot[i]; b.localScale = _bScale[i];
+                if (b.gameObject.activeSelf != _bActive[i]) b.gameObject.SetActive(_bActive[i]);
+            }
+            for (int i = 0; i < _rends.Length; i++) if (_rends[i] != null) _rends[i].enabled = _rOn[i];
+        }
+
+        /// <summary>Gives the game's animator back (for copies of the body).</summary>
+        public void Release() { if (_anim != null) _anim.enabled = true; }
 
         public void Rebuild()
         {
@@ -363,11 +408,13 @@ namespace HideAndSeekMonster
         public void Preview(AnimProfiles.Track t)
         {
             _preview = t;
+            _previewUntil = Time.time + 6f;
             if (t != null) Start(t);
         }
 
         private void Start(AnimProfiles.Track t)
         {
+            if (_cur != null && _cur != t) _fade = 0f;
             _cur = t;
             _step = 0;
             _t = 0f;
@@ -376,7 +423,7 @@ namespace HideAndSeekMonster
 
         public void Tick(float dt, float speed, bool grounded, float vy)
         {
-            if (!_graph.IsValid()) return;
+            if (_root == null) return;
 
             if (Carrying != _wasCarrying)
             {
@@ -384,7 +431,7 @@ namespace HideAndSeekMonster
                 PlayAction(Carrying ? "pickup" : "throw");
             }
 
-            if (_preview != null && _cur == _preview && _finished) _preview = null;
+            if (_preview != null && (_cur != _preview || _finished || Time.time > _previewUntil)) _preview = null;
             if (_action != null && (_cur != _action || (_finished && !_action.Loop) || Time.time >= _actionUntil))
                 _action = null;
 
@@ -417,26 +464,47 @@ namespace HideAndSeekMonster
                 }
             }
             float frac = float.IsInfinity(st.Seconds) ? 0f : Mathf.Clamp01(_t / st.Seconds);
-            _inputs[st.Input].SetTime((st.A + (st.B - st.A) * frac) * st.Clip.length);
+            float time = (st.A + (st.B - st.A) * frac) * st.Clip.length;
 
-            // cross-fade towards the current clip
-            float k = Mathf.Clamp01(dt / 0.15f);
-            float sum = 0f;
-            for (int i = 0; i < _weights.Length; i++)
+            // short cross-fade of the bones from the previous clip
+            bool fading = _fade < 1f && _lastClip != null;
+            if (fading)
             {
-                _weights[i] = Mathf.MoveTowards(_weights[i], i == st.Input ? 1f : 0f, k);
-                sum += _weights[i];
+                RestoreBase();
+                _lastClip.SampleAnimation(_root, _lastTime);
+                for (int i = 0; i < _bones.Length; i++)
+                {
+                    var b = _bones[i];
+                    if (b == null) continue;
+                    _fPos[i] = b.localPosition; _fRot[i] = b.localRotation; _fScale[i] = b.localScale;
+                }
+                _fade = Mathf.Min(1f, _fade + dt / 0.15f);
             }
-            for (int i = 0; i < _weights.Length; i++) _mixer.SetInputWeight(i, sum > 0f ? _weights[i] / sum : 0f);
-            _graph.Evaluate(0f);
+            RestoreBase();
+            st.Clip.SampleAnimation(_root, time);
+            if (fading)
+            {
+                float f = Mathf.SmoothStep(0f, 1f, _fade);
+                for (int i = 0; i < _bones.Length; i++)
+                {
+                    var b = _bones[i];
+                    if (b == null) continue;
+                    b.localPosition = Vector3.LerpUnclamped(_fPos[i], b.localPosition, f);
+                    b.localRotation = Quaternion.SlerpUnclamped(_fRot[i], b.localRotation, f);
+                    b.localScale = Vector3.LerpUnclamped(_fScale[i], b.localScale, f);
+                }
+            }
+            else
+            {
+                _lastClip = st.Clip;
+                _lastTime = time;
+            }
+            if (fading && _fade >= 1f) { _lastClip = st.Clip; _lastTime = time; }
         }
 
         private static bool IsLoco(AnimProfiles.Track t) =>
             t.Role == "idle" || t.Role == "walk" || t.Role == "run" || t.Role == "c-idle" || t.Role == "c-walk";
 
-        public void Destroy()
-        {
-            if (_graph.IsValid()) _graph.Destroy();
-        }
+        public void Destroy() { }
     }
 }

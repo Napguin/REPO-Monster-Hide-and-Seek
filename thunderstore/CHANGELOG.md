@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.5 (beta)
+- Fix: monsters were **invisible / flattened** with the new animations (Reaper, Trudge, Banger, Clown, Headgrab,
+  Huntsman, Mentalist, Chef's lunge). The clips are now played on top of the monster's spawned, visible pose.
+- Fix: Trudge used its idle clip for walking ("walk" matched "Slow Walker"); clip names are matched by whole words.
+- Elsa, Headman, Loom and Peeper use the game's own animator again (Elsa's model was broken, Headman sank into the
+  floor – its clips are empty, it's animated by code).
+- Clip choices set from the clip list: Clown (melee, laser), Huntsman (aim + shoot), Trudge (walk, slam),
+  Headgrab (walk, attack without dropkick, dropkick on charge), Robe, Cleanup Crew, Chef (wind-up on lunge).
+- Menus: text that doesn't fit gets smaller instead of being cut off; the animation tuner fits the screen and
+  scrolls.
+
 ## 2.0.4 (beta)
 - **New monster animations:** the monsters now play their own animation clips directly – idle, walking, running,
   jumping and falling, the main attack, the special and a loop while charging / sprinting. Changes per monster:
