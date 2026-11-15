@@ -57,8 +57,6 @@ namespace HideAndSeekMonster
             { "robe", "walk=robe targetplayer|robe idle; charge=robe attack~; attack=robe attack" },
             { "clown", "walk=beamer - move !intro !outro !fast; run=move fast; attack=beamer - melee; special=attack intro > beamer - attack !intro !outro~" },
             { "huntsman", "walk=hunter - move !intro !outro; attack=hunter - aim > hunter - shoot@0-0.4; special=hunter - aim > hunter - shoot@0-0.4" },
-            { "spewer", "special=vomit|puke|spew|attack~" },
-            { "heart hugger", "attack=chomp|bite|attack" },
             { "trudge", "walk=slow walker - move !intro !outro; attack=slow walker - attack@0.3-0.7; special=slow walker - attack@0.3-0.7" },
             { "cleanup crew", "walk=bomb thrower - move !intro !outro !fast !head; run=move fast !intro !outro; attack=bomb thrower - melee !torso; special=bomb thrower - attack !torso" },
             { "bella", "hidepart=Whole mesh CODE Main*, Hand ANIM*, Feet ANIM*, Foot ANIM*; proc=spin rotation_transform:x:300, spin pedal_crank:x:250" },

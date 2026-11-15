@@ -68,7 +68,8 @@ namespace HideAndSeekMonster
             _avatar = avatar;
             _isLocal = avatar != null && GameRefs.IsLocal(avatar);
             _entry = MonsterCatalog.Find(monsterName);
-            _profile = AnimProfiles.For(_entry != null ? _entry.Name : monsterName);
+            try { _profile = AnimProfiles.For(_entry != null ? _entry.Name : monsterName); }
+            catch (System.Exception ex) { Plugin.Log.LogWarning("[Anim] profile failed: " + ex); _profile = new AnimProfiles.Profile(); }
 
             var target = FollowTarget();
             if (target != null) { transform.position = target.position; _lastTargetPos = target.position; _yaw = target.eulerAngles.y; }

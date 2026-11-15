@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.8 (beta)
+- Fix: since 2.0.6 no monster was shown and the monster couldn't be changed (a broken animation table stopped the
+  monster from being built).
+
 ## 2.0.7 (beta)
 - The monster player's robot no longer casts a shadow – only the monster does (for everyone, the monster player too).
 
