@@ -1,7 +1,9 @@
 # Changelog
 
-## 2.0.12 (beta)
-- Elsa: big form confirmed; standing still now plays her chase slowly with a breathing sway instead of a frozen pose.
+## 2.0.13 (beta)
+- Elsa: standing still plays her chase slowly with a breathing sway instead of a frozen pose.
+- Elsa: the slap swings the right arm forward across the body (it only moved outwards before), the upper body turns
+  with it.
 
 ## 2.0.11 (beta)
 - Fix: Elsa stayed in her small form – the start animation that makes her tallest is picked automatically now.

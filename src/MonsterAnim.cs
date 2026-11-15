@@ -43,7 +43,7 @@ namespace HideAndSeekMonster
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
             { "elsa", "init=small spawn > small transform | small spawn > big transform | big transform | small transform; idle=big chase*0.2; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
-                    + "proc=idle ANIM BIG BODY UPPER:x:3, act ANIM BIG_arm_01_R:x:-80, act ANIM BIG_arm_02_R:x:-40, act ANIM BIG BODY UPPER:y:-25" },  // big form only + a procedural slap
+                    + "proc=idle ANIM BIG BODY UPPER:x:3, act ANIM BIG_arm_01_R:Y:-110, act ANIM BIG_arm_01_R:X:-45, act ANIM BIG_arm_02_R:Y:-30, act ANIM BIG BODY UPPER:Y:-30" },  // big form only + a procedural slap
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },
             { "banger", "attack=bang fuse" },
@@ -582,18 +582,19 @@ namespace HideAndSeekMonster
     /// </summary>
     internal class ProcAnim
     {
-        private class Rule { public string Kind; public List<Transform> Parts; public int Axis; public float Amount, Phase; }
+        private class Rule { public string Kind; public List<Transform> Parts; public int Axis; public bool ModelSpace; public float Amount, Phase; }
         private class State { public Quaternion RawRot, SetRot; public Vector3 RawPos, SetPos, RawScale, SetScale; public bool Init; }
 
         private readonly List<Rule> _rules = new List<Rule>();
         private readonly Dictionary<Transform, State> _state = new Dictionary<Transform, State>();
         private float _dist, _walkPhase;
+        private Transform _root;
 
         public bool Empty => _rules.Count == 0;
 
         public static ProcAnim Create(Transform root, IEnumerable<string> specs, string monster)
         {
-            var pa = new ProcAnim();
+            var pa = new ProcAnim { _root = root };
             var all = root.GetComponentsInChildren<Transform>(true);
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             var found = new List<string>();
@@ -604,7 +605,10 @@ namespace HideAndSeekMonster
                 var parts = spec.Substring(sp + 1).Split(':');
                 if (parts.Length < 2) continue;
                 var rule = new Rule { Kind = spec.Substring(0, sp).Trim().ToLowerInvariant(), Parts = Find(root, all, parts[0].Trim()) };
-                string ax = parts.Length > 1 ? parts[1].Trim().ToLowerInvariant() : "x";
+                // lower-case axis = the part's own axis, upper-case X/Y/Z = the monster's axes (X right, Y up, Z forward)
+                string axRaw = parts.Length > 1 ? parts[1].Trim() : "x";
+                rule.ModelSpace = axRaw.Length > 0 && char.IsUpper(axRaw[0]);
+                string ax = axRaw.ToLowerInvariant();
                 rule.Axis = ax == "y" ? 1 : ax == "z" ? 2 : 0;
                 if (parts.Length > 2) float.TryParse(parts[2].Trim(), System.Globalization.NumberStyles.Float, inv, out rule.Amount);
                 if (parts.Length > 3) float.TryParse(parts[3].Trim(), System.Globalization.NumberStyles.Float, inv, out rule.Phase);
@@ -639,6 +643,7 @@ namespace HideAndSeekMonster
             var rot = new Dictionary<Transform, Quaternion>();
             var pos = new Dictionary<Transform, Vector3>();
             var scl = new Dictionary<Transform, float>();
+            var wrot = new Dictionary<Transform, Quaternion>(); // rotations around the monster's axes
             foreach (var r in _rules)
             {
                 float v = 0f;
@@ -664,6 +669,8 @@ namespace HideAndSeekMonster
                     if (p == null) continue;
                     if (move) pos[p] = (pos.TryGetValue(p, out var o) ? o : Vector3.zero) + Axis(r.Axis) * v;
                     else if (scale) scl[p] = (scl.TryGetValue(p, out var s0) ? s0 : 1f) * (1f + v);
+                    else if (r.ModelSpace)
+                        wrot[p] = Quaternion.AngleAxis(v, _root.rotation * Axis(r.Axis)) * (wrot.TryGetValue(p, out var w) ? w : Quaternion.identity);
                     else rot[p] = (rot.TryGetValue(p, out var q) ? q : Quaternion.identity) * Quaternion.AngleAxis(v, Axis(r.Axis));
                 }
             }
@@ -678,7 +685,14 @@ namespace HideAndSeekMonster
                     if (!st.Init || p.localPosition != st.SetPos) st.RawPos = p.localPosition;
                     if (!st.Init || p.localScale != st.SetScale) st.RawScale = p.localScale;
                     st.Init = true;
-                    p.localRotation = st.SetRot = st.RawRot * (rot.TryGetValue(p, out var q) ? q : Quaternion.identity);
+                    var local = st.RawRot * (rot.TryGetValue(p, out var q) ? q : Quaternion.identity);
+                    if (wrot.TryGetValue(p, out var wq))
+                    {
+                        // turn the part in world space around the monster's axis: local' = inv(parent) * R * parent * local
+                        var parent = p.parent != null ? p.parent.rotation : Quaternion.identity;
+                        local = Quaternion.Inverse(parent) * wq * parent * local;
+                    }
+                    p.localRotation = st.SetRot = local;
                     p.localPosition = st.SetPos = st.RawPos + (pos.TryGetValue(p, out var o) ? o : Vector3.zero);
                     p.localScale = st.SetScale = st.RawScale * (scl.TryGetValue(p, out var s1) ? s1 : 1f);
                 }
