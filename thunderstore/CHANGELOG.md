@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.12 (beta)
+- Elsa: big form confirmed; standing still now plays her chase slowly with a breathing sway instead of a frozen pose.
+
 ## 2.0.11 (beta)
 - Fix: Elsa stayed in her small form – the start animation that makes her tallest is picked automatically now.
 - Fix: Gambit floated: a far-away part (switched on again by the animations) lifted the model when it was put on the
