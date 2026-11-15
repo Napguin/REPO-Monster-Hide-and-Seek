@@ -181,6 +181,7 @@ namespace HideAndSeekMonster
             if (gambled) Banner(L.Gambled(Abilities.Name(ability)), Abilities.UnityColor(AbilityType.Gamble), 2f);
             string hiderMsg = L.AbilityUsedByMonster(ability);
             if (!localSeeker && !gambled && !string.IsNullOrEmpty(hiderMsg)) Banner(hiderMsg, Abilities.UnityColor(ability), 2f);
+            if (_monster != null) _monster.PlaySpecial(gambled ? AbilityType.Gamble : ability, gambled ? 0f : Abilities.Duration(ability));
 
             switch (ability)
             {
@@ -481,6 +482,11 @@ namespace HideAndSeekMonster
             Safe("levitate", LevitateTick);
             Safe("charge fx", ChargeFxTick);
             if (_monster != null) _monster.SetAttackForm(Charging && _chargeType == AbilityType.FlyingCharge && CurrentAbility == AbilityType.FlyingCharge); // duck only, not a Gambit roll
+            if (_monster != null)
+            {
+                _monster.SetCharging(Charging || Time.time < _dashEnd); // sprint, flying charge, charge / lunge (wind-up included)
+                _monster.SetCarrying(_holdingItem);
+            }
         }
 
         // ------------------------------------------------------------------

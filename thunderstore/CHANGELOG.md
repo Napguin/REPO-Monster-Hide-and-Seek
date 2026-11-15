@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.4 (beta)
+- **New monster animations:** the monsters now play their own animation clips directly – idle, walking, running,
+  jumping and falling, the main attack, the special and a loop while charging / sprinting. Changes per monster:
+  - Robe: attack animation while charging · Headgrab: attack without the dropkick, the dropkick while charging
+  - Headman: bite on attack, chase animation while lunging · Chef: tumble on lunge, hops while moving
+  - Gnome, Banger, Cleanup Crew, Trudge, Pony, Clown, Huntsman, Rugrat: walking (and jumping) animations
+  - Rugrat: pick-up, carry and throw animations · Reaper: walking, attack animation while sprinting
+  - Apex Predator: transforms and chomps while flying · Mentalist: spell cast on Zero-G Grab
+  - Bowtie: short scream on Tornado · Gambit: short animation on Gamble · Upscream: its scream on Launch
+  - Clown: kick on attack, laser animation while firing · Spewer: vomiting on Puke · Trudge: slam on Impulse
+  - Bella: invisible to the hiders, shows itself while attacking or sprinting
+  - Animal: no longer faces backwards
+- **Animation tuner** (F7 → Animations): pick which clip plays for which action, cut it, change its speed, preview and
+  save it. "Dump clips to log" writes every monster's clip list to the log.
+
 ## 2.0.3 (beta)
 - Fix: **Charge** no longer launches the monster into the air over a small ramp / incline (it then floated until the
   charge ended). The charge now follows slopes and falls down over edges.

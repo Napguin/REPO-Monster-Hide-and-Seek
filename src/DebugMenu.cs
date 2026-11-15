@@ -250,10 +250,11 @@ namespace HideAndSeekMonster
             if (!IsHost)
             {
                 GUI.Label(area, L.DebugHostOnly, _mSmall);
+                if (GUI.Button(new Rect(area.x, area.y + 80 * u, area.width, 36 * u), "Animation tuner", _chBtn)) { _animTunerOpen = true; _debugOpen = false; }
                 return;
             }
             float bh = 36 * u, g = 6 * u;
-            var content = new Rect(0, 0, area.width - 18 * u, 1250 * u);
+            var content = new Rect(0, 0, area.width - 18 * u, 1400 * u);
             _debugScroll = GUI.BeginScrollView(area, _debugScroll, content);
             try
             {
@@ -305,6 +306,11 @@ namespace HideAndSeekMonster
                 Head(L.DebugDummies);
                 if (Btn(L.DebugSpawnDummy, 0, half)) SpawnDummyAt(HostFront(4f));
                 if (Btn(L.DebugRemoveDummies, half + g, half)) ClearDummies();
+                Row();
+
+                Head("Animations");
+                if (Btn("Animation tuner", 0, half)) { _animTunerOpen = true; _debugOpen = false; }
+                if (Btn("Dump clips to log", half + g, half)) { AnimProfiles.DumpAll(); Banner("Clips written to the log", Color.white, 2f); }
                 Row();
 
                 GUI.color = new Color(1, 1, 1, 0.6f);

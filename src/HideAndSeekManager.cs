@@ -195,7 +195,7 @@ namespace HideAndSeekMonster
                 if (_attackAction.WasPressedThisFrame()) _rawAttackPresses++;
                 if (_roarAction.WasPressedThisFrame()) _rawRoarPresses++;
             });
-            if (_roundTest && !_menuOpen && !_debugOpen) Safe("test keys", TestKeys);
+            if (_roundTest && !_menuOpen && !_debugOpen && !_animTunerOpen) Safe("test keys", TestKeys);
             Safe("choice keys", ChoiceKeys);
             Safe("seeker", LocalSeekerTick);
             Safe("laser", LaserTick);
@@ -250,7 +250,7 @@ namespace HideAndSeekMonster
             if (_roundInfStamina)
                 Safe("stamina", () => Compat.Set(pc, "EnergyCurrent", Compat.Get(pc, "EnergyStart", 100f)));
 
-            if (_menuOpen || _debugOpen || _freePickOpen || GameRefs.IsTyping) return;
+            if (_menuOpen || _debugOpen || _animTunerOpen || _freePickOpen || GameRefs.IsTyping) return;
 
             Safe("view key", () =>
             {
@@ -910,7 +910,7 @@ namespace HideAndSeekMonster
                         _laserChargeUntil = Time.time + LaserCharge;
                         _laserEndTime = _laserChargeUntil + Plugin.LaserDuration.Value;
                         _laserTickAt = 0f;
-                        if (_monster != null) _monster.PlayRoar();
+                        if (_monster != null) { _monster.PlayRoar(); _monster.PlaySpecial(AbilityType.Laser, LaserCharge + Plugin.LaserDuration.Value); }
                         Plugin.Log.LogInfo("[Monster] laser fired");
                         break;
                     case MsgScore:
@@ -1176,7 +1176,7 @@ namespace HideAndSeekMonster
         }
 
         private bool CursorWanted =>
-            _menuOpen || _debugOpen || _freePickOpen || VoteVisible || (_choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker));
+            _menuOpen || _debugOpen || _animTunerOpen || _freePickOpen || VoteVisible || (_choiceOpen && RoundActive && Phase == Phase.Hiding && Seeker != null && GameRefs.IsLocal(Seeker));
 
         private static void ShowCursor()
         {
@@ -1290,6 +1290,11 @@ namespace HideAndSeekMonster
             {
                 try { DrawDebugMenu(sw, sh, u); }
                 catch (System.Exception ex) { if (ex is ExitGUIException) throw; _lastError = "debug menu: " + ex.Message; GUI.color = Color.white; GUI.enabled = true; }
+            }
+            if (_animTunerOpen)
+            {
+                try { DrawAnimTuner(sw, sh, u); }
+                catch (System.Exception ex) { if (ex is ExitGUIException) throw; _lastError = "anim tuner: " + ex.Message; GUI.color = Color.white; GUI.enabled = true; }
             }
         }
 

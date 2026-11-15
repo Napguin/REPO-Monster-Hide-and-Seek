@@ -26,6 +26,16 @@ namespace HideAndSeekMonster
         private float _age;
         private int _regrounds;
 
+        // clip-based animation (MonsterAnim.cs)
+        private ClipAnimator _clips;
+        private AnimProfiles.Profile _profile;
+        private RuntimeAnimatorController _savedCtrl;
+        private bool _charging, _stealthHidden, _grounded = true;
+        private float _revealUntil, _vy, _hSpeed;
+        private Vector3 _lastTargetPos;
+        public ClipAnimator Clips => _clips;
+        public AnimProfiles.Profile Profile => _profile;
+
         // fallback parts
         private Transform _jaw, _armL, _armR;
         private Light _light;
@@ -55,9 +65,10 @@ namespace HideAndSeekMonster
             _avatar = avatar;
             _isLocal = avatar != null && GameRefs.IsLocal(avatar);
             _entry = MonsterCatalog.Find(monsterName);
+            _profile = AnimProfiles.For(_entry != null ? _entry.Name : monsterName);
 
             var target = FollowTarget();
-            if (target != null) { transform.position = target.position; _yaw = target.eulerAngles.y; }
+            if (target != null) { transform.position = target.position; _lastTargetPos = target.position; _yaw = target.eulerAngles.y; }
             _lastPos = transform.position;
 
             if (_entry != null)
@@ -76,6 +87,14 @@ namespace HideAndSeekMonster
             // The Oogly lies almost flat (it's built to dive from the ceiling): tilt it 45° more upright.
             if (!IsFallback && _entry != null && _entry.Name.ToLowerInvariant() == "oogly")
                 _body.localRotation = Quaternion.Euler(-45f, 0f, 0f) * _body.localRotation;
+            // Some models are built facing backwards (Animal).
+            if (!IsFallback && _profile.Flip) _body.localRotation = Quaternion.Euler(0f, 180f, 0f) * _body.localRotation;
+            if (!IsFallback && _animator != null)
+            {
+                _savedCtrl = _animator.runtimeAnimatorController;
+                _clips = ClipAnimator.TryCreate(_animator, MonsterName, _profile);
+                if (_clips != null) _clips.Tick(0f, 0f, true, 0f);
+            }
             if (!IsFallback) TrimStrayRenderers(scale);
             SetLayerRecursive(gameObject, 0);
             Vector3 size = GroundBody();
@@ -98,7 +117,7 @@ namespace HideAndSeekMonster
                 $"Animator: {animInfo}";
             Plugin.Log.LogInfo($"[Monster] '{MonsterName}' built for {(_isLocal ? "local" : "remote")} player\n{DebugInfo}");
             if (_isLocal) LogModelDump();
-            if (!IsFallback && _entry != null && _entry.Ability == AbilityType.FlyingCharge) BuildAttackBody();
+            if (!IsFallback && _entry != null && _entry.Ability == AbilityType.FlyingCharge && !ClipsHandleCharge) BuildAttackBody();
 
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.spatialBlend = 1f;
@@ -433,8 +452,12 @@ namespace HideAndSeekMonster
             Plugin.Log.LogInfo($"[Monster] '{MonsterName}': attack-form copy built ({shown} parts)");
         }
 
+        // The clip player shows the duck's transformation itself (charge = "Duck Trans > Duck Attack").
+        private bool ClipsHandleCharge => _clips != null && _clips.Has("charge");
+
         private void SwapFormRenderers(bool on)
         {
+            if (ClipsHandleCharge) return;
             if (!_attackBodyBuilt) BuildAttackBody();
             if (_attackBody == null) return;
             _attackBody.localPosition = _body.localPosition; // follow re-grounding
@@ -452,14 +475,14 @@ namespace HideAndSeekMonster
         /// <summary>Hide/show the animated body and the attack-form copy (rendering only).</summary>
         private void ApplyVisibility()
         {
-            bool bodyOn = _bodyVisible && !(_attackForm && _attackBody != null);
+            bool bodyOn = _bodyVisible && !_stealthHidden && !(_attackForm && _attackBody != null);
             if (_body != null)
             {
                 foreach (var r in _body.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = !bodyOn;
                 foreach (var l in _body.GetComponentsInChildren<Light>(true)) l.enabled = bodyOn;
             }
             if (_attackBody != null)
-                foreach (var r in _attackBody.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = !_bodyVisible;
+                foreach (var r in _attackBody.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = !_bodyVisible || _stealthHidden;
         }
 
         private static bool Keep(Component c) =>
@@ -623,6 +646,26 @@ namespace HideAndSeekMonster
 
             float speed = (transform.position - _lastPos).magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
             _lastPos = transform.position;
+
+            // movement of the player itself (not of rolling / hopping visuals): for walk / jump / fall
+            float dt = Mathf.Max(Time.deltaTime, 0.0001f);
+            Vector3 d = target.position - _lastTargetPos;
+            _lastTargetPos = target.position;
+            if (d.sqrMagnitude > 100f) d = Vector3.zero; // teleported
+            _hSpeed = Mathf.Lerp(_hSpeed, new Vector2(d.x, d.z).magnitude / dt, 1f - Mathf.Exp(-10f * dt));
+            _vy = Mathf.Lerp(_vy, d.y / dt, 1f - Mathf.Exp(-10f * dt));
+            _grounded = CheckGrounded(target);
+
+            // Chef: hops while it moves
+            if (_profile != null && _profile.Bob > 0f && _grounded && _hSpeed > 0.5f && Mathf.Abs(RollAngle) < 0.01f)
+                transform.position += Vector3.up * Mathf.Abs(Mathf.Sin(Time.time * 9f)) * _profile.Bob * Mathf.Clamp01(_hSpeed / 3f) * _baseScale.y;
+
+            // Bella: invisible unless it attacks or sprints (only for the others; the monster player still sees itself)
+            bool hide = _profile != null && _profile.Hidden && !_isLocal && !_charging && Time.time > _revealUntil
+                        && !(_clips != null && _clips.ActionPlaying);
+            if (hide != _stealthHidden) { _stealthHidden = hide; ApplyVisibility(); }
+
+            if (_clips != null) _clips.Tick(Time.deltaTime, _hSpeed, _grounded, _vy);
             Animate(speed);
         }
 
@@ -672,9 +715,41 @@ namespace HideAndSeekMonster
             if (_light != null) _light.intensity = 2.2f + Mathf.PerlinNoise(t * 4f, 0f) * 1.2f;
         }
 
+        private bool CheckGrounded(Transform target)
+        {
+            var hits = Physics.RaycastAll(target.position + Vector3.up * 0.3f, Vector3.down, 0.75f, ~0, QueryTriggerInteraction.Ignore);
+            foreach (var h in hits)
+            {
+                if (h.collider == null || h.collider.transform.IsChildOf(transform)) continue;
+                if (h.collider.GetComponentInParent<PlayerAvatar>() != null || h.collider.GetComponentInParent<PlayerController>() != null) continue;
+                return true;
+            }
+            return false;
+        }
+
+        public void SetCharging(bool on)
+        {
+            _charging = on;
+            if (_clips != null) _clips.Charging = on;
+        }
+
+        public void SetCarrying(bool on)
+        {
+            if (_clips != null) _clips.Carrying = on;
+        }
+
+        /// <summary>A special was used (all PCs). Loops last 'duration' seconds (laser, puke).</summary>
+        public void PlaySpecial(AbilityType ability, float duration)
+        {
+            _revealUntil = Time.time + Mathf.Max(1.2f, duration);
+            if (_clips != null) _clips.PlayAction("special", duration);
+        }
+
         public void PlayAttack()
         {
             _lungeTimer = 0.45f;
+            _revealUntil = Mathf.Max(_revealUntil, Time.time + 1.2f);
+            if (_clips != null) _clips.PlayAction("attack");
             if (_animator != null && _animator.runtimeAnimatorController != null)
             {
                 foreach (var p in _animator.parameters)
@@ -911,6 +986,11 @@ namespace HideAndSeekMonster
             foreach (var r in go.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = false;
             foreach (var l in go.GetComponentsInChildren<Light>(true)) l.enabled = true;
             var anim = go.GetComponentInChildren<Animator>();
+            if (anim != null && anim.runtimeAnimatorController == null && _savedCtrl != null)
+            {
+                anim.runtimeAnimatorController = _savedCtrl; // the copy has no clip player: give it the game's controller back
+                anim.fireEvents = false;
+            }
             if (anim != null)
             {
                 anim.applyRootMotion = false;
@@ -924,6 +1004,7 @@ namespace HideAndSeekMonster
 
         private void OnDestroy()
         {
+            if (_clips != null) { _clips.Destroy(); _clips = null; }
             foreach (var r in _hiddenRenderers)
                 if (r != null) r.enabled = true;
             _hiddenRenderers.Clear();
