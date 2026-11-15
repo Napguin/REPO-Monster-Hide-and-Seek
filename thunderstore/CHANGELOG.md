@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.7 (beta)
+- The monster player's robot no longer casts a shadow – only the monster does (for everyone, the monster player too).
+
 ## 2.0.6 (beta)
 - **Procedural animations** for the monsters the game animates by code (no animation clips):
   - Pony (Snatcher): legs walk, body bounces, head bites on attack

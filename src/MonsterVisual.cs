@@ -612,12 +612,29 @@ namespace HideAndSeekMonster
             return _avatar.transform;
         }
 
+        // Renderers of the seeker's robot whose shadow we switched off (restored when the monster goes away).
+        private readonly Dictionary<Renderer, UnityEngine.Rendering.ShadowCastingMode> _shadowOff = new Dictionary<Renderer, UnityEngine.Rendering.ShadowCastingMode>();
+
         private void HideOriginal()
         {
-            if (_isLocal || _avatar == null || _avatar.playerAvatarVisuals == null) return;
+            if (_avatar == null) return;
+            // No robot shadow under the monster – for the monster player too (the game draws the own robot as a
+            // shadow-only body in first person).
+            var roots = new List<Transform> { _avatar.transform };
+            if (_avatar.playerAvatarVisuals != null) roots.Add(_avatar.playerAvatarVisuals.transform);
+            foreach (var root in roots)
+                foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+                {
+                    if (r == null || r.transform.IsChildOf(transform)) continue;
+                    if (r.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.Off) continue;
+                    if (!_shadowOff.ContainsKey(r)) _shadowOff[r] = r.shadowCastingMode;
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+
+            if (_isLocal || _avatar.playerAvatarVisuals == null) return;
             var meshParent = _avatar.playerAvatarVisuals.meshParent;
-            var root = meshParent != null ? meshParent.transform : _avatar.playerAvatarVisuals.transform;
-            foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+            var vroot = meshParent != null ? meshParent.transform : _avatar.playerAvatarVisuals.transform;
+            foreach (var r in vroot.GetComponentsInChildren<Renderer>(true))
             {
                 if (r == null || !r.enabled) continue;
                 r.enabled = false;
@@ -1040,6 +1057,9 @@ namespace HideAndSeekMonster
             foreach (var r in _hiddenRenderers)
                 if (r != null) r.enabled = true;
             _hiddenRenderers.Clear();
+            foreach (var kv in _shadowOff)
+                if (kv.Key != null) kv.Key.shadowCastingMode = kv.Value;
+            _shadowOff.Clear();
         }
     }
 }
