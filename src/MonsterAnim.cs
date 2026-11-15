@@ -49,11 +49,11 @@ namespace HideAndSeekMonster
             { "banger", "attack=bang fuse" },
             { "upscream", "special=upscream - attack" },
             { "bowtie", "special=scream intro > scream@0-0.5" },
-            { "gambit", "walk=walk cycle; special=player notice" },
+            { "gambit", "walk=walk cycle; attack=open mouth; special=open mouth > trap player@0-0.6; lockroot" },
             { "mentalist", "special=floater - chargeattack > floater - attack" },
             { "birthday boy", "special=blow balloon" },
             { "chef", "charge=tumbler - tell~; bob=0.15" },
-            { "headman", "noclips; proc=hover @root:y:0.08, idle @root:z:4, chomp Tilt:x:-30" }, // its clips are empty: procedural
+            { "headman", "noclips" }, // animated by its own code system (clips are empty) – left as the game shows it
             { "headgrab", "walk=headgrabber - move !intro !outro !fast !head; run=move fast !intro !outro; attack=attack 01@0-0.5; charge=attack 01~" },
             { "robe", "walk=robe targetplayer|robe idle; charge=robe attack~; attack=robe attack" },
             { "clown", "walk=beamer - move !intro !outro !fast; run=move fast; attack=beamer - melee; special=attack intro > beamer - attack !intro !outro~" },
@@ -61,18 +61,19 @@ namespace HideAndSeekMonster
             { "trudge", "walk=slow walker - move !intro !outro; attack=slow walker - attack@0.3-0.7; special=slow walker - attack@0.3-0.7" },
             { "cleanup crew", "walk=bomb thrower - move !intro !outro !fast !head; run=move fast !intro !outro; attack=bomb thrower - melee !torso; special=bomb thrower - attack !torso" },
             { "bella", "hidepart=Whole mesh CODE Main*, Hand ANIM*, Feet ANIM*, Foot ANIM*; proc=spin rotation_transform:x:300, spin pedal_crank:x:250" },
-            { "loom", "noclips; proc=hunch Torso CODE*:x:25, hunch Neck CODE*:x:10, idle Head CODE*:z:5, swing Arm Bend Point LEFT Main:x:20:0, swing Arm Bend Point LEFT Main (1):x:20:180, act Arm Bend Point LEFT Main*:x:-70, chomp Jaw CODE*:x:20" },
+            { "loom", "noclips" },
             { "oogly", "proc=hover @root:y:0.1, idle Hand Left Main*:x:6, idle Finger1_Index_Main:x:10:1, idle Finger1_middle_Main:x:10:2, idle Finger1_little_Main:x:10:3, idle Thumb1_Main:x:10:1.5, chomp Hand Left Main*:x:-30" },
             { "snatcher", Pony },
             { "pony", Pony },
-            { "spewer", "proc=hover @root:y:0.12, idle Head:z:5, idle Start Source:x:15:0, idle Mid Source:x:12:1, idle End Source:x:12:2, spec enemy slow mouth flying top:x:-30, spec enemy slow mouth flying bot:x:30, chomp enemy slow mouth flying top:x:-25, chomp enemy slow mouth flying bot:x:25" },
+            { "spewer", "proc=hover @root:y:0.12, idle Head:z:5, idle Start Source:x:15:0, idle Mid Source:x:12:1, idle End Source:x:12:2, spec enemy slow mouth flying top:x:30, spec enemy slow mouth flying bot:x:-30, chomp enemy slow mouth flying top:x:25, chomp enemy slow mouth flying bot:x:-25" },
             { "heart hugger", "proc=idle Segment 1:z:4:0, idle Segment 2:z:5:1, idle Segment 3:z:6:2, idle Segment 4:z:6:3, idle Segment 5:x:5:1, idle Arm Left Segment 1:z:10:0, idle Arm Right Segment 1:z:10:2, breathe Breathe Scale Parent 1::0.04, breathe Breathe Scale Parent 2::0.04:1, chomp Head Segment 1:y:-30, chomp Head Segment 2:y:30, spec Head Segment 1:y:-20, spec Head Segment 2:y:20" },
             { "peeper", "noclips" },
         };
 
-        private const string Pony = "proc=swing L Front Upper Leg Main:x:28:0, swing R Front Upper Leg Main:x:28:180, swing L Hind Thigh Main:x:28:180, swing R Hind Thigh Main:x:28:0, "
-            + "swing L Front Forearm Main:x:18:60, swing R Front Forearm Main:x:18:240, swing L Hind Gaskin Main:x:18:240, swing R Hind Gaskin Main:x:18:60, "
-            + "bounce @root:y:0.06, idle Neck Main:x:4, act @root:x:-20, act Neck Main:x:-25, chomp Head Main:x:-35";
+        // gallop: both front legs nearly together, both hind legs half a stride later, the body rocks with the stride
+        private const string Pony = "proc=swing L Front Upper Leg Main:x:38:0, swing R Front Upper Leg Main:x:38:30, swing L Hind Thigh Main:x:34:180, swing R Hind Thigh Main:x:34:210, "
+            + "swing L Front Forearm Main:x:30:70, swing R Front Forearm Main:x:30:100, swing L Hind Gaskin Main:x:26:250, swing R Hind Gaskin Main:x:26:280, "
+            + "swing @root:x:6:90, bounce @root:y:0.12, swing Neck Main:x:10:270, idle Neck Main:x:3, act @root:x:-20, act Neck Main:x:-25, chomp Head Main:x:-35";
 
         // Overrides saved with the animation tuner (debug menu), per monster.
         private static Dictionary<string, Dictionary<string, string>> _user;
@@ -81,7 +82,7 @@ namespace HideAndSeekMonster
         internal class Profile
         {
             public readonly Dictionary<string, string> Specs = new Dictionary<string, string>();
-            public bool Flip, Hidden, NoClips;
+            public bool Flip, Hidden, NoClips, LockRoot;
             public readonly List<string> Proc = new List<string>();     // procedural rules (ProcAnim)
             public readonly List<string> HideParts = new List<string>(); // parts only visible while attacking
             public readonly List<string> KeepScale = new List<string>(); // parts that always keep their base size
@@ -114,6 +115,7 @@ namespace HideAndSeekMonster
                 if (k == "flip") p.Flip = v != "0" && v != "false";
                 else if (k == "hidden") p.Hidden = v != "0" && v != "false";
                 else if (k == "noclips") p.NoClips = v != "0" && v != "false";
+                else if (k == "lockroot") p.LockRoot = v != "0" && v != "false";
                 else if (k == "proc") p.Proc.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
                 else if (k == "smooth") p.Smooth.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
                 else if (k == "keepscale") p.KeepScale.AddRange(v.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
@@ -596,6 +598,9 @@ namespace HideAndSeekMonster
             }
             if (fading && _fade >= 1f) { _lastClip = st.Clip; _lastTime = time; }
             foreach (int i in _keepScale) if (_bones[i] != null) _bones[i].localScale = _bScale[i]; // also after the cross-fade
+            if (_profile.LockRoot) // clips must not lift / move the whole model (Gambit's trap animation)
+                for (int i = 0; i < _bones.Length; i++)
+                    if (_bones[i] != null && _bones[i].parent == _root.transform) _bones[i].localPosition = _bPos[i];
             // smoothed height: the body doesn't bounce with every step or when switching between standing and walking
             float k = 1f - Mathf.Exp(-dt / 0.35f);
             for (int j = 0; j < _smooth.Length; j++)

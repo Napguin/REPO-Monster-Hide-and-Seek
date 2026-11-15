@@ -1,6 +1,11 @@
 # Changelog
 
-## 2.0.17 (beta)
+## 2.0.18 (beta)
+- Gambit: opens its mouth on attack, opens its mouth and traps (wheel animation) when gambling – without lifting
+  the model.
+- Pony: gallops instead of walking (front and hind legs in pairs, the body rocks with the stride).
+- Spewer: the jaws open the right way.
+- Loom and Headman: the made-up animations are removed; they look like the game shows them without its code.
 - Elsa: no more bouncing up and down while running or attacking – her body height is smoothed.
 - All monsters: no flickering between standing and walking at very low speed.
 - Elsa: her head no longer grows while walking – it keeps the size of her standing pose.
