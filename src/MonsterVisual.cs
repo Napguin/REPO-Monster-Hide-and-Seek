@@ -765,6 +765,7 @@ namespace HideAndSeekMonster
                     if (p.type == AnimatorControllerParameterType.Bool)
                     {
                         if (n.Contains("walk") || n.Contains("move")) _animator.SetBool(p.nameHash, speed > 0.3f);
+                        else if (n == "idle") _animator.SetBool(p.nameHash, speed <= 3.5f); // Headman: back to its normal face
                         else if (_attackForm) continue;
                         else if (n.Contains("run") || n.Contains("sprint") || n.Contains("chase")) _animator.SetBool(p.nameHash, speed > 3.5f);
                         else if (n.Contains("attack")) _animator.SetBool(p.nameHash, _lungeTimer > 0f);
@@ -825,9 +826,15 @@ namespace HideAndSeekMonster
             if (_clips != null) _clips.PlayAction("attack");
             if (_animator != null && _animator.runtimeAnimatorController != null)
             {
+                bool chasing = _hSpeed > 3.5f;
                 foreach (var p in _animator.parameters)
-                    if (p.type == AnimatorControllerParameterType.Trigger && p.name.ToLowerInvariant().Contains("attack"))
-                        _animator.SetTrigger(p.nameHash);
+                {
+                    if (p.type != AnimatorControllerParameterType.Trigger) continue;
+                    string n = p.name.ToLowerInvariant();
+                    if (n.Contains("attack")) _animator.SetTrigger(p.nameHash);
+                    // Headman: its own chomp – the chase bite while chasing, the idle bite while standing
+                    else if (n.Contains("bite") && (n.Contains("chase") ? chasing : !n.Contains("idle") || !chasing)) _animator.SetTrigger(p.nameHash);
+                }
             }
             PlaySound(_entry?.AttackSounds, _entry?.AttackClips, 1f);
         }

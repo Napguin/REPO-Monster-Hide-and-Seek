@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.25 (beta)
+- Elsa: the slap animation is removed.
+- Headman: goes back to its normal face after every action (it stayed on the open-jaw face), and bites with its own
+  chomp on attack.
+- Pony: the body stays much stiller while galloping.
+- Clown: the laser does 50 damage per hit (was 25).
+
 ## 2.0.24 (beta)
 - Fix: when the lobby was restarted during / right after a round, the vote showed up in the lobby. Leaving the
   level now cancels everything of the after-round (vote, time to look at the hiding spots, next-round start).

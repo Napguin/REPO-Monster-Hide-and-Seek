@@ -86,7 +86,7 @@ Every monster has one special (**middle mouse** / **F**). The ability bar at the
 
 | Special | What it does | Cooldown | Monsters |
 |---|---|---|---|
-| Laser | 3 s beam, 50 damage per second, walls block it; the Clown can't move while firing | 40 s | Clown |
+| Laser | 3 s beam, 50 damage per hit (every 0.5 s), walls block it; the Clown can't move while firing | 40 s | Clown |
 | Shot | one long-range shot, 60 damage to the first hider in the line of fire | 15 s | Huntsman |
 | Rapid Charge | 1.5x speed for 5 s with a visible aura, 20 damage every 0.5 s to hiders close by, no main attack meanwhile | 40 s | Reaper, Animal, Elsa, Bella |
 | Flying Charge | attack form, fly for 6 s (jump = up, crouch = down), 10 damage every 0.5 s to hiders close by | 30 s | Apex Predator |

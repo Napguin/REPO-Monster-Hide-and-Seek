@@ -140,7 +140,7 @@ namespace HideAndSeekMonster
 
         // ---- damage values (players have 100 HP) ----
         public const int ShotDamage = 60, ThrowDamage = 40, LeapDamage = 40;
-        public const int LaserDamage = 25;          // per tick (0.5 s) = 50 per second
+        public const int LaserDamage = 50;          // per hit (every 0.5 s while in the beam)
         public const int RapidChargeDamage = 20;    // per tick
         public const int FlyingChargeDamage = 10;   // per tick
         public const float DamageTick = 0.5f;

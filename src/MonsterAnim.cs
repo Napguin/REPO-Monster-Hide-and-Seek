@@ -43,7 +43,7 @@ namespace HideAndSeekMonster
             { "animal", "flip" },
             { "apex predator", "charge=duck trans > duck attack~" },
             { "elsa", "init=small spawn > small transform | small spawn > big transform | big transform | small transform; idle=small transform@0.97-1*0; keepscale=Head Constraint Parent, ANIM SHR_head, *HEAD SHARED*; smooth=ANIM ROOT; acttime=0.28; walk=big chase; run=big chase; jump=big jump; fall=big falling; charge=big chase*1.3~; "
-                    + "proc=idle ANIM BIG BODY UPPER:x:3, act ANIM BIG_arm_01_R:Y:-110, act ANIM BIG_arm_01_R:X:-45, act ANIM BIG_arm_02_R:Y:-30, act ANIM BIG BODY UPPER:Y:-30" },  // big form only + a procedural slap
+                    + "proc=idle ANIM BIG BODY UPPER:x:3" },  // big form only, breathing sway (no slap)  // big form only + a procedural slap
             { "reaper", "walk=runner - move !intro !outro; run=runner - move !intro !outro; charge=attack player~; attack=attack player; jump=runner - jump; fall=runner - falling" },
             { "rugrat", "walk=valuablethrower - move !slow !pickup; c-idle=pickup idle; c-walk=pickup move !slow; c-jump=pickup jump; c-fall=pickup fall; pickup=pickup intro; throw=pickup outro" },
             { "banger", "attack=bang fuse" },
@@ -73,7 +73,7 @@ namespace HideAndSeekMonster
         // gallop: both front legs nearly together, both hind legs half a stride later, the body rocks with the stride
         private const string Pony = "proc=swing L Front Upper Leg Main:x:38:0, swing R Front Upper Leg Main:x:38:30, swing L Hind Thigh Main:x:34:180, swing R Hind Thigh Main:x:34:210, "
             + "swing L Front Forearm Main:x:30:70, swing R Front Forearm Main:x:30:100, swing L Hind Gaskin Main:x:26:250, swing R Hind Gaskin Main:x:26:280, "
-            + "swing @root:x:6:90, bounce @root:y:0.12, swing Neck Main:x:10:270, idle Neck Main:x:3, act @root:x:-20, act Neck Main:x:-25, chomp Head Main:x:-35";
+            + "swing @root:x:2:90, bounce @root:y:0.03, swing Neck Main:x:4:270, idle Neck Main:x:3, act @root:x:-20, act Neck Main:x:-25, chomp Head Main:x:-35";
 
         // Overrides saved with the animation tuner (debug menu), per monster.
         private static Dictionary<string, Dictionary<string, string>> _user;

@@ -99,7 +99,7 @@ namespace HideAndSeekMonster
         {
             switch (a)
             {
-                case AbilityType.Laser: return De ? "Feuert 3 s einen Laser: 50 Schaden pro Sekunde im Strahl. Wände blocken ihn." : "Fires a laser for 3 s: 50 damage per second in the beam. Walls block it.";
+                case AbilityType.Laser: return De ? "Feuert 3 s einen Laser: 50 Schaden pro Treffer (alle 0,5 s) im Strahl. Wände blocken ihn." : "Fires a laser for 3 s: 50 damage per hit (every 0.5 s) in the beam. Walls block it.";
                 case AbilityType.Shot: return De ? $"Ein Schuss auf große Entfernung: {HideAndSeekMonster.Abilities.ShotDamage} Schaden beim ersten Hider in der Schusslinie." : $"One long-range shot: {HideAndSeekMonster.Abilities.ShotDamage} damage to the first hider in the line of fire.";
                 case AbilityType.Sprint: return De ? $"5 s 1,5-mal so schnell, {HideAndSeekMonster.Abilities.RapidChargeDamage} Schaden alle 0,5 s an Hidern in der Nähe. Kein normaler Angriff währenddessen." : $"1.5x speed for 5 s, {HideAndSeekMonster.Abilities.RapidChargeDamage} damage every 0.5 s to hiders close to you. No main attack meanwhile.";
                 case AbilityType.FlyingCharge: return De ? $"6 s fliegen (Springen = hoch, Ducken = runter), {HideAndSeekMonster.Abilities.FlyingChargeDamage} Schaden alle 0,5 s an Hidern in der Nähe. Kein normaler Angriff währenddessen." : $"Fly for 6 s (jump = up, crouch = down), {HideAndSeekMonster.Abilities.FlyingChargeDamage} damage every 0.5 s to hiders close to you. No main attack meanwhile.";
