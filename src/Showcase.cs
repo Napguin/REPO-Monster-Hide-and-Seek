@@ -184,7 +184,7 @@ namespace HideAndSeekMonster
             float p = 10 * u, rowH = 44 * u, rg = 6 * u;
             var area = new Rect(list.x + p, list.y + p, list.width - 2 * p, list.height - 2 * p);
             var content = new Rect(0, 0, area.width - 18 * u, ShowcaseEntries.Length * (rowH + rg));
-            _showcaseScroll = GUI.BeginScrollView(area, _showcaseScroll, content);
+            _showcaseScroll = UiUtil.VScroll(area, _showcaseScroll, content);
             try
             {
                 for (int i = 0; i < ShowcaseEntries.Length; i++)
@@ -232,7 +232,7 @@ namespace HideAndSeekMonster
                 desc = Abilities.Description(sel.Ability);
             }
             var infoContent = new Rect(0, 0, info.width - 18 * u, 260 * u);
-            _showcaseInfoScroll = GUI.BeginScrollView(info, _showcaseInfoScroll, infoContent);
+            _showcaseInfoScroll = UiUtil.VScroll(info, _showcaseInfoScroll, infoContent);
             try
             {
                 GUI.Label(new Rect(0, 0, infoContent.width, 30 * u), head, _mSmall);

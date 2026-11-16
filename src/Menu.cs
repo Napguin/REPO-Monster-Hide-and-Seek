@@ -118,7 +118,7 @@ namespace HideAndSeekMonster
             var area = new Rect(r.x + p, r.y + 48 * u, r.width - 2 * p, r.height - 56 * u);
             float cardH = 50 * u, gap = 8 * u;
             var content = new Rect(0, 0, area.width - 18 * u, (alive.Count + 1) * (cardH + gap));
-            _menuScrollSeeker = GUI.BeginScrollView(area, _menuScrollSeeker, content);
+            _menuScrollSeeker = UiUtil.VScroll(area, _menuScrollSeeker, content);
             try
             {
                 float y = 0;
@@ -160,7 +160,7 @@ namespace HideAndSeekMonster
             float cardW = (area.width - 18 * u - gap) / cols;
             int count = list.Count + 1;
             var content = new Rect(0, 0, area.width - 18 * u, Mathf.CeilToInt(count / (float)cols) * (cardH + gap));
-            _menuScrollMonster = GUI.BeginScrollView(area, _menuScrollMonster, content);
+            _menuScrollMonster = UiUtil.VScroll(area, _menuScrollMonster, content);
             try
             {
                 for (int i = 0; i < count; i++)
@@ -195,7 +195,7 @@ namespace HideAndSeekMonster
             float startH = 64 * u;
             var area = new Rect(r.x + p, r.y + 46 * u, r.width - 2 * p, r.height - 46 * u - startH - 2 * p);
             GUILayout.BeginArea(area);
-            _menuScrollRules = GUILayout.BeginScrollView(_menuScrollRules);
+            _menuScrollRules = GUILayout.BeginScrollView(new Vector2(0f, _menuScrollRules.y), false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
             try
             {
                 Plugin.HideTime.Value = MenuSlider(L.HideTime, Plugin.HideTime.Value, 5f, 120f, "s", 0, u);

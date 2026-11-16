@@ -407,7 +407,7 @@ namespace HideAndSeekMonster
             float contentH = 0;
             foreach (var gr in groups) contentH += headH + Mathf.CeilToInt(gr.idx.Count / (float)cols) * (cell + 28 * u + g);
             var content = new Rect(0, 0, area.width - 18 * u, Mathf.Max(contentH, 10));
-            _freePickScroll = GUI.BeginScrollView(area, _freePickScroll, content);
+            _freePickScroll = UiUtil.VScroll(area, _freePickScroll, content);
             try
             {
                 if (list.Count == 0) GUI.Label(new Rect(0, 0, content.width, 40 * u), L.DebugNothingFound, _mSmall);

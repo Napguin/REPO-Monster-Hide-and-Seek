@@ -81,7 +81,7 @@ namespace HideAndSeekMonster
             if (FitButton(new Rect(r.xMax - 116 * u, r.y + 10 * u, 100 * u, 32 * u), L.Close)) _animTunerOpen = false;
 
             var area = new Rect(r.x + 16 * u, r.y + 54 * u, r.width - 32 * u, r.height - 64 * u);
-            _tuneScroll = GUI.BeginScrollView(area, _tuneScroll, new Rect(0, 0, area.width - 18 * u, 640 * u));
+            _tuneScroll = UiUtil.VScroll(area, _tuneScroll, new Rect(0, 0, area.width - 18 * u, 640 * u));
             try { DrawAnimTunerBody(area.width - 18 * u, u, r.height); }
             finally { GUI.EndScrollView(); }
         }

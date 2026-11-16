@@ -1464,7 +1464,7 @@ namespace HideAndSeekMonster
             float cardW = (gridRect.width - 18 * u - gap * (cols - 1)) / cols;
             int rows = Mathf.CeilToInt(list.Count / (float)cols);
             var content = new Rect(0, 0, gridRect.width - 18 * u, rows * (cardH + gap));
-            _choiceScroll = GUI.BeginScrollView(gridRect, _choiceScroll, content);
+            _choiceScroll = UiUtil.VScroll(gridRect, _choiceScroll, content);
             for (int i = 0; i < list.Count; i++)
             {
                 var e = list[i];

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.21 (beta)
+- Menus no longer show a left / right scrollbar – they only scroll up and down.
+
 ## 2.0.20 (beta)
 - New after-round flow:
   1. survivors are shown, everyone is revived and healed where they are,

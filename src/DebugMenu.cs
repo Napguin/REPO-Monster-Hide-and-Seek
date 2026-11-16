@@ -255,7 +255,7 @@ namespace HideAndSeekMonster
             }
             float bh = 36 * u, g = 6 * u;
             var content = new Rect(0, 0, area.width - 18 * u, 1400 * u);
-            _debugScroll = GUI.BeginScrollView(area, _debugScroll, content);
+            _debugScroll = UiUtil.VScroll(area, _debugScroll, content);
             try
             {
                 float y = 0, cw = content.width, half = (cw - g) / 2f;
