@@ -161,6 +161,7 @@ namespace HideAndSeekMonster
             Safe("free item", FreeItemKeys);
             Safe("hunter melee", HunterMeleeTick);
             Safe("next round", NextRoundTick);
+            Safe("inspect keys", InspectKeys);
 
             if (CursorWanted)
             {
@@ -867,11 +868,16 @@ namespace HideAndSeekMonster
                         OnVoteStart((string[])data[2], (float)data[3]);
                         break;
                     case MsgVote:
-                        if (IsHost) HostOnVote(sender, (int)data[2], (int)data[3]);
+                        if (IsHost && (int)data[2] == VoteSkip) HostOnSkip(sender, (int)data[3] != 0);
+                        else if (IsHost) HostOnVote(sender, (int)data[2], (int)data[3]);
                         break;
                     case MsgVoteState:
                         if (!SenderIsMaster(sender)) return;
                         OnVoteState((string[])data[2], (int[])data[3], (float)data[4]);
+                        break;
+                    case MsgInspect:
+                        if (!SenderIsMaster(sender)) return;
+                        OnInspect((float)data[2], (int)data[3], (int)data[4]);
                         break;
                     case MsgVoteResult:
                         if (!SenderIsMaster(sender)) return;
@@ -1084,6 +1090,7 @@ namespace HideAndSeekMonster
 
             RemoveAfterMonster();
             _nextRoundAt = 0f;
+            _inspectEndAt = 0f;
             _monster = MonsterVisual.Create(seeker, monster, scale);
             _monsterName = _monster != null ? _monster.MonsterName : monster;
 
@@ -1140,7 +1147,7 @@ namespace HideAndSeekMonster
 
             _laserEndTime = -1f;
             ClearAbilities();
-            if (afterRound) { KeepMonsterAfterRound(); ScheduleNextRound(); } // stays a monster until the next round
+            if (afterRound) KeepMonsterAfterRound(); // stays a monster until the next round
             else { if (_monster != null) _monster.Remove(); RemoveAfterMonster(); _nextRoundAt = 0f; }
             _monster = null;
             ThirdPersonCamera.Active = false;
@@ -1269,7 +1276,7 @@ namespace HideAndSeekMonster
 
             if (Time.time < _resultsUntil && _sbNames.Length > 0) DrawResults(sw, sh, u);
             try { DrawRevealSurvivors(u); } catch (System.Exception ex) { _lastError = "reveal: " + ex.Message; }
-            try { DrawNextRound(sw, u); } catch (System.Exception ex) { _lastError = "next round: " + ex.Message; }
+            try { DrawInspect(sw, u); } catch (System.Exception ex) { _lastError = "inspect: " + ex.Message; }
             if (!_menuOpen)
             {
                 try { DrawVote(sw, sh, u); }

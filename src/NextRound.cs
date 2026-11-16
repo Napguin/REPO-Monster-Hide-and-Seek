@@ -1,22 +1,64 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HideAndSeekMonster
 {
     /// <summary>
-    /// After a round (How To Play): everyone is revived and healed, the monster keeps its monster form, and after
-    /// NextRoundSeconds the next round starts by itself (host). At every round start all items with a battery
+    /// Between two rounds (How To Play): time to look at the hiding spots (skip vote), the monster keeps its form,
+    /// then truck + vote, and the next round starts by itself. At every round start all items with a battery
     /// (weapons, melee durability, equipment) are recharged.
     /// </summary>
     public partial class HideAndSeekManager
     {
-        private float _nextRoundAt;          // all PCs (countdown display), host starts the round
+        private const int MsgInspect = 30;
+        private const int VoteSkip = 2;
+
+        // all PCs
+        private float _inspectEndAt;
+        private int _inspectSkip, _inspectTotal;
+        private bool _mySkip;
         private MonsterVisual _afterMonster; // the monster of the finished round, kept until the next one
 
-        private void ScheduleNextRound()
+        // host
+        private readonly Dictionary<int, bool> _hostSkip = new Dictionary<int, bool>();
+        private float _nextRoundAt;
+        private Object _levelAtMapChange; // the next round waits for a different (new) level
+
+        private bool Inspecting => !RoundActive && Time.time < _inspectEndAt;
+
+        private void OnInspect(float secondsLeft, int skip, int total)
         {
-            float s = Plugin.NextRoundSeconds.Value;
-            _nextRoundAt = s > 0f ? Time.time + s : 0f;
+            bool starting = !Inspecting && secondsLeft > 0f;
+            _inspectEndAt = secondsLeft > 0f ? Time.time + secondsLeft : 0f;
+            _inspectSkip = skip;
+            _inspectTotal = total;
+            if (secondsLeft <= 0f) { _mySkip = false; return; }
+            if (!starting) return;
+            _mySkip = false;
+            // everyone alive and healthy again, right where they are
+            var me = GameRefs.LocalAvatar;
+            if (me == null) return;
+            if (!IsAlive(me)) Compat.Call(me, "Revive", true);
+            Later(1.5f, () =>
+            {
+                var h = me != null ? me.playerHealth : null;
+                if (h == null) return;
+                int hp = Compat.Get(h, "health", 100), max = Compat.Get(h, "maxHealth", 100);
+                if (hp < max) Compat.Call(h, "Heal", max - hp, true);
+            });
+            Banner(L.InspectStart, new Color(0.5f, 0.85f, 1f), 4f);
         }
+
+        private void InspectKeys()
+        {
+            if (!Inspecting || GameRefs.IsTyping || _menuOpen || _debugOpen) return;
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb == null || !kb[Plugin.SkipKey.Value].wasPressedThisFrame) return;
+            _mySkip = !_mySkip;
+            Send(MsgVote, VoteSkip, _mySkip ? 1 : 0);
+        }
+
+        private void HostOnSkip(int actor, bool skip) => _hostSkip[actor] = skip;
 
         private void KeepMonsterAfterRound()
         {
@@ -31,6 +73,12 @@ namespace HideAndSeekMonster
             _afterMonster = null;
         }
 
+        private void HostScheduleNextRound(bool mapChange)
+        {
+            _levelAtMapChange = mapChange ? LevelGenerator.Instance : null;
+            _nextRoundAt = Time.time + (mapChange ? 6f : 3f);
+        }
+
         private void NextRoundTick()
         {
             if (RoundActive) { _nextRoundAt = 0f; return; }
@@ -42,22 +90,24 @@ namespace HideAndSeekMonster
             else _nextRoundAt = Time.time + 5f; // not enough players yet – try again
         }
 
-        private static bool LevelReady()
+        private bool LevelReady()
         {
             var lg = LevelGenerator.Instance;
-            return lg != null && Compat.Get(lg, "Generated", true);
+            if (lg == null || !Compat.Get(lg, "Generated", true)) return false;
+            if (_levelAtMapChange != null && lg == _levelAtMapChange) return false; // still the old map
+            return true;
         }
 
-        private void DrawNextRound(float sw, float u)
+        private void DrawInspect(float sw, float u)
         {
-            if (RoundActive || _nextRoundAt <= 0f) return;
-            int left = Mathf.CeilToInt(_nextRoundAt - Time.time);
-            if (left < 0) return;
-            var style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperCenter, fontStyle = FontStyle.Bold, fontSize = Mathf.RoundToInt(22 * u) };
+            if (!Inspecting) return;
+            int left = Mathf.CeilToInt(_inspectEndAt - Time.time);
+            string text = L.InspectCountdown(left) + "\n" + L.InspectSkip(Plugin.SkipKey.Value.ToString(), _mySkip, _inspectSkip, _inspectTotal);
+            var style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperCenter, fontStyle = FontStyle.Bold, fontSize = Mathf.RoundToInt(20 * u), richText = true };
             GUI.color = new Color(0, 0, 0, 0.7f);
-            GUI.Label(new Rect(2 * u, 62 * u, sw, 40 * u), L.NextRoundIn(left), style);
+            GUI.Label(new Rect(2 * u, 62 * u, sw, 80 * u), text, style);
             GUI.color = Color.white;
-            GUI.Label(new Rect(0, 60 * u, sw, 40 * u), L.NextRoundIn(left), style);
+            GUI.Label(new Rect(0, 60 * u, sw, 80 * u), text, style);
         }
 
         /// <summary>Host, at round start: every battery item (guns, melee durability, drones ...) full again.</summary>

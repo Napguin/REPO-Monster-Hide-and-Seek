@@ -8,14 +8,15 @@ namespace HideAndSeekMonster
 {
     /// <summary>
     /// After a round (host-driven):
-    ///  1. hiders that survived are shown to everyone for a few seconds,
-    ///  2. every dead player is revived, healed, and everyone is teleported into the truck,
-    ///  3. vote: who wants to be the next seeker, and stay on this map or change to another one.
+    ///  1. hiders that survived are shown, every dead player is revived and healed – where they are,
+    ///  2. 60 s to look at the hiding spots (the monster keeps its form); a majority vote skips it,
+    ///  3. everyone into the truck, 15 s vote: who wants to be the next monster, stay on this map or change it,
+    ///  4. the next round starts by itself (after a voted map has loaded).
     /// </summary>
     public partial class HideAndSeekManager
     {
         private const int MsgReveal = 14, MsgRegroup = 15, MsgVoteStart = 16, MsgVote = 17, MsgVoteState = 18, MsgVoteResult = 19;
-        private const float RevealSeconds = 6f, VoteSeconds = 20f;
+        private const float RevealSeconds = 6f, VoteSeconds = 15f;
 
         // all clients
         private int[] _revealIds = new int[0];
@@ -50,27 +51,49 @@ namespace HideAndSeekMonster
         private IEnumerator HostAfterRound(List<int> survivors)
         {
             yield return new WaitForSeconds(1.5f);
-            if (survivors.Count > 0)
-            {
-                Send(MsgReveal, survivors.ToArray(), RevealSeconds);
-                yield return new WaitForSeconds(RevealSeconds);
-            }
+            if (survivors.Count > 0) Send(MsgReveal, survivors.ToArray(), RevealSeconds);
             if (RoundActive) yield break;
 
-            // revive the dead (game function, called by the host), then bring everyone to the truck
+            // revive the dead (game function, called by the host) – everyone stays where they are
             int revived = 0;
             foreach (var p in AllPlayers())
                 if (!IsAlive(p) && Compat.Call(p, "Revive", true)) revived++;
             Plugin.Log.LogInfo($"[AfterRound] revived {revived} player(s)");
-            yield return new WaitForSeconds(revived > 0 ? 2f : 0.3f);
+
+            // look at the hiding spots; skipped when more than half of the players vote for it
+            float inspect = Plugin.InspectSeconds.Value;
+            if (inspect > 0f)
+            {
+                _hostSkip.Clear();
+                float end = Time.time + inspect;
+                int lastSkip = -1;
+                float sendAt = 0f;
+                while (Time.time < end && !RoundActive)
+                {
+                    int total = Mathf.Max(1, AllPlayers().Count());
+                    int skip = _hostSkip.Count(kv => kv.Value);
+                    if (skip * 2 > total) { Plugin.Log.LogInfo($"[AfterRound] inspection skipped ({skip}/{total})"); break; }
+                    if (skip != lastSkip || Time.time >= sendAt)
+                    {
+                        Send(MsgInspect, end - Time.time, skip, total);
+                        lastSkip = skip;
+                        sendAt = Time.time + 5f;
+                    }
+                    yield return null;
+                }
+                Send(MsgInspect, 0f, 0, 0);
+            }
+            if (RoundActive) yield break;
+
+            // everyone into the truck
             Send(MsgRegroup, TruckPosition());
             yield return new WaitForSeconds(1.5f);
             if (RoundActive) yield break;
 
-            // vote
+            // vote: next monster + map
             HostStartVote();
-            float end = Time.time + VoteSeconds;
-            while (Time.time < end && _voteOpen && !RoundActive) yield return null;
+            float vend = Time.time + VoteSeconds;
+            while (Time.time < vend && _voteOpen && !RoundActive) yield return null;
             if (!RoundActive) HostFinishVote();
             _afterRound = null;
         }
@@ -156,6 +179,7 @@ namespace HideAndSeekMonster
             Plugin.Log.LogInfo($"[AfterRound] vote: seeker '{seekerName}', map option {win} ({(win > 0 ? _voteMapIds[win] : "stay")})");
 
             if (win > 0) StartCoroutine(HostChangeMap(_voteMapIds[win]));
+            if (Plugin.AutoNextRound.Value) HostScheduleNextRound(win > 0);
         }
 
         /// <summary>Host: load a new map now (random or a given level asset), with the map size from the menu.</summary>
@@ -211,6 +235,7 @@ namespace HideAndSeekMonster
 
         private void OnRegroup(Vector3 truck)
         {
+            _inspectEndAt = 0f;
             _revealIds = new int[0];
             StartCoroutine(LocalRegroup(truck));
         }

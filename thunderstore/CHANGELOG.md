@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.20 (beta)
+- New after-round flow:
+  1. survivors are shown, everyone is revived and healed where they are,
+  2. **60 s to look at the hiding spots** – the monster keeps its form; press **J** to vote for skipping (majority),
+  3. everyone into the truck, **15 s vote** for the next monster ("I want to be the monster") and the map,
+  4. the next round starts by itself (after a voted map has loaded).
+- Config: Round / InspectSeconds (60), AutoNextRound (true), SkipKey (J).
+
 ## 2.0.19 (beta)
 - **Next round starts by itself** 60 seconds after a round ended (countdown on screen; config Round /
   NextRoundSeconds, 0 = start by hand). A voted map change loads first, then the round starts.
