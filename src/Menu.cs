@@ -196,6 +196,9 @@ namespace HideAndSeekMonster
             var area = new Rect(r.x + p, r.y + 46 * u, r.width - 2 * p, r.height - 46 * u - startH - 2 * p);
             GUILayout.BeginArea(area);
             _menuScrollRules = GUILayout.BeginScrollView(new Vector2(0f, _menuScrollRules.y), false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
+            // everything in this column is at most this wide (wraps instead of needing a left / right scrollbar)
+            _rulesW = area.width - 22 * u;
+            GUILayout.BeginVertical(GUILayout.Width(_rulesW));
             try
             {
                 Plugin.HideTime.Value = MenuSlider(L.HideTime, Plugin.HideTime.Value, 5f, 120f, "s", 0, u);
@@ -226,6 +229,7 @@ namespace HideAndSeekMonster
             }
             finally
             {
+                GUILayout.EndVertical();
                 GUILayout.EndScrollView();
                 GUILayout.EndArea();
             }
@@ -245,13 +249,15 @@ namespace HideAndSeekMonster
             GUI.enabled = true;
         }
 
+        private float _rulesW = 300f;
+
         private float MenuSlider(string label, float value, float min, float max, string unit, int decimals, float u)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, _mSmall);
+            GUILayout.Label(label, _mSmall, GUILayout.Width(Mathf.Max(40f, _rulesW - 76 * u)));
             GUILayout.Label(value.ToString("F" + decimals) + unit, _mValue, GUILayout.Width(70 * u));
             GUILayout.EndHorizontal();
-            value = GUILayout.HorizontalSlider(value, min, max, GUILayout.Height(18 * u));
+            value = GUILayout.HorizontalSlider(value, min, max, GUILayout.Height(18 * u), GUILayout.Width(_rulesW));
             GUILayout.Space(6 * u);
             if (decimals == 0) value = Mathf.Round(value);
             return value;
@@ -286,7 +292,7 @@ namespace HideAndSeekMonster
             string moon = MoonName(phase);
             bool matches = Mathf.Abs(Plugin.RoundTime.Value - hunt) < 1f && Mathf.Abs(Plugin.HideTime.Value - hide) < 1f;
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"<color=#ffd34d>★</color> <color=#bfb3b5>{L.TimeRecommendation(phase, moon, hide, hunt)}</color>", _mSmall);
+            GUILayout.Label($"<color=#ffd34d>★</color> <color=#bfb3b5>{L.TimeRecommendation(phase, moon, hide, hunt)}</color>", _mSmall, GUILayout.Width(Mathf.Max(40f, _rulesW - 96 * u)));
             GUI.enabled = !matches;
             if (GUILayout.Button(matches ? "✓" : L.Apply, _chBtn, GUILayout.Width(90 * u), GUILayout.Height(28 * u)))
             {
@@ -304,13 +310,12 @@ namespace HideAndSeekMonster
             int cur = CurrentLevelNumber();
             int v = Plugin.MapLevel.Value;
             GUILayout.BeginHorizontal();
-            GUILayout.Label(L.MapSize, _mSmall);
-            GUILayout.FlexibleSpace();
-            GUILayout.Label(v <= 0 ? L.MapSizeKeep(cur) : L.MapSizeLevel(v), _mSmall);
+            GUILayout.Label(L.MapSize, _mSmall, GUILayout.Width(_rulesW * 0.45f));
+            GUILayout.Label(v <= 0 ? L.MapSizeKeep(cur) : L.MapSizeLevel(v), _mSmall, GUILayout.Width(_rulesW * 0.53f));
             GUILayout.EndHorizontal();
-            Plugin.MapLevel.Value = Mathf.RoundToInt(GUILayout.HorizontalSlider(v, 0f, 20f));
-            GUILayout.Label($"<color=#a89a9c>{L.MapSizeHint(cur, MoonPhase())}</color>", _mSmall);
-            if (GUILayout.Button(L.LoadNewMap(Plugin.MapLevel.Value > 0 ? Plugin.MapLevel.Value : cur), _chBtn, GUILayout.Height(34 * u)))
+            Plugin.MapLevel.Value = Mathf.RoundToInt(GUILayout.HorizontalSlider(v, 0f, 20f, GUILayout.Width(_rulesW)));
+            GUILayout.Label($"<color=#a89a9c>{L.MapSizeHint(cur, MoonPhase())}</color>", _mSmall, GUILayout.Width(_rulesW));
+            if (GUILayout.Button(L.LoadNewMap(Plugin.MapLevel.Value > 0 ? Plugin.MapLevel.Value : cur), _chBtn, GUILayout.Height(34 * u), GUILayout.Width(_rulesW)))
             {
                 _menuOpen = false;
                 HostLoadMap(null);
@@ -320,7 +325,11 @@ namespace HideAndSeekMonster
 
         private bool MenuToggle(string label, bool value, float u)
         {
-            if (GUILayout.Button((value ? $"<color=#7dff8a>[{L.On}]</color>  " : $"<color=#a89a9c>[{L.Off}]</color>  ") + label, value ? _pillOn : _pillOff, GUILayout.Height(34 * u))) value = !value;
+            var st = value ? _pillOn : _pillOff;
+            st.wordWrap = true;
+            string text = (value ? $"<color=#7dff8a>[{L.On}]</color>  " : $"<color=#a89a9c>[{L.Off}]</color>  ") + label;
+            float h = Mathf.Max(34 * u, st.CalcHeight(new GUIContent(text), _rulesW) + 8 * u);
+            if (GUILayout.Button(text, st, GUILayout.Height(h), GUILayout.Width(_rulesW))) value = !value;
             GUILayout.Space(4 * u);
             return value;
         }

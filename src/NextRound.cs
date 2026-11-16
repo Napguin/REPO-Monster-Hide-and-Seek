@@ -32,21 +32,27 @@ namespace HideAndSeekMonster
             _inspectEndAt = secondsLeft > 0f ? Time.time + secondsLeft : 0f;
             _inspectSkip = skip;
             _inspectTotal = total;
-            if (secondsLeft <= 0f) { _mySkip = false; return; }
+            if (secondsLeft <= 0f) { _mySkip = false; _revealIds = new int[0]; return; }
             if (!starting) return;
             _mySkip = false;
             // everyone alive and healthy again, right where they are
             var me = GameRefs.LocalAvatar;
             if (me == null) return;
             if (!IsAlive(me)) Compat.Call(me, "Revive", true);
-            Later(1.5f, () =>
-            {
-                var h = me != null ? me.playerHealth : null;
-                if (h == null) return;
-                int hp = Compat.Get(h, "health", 100), max = Compat.Get(h, "maxHealth", 100);
-                if (hp < max) Compat.Call(h, "Heal", max - hp, true);
-            });
+            // a revive starts at 1 HP and needs a moment over the network: heal a few times
+            Later(1.5f, HealLocalFull);
+            Later(3.5f, HealLocalFull);
+            Later(6f, HealLocalFull);
             Banner(L.InspectStart, new Color(0.5f, 0.85f, 1f), 4f);
+        }
+
+        private void HealLocalFull()
+        {
+            var me = GameRefs.LocalAvatar;
+            var h = me != null ? me.playerHealth : null;
+            if (h == null || !IsAlive(me)) return;
+            int hp = Compat.Get(h, "health", 100), max = Compat.Get(h, "maxHealth", 100);
+            if (hp < max) Compat.Call(h, "Heal", max - hp, true);
         }
 
         private void InspectKeys()
@@ -90,12 +96,20 @@ namespace HideAndSeekMonster
             else _nextRoundAt = Time.time + 5f; // not enough players yet – try again
         }
 
+        private float _levelReadySince;
+
+        /// <summary>The level is generated, the game is running (not loading) and that has been so for a few seconds
+        /// (everyone has spawned in the truck of the new map).</summary>
         private bool LevelReady()
         {
             var lg = LevelGenerator.Instance;
-            if (lg == null || !Compat.Get(lg, "Generated", true)) return false;
-            if (_levelAtMapChange != null && lg == _levelAtMapChange) return false; // still the old map
-            return true;
+            var gd = GameDirector.instance;
+            bool ready = lg != null && Compat.Get(lg, "Generated", true)
+                         && (_levelAtMapChange == null || lg != _levelAtMapChange || Time.time > _nextRoundAt + 35f) // not the old map anymore (fallback after 35 s)
+                         && gd != null && gd.currentState == GameDirector.gameState.Main;
+            if (!ready) { _levelReadySince = 0f; return false; }
+            if (_levelReadySince <= 0f) _levelReadySince = Time.time;
+            return Time.time - _levelReadySince >= (_levelAtMapChange != null ? 6f : 0f);
         }
 
         private void DrawInspect(float sw, float u)

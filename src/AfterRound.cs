@@ -48,10 +48,12 @@ namespace HideAndSeekMonster
             _afterRound = StartCoroutine(HostAfterRound(survivors));
         }
 
-        private IEnumerator HostAfterRound(List<int> survivors)
+        private IEnumerator HostAfterRound(List<int> hiders)
         {
             yield return new WaitForSeconds(1.5f);
-            if (survivors.Count > 0) Send(MsgReveal, survivors.ToArray(), RevealSeconds);
+            float inspectFor = Plugin.InspectSeconds.Value;
+            // the hiders stay marked (through walls) the whole time everyone looks at the hiding spots
+            if (hiders.Count > 0) Send(MsgReveal, hiders.ToArray(), inspectFor > 0f ? inspectFor + 2f : RevealSeconds);
             if (RoundActive) yield break;
 
             // revive the dead (game function, called by the host) – everyone stays where they are

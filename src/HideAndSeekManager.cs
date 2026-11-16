@@ -1087,6 +1087,7 @@ namespace HideAndSeekMonster
             ResetPistolShots();
             Later(1f, () => { if (CanPickFreeItem) Banner(L.FreeItemPress, new Color(0.4f, 0.7f, 1f), 4f); });
             _phaseEndTime = Time.time + hide;
+            Later(0.5f, HealLocalFull); // everyone starts a round with full health
 
             RemoveAfterMonster();
             _nextRoundAt = 0f;
@@ -1140,8 +1141,8 @@ namespace HideAndSeekMonster
             string seekerName = NameOf(Seeker);
             if (IsHost && showBanner && winner != Winner.Aborted && !_roundTest && Plugin.AfterRound.Value)
             {
-                var survivors = AliveHiders().Select(h => h.photonView.ViewID).ToList();
-                HostBeginAfterRound(survivors);
+                // all hiders of this round get marked while everyone looks at the hiding spots
+                HostBeginAfterRound(_hiderViewIds.ToList());
             }
             bool afterRound = winner != Winner.Aborted && !_roundTest;
 

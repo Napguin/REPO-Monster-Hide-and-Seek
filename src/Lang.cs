@@ -160,7 +160,7 @@ namespace HideAndSeekMonster
         public static string Gambled(string ability) => De ? $"GLÜCKSSPIEL: {ability}!" : $"GAMBLE: {ability}!";
         public static string GrabCaught(string ability, int n) => De ? $"{ability}: {n} Hider in der Blase" : $"{ability}: {n} hider(s) in the bubble";
         public static string Tranquilized => De ? "Betäubt vom Gas..." : "Tranquilized by the gas...";
-        public static string RevealSurvivors(int n) => De ? $"Hier haben sich {n} Hider versteckt!" : $"This is where {n} hider(s) were hiding!";
+        public static string RevealSurvivors(int n) => De ? $"Hier haben sich die {n} Hider versteckt!" : $"This is where the {n} hider(s) were hiding!";
         public static string Regrouped => De ? "Alle zurück im Truck – gleich wird abgestimmt." : "Everyone back in the truck – voting starts in a moment.";
         public static string VoteTitle => De ? "Nächste Runde" : "Next round";
         public static string VoteWantSeeker => De ? "Ich will das Monster sein" : "I want to be the monster";

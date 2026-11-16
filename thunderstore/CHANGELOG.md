@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.22 (beta)
+- While everyone looks at the hiding spots, **all hiders stay marked** (through walls) the whole time.
+- Fix: after a voted map change the hiding phase started before everyone was on the new map – the next round now
+  waits until the new map is loaded and running for a few seconds.
+- Fix: some players had only 1 HP after being revived – everyone is healed several times after the revive and at
+  every round start.
+- Fix: texts in the F8 rules column were cut off – everything there wraps to the column width now.
+
 ## 2.0.21 (beta)
 - Menus no longer show a left / right scrollbar – they only scroll up and down.
 
