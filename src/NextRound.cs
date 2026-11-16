@@ -85,8 +85,31 @@ namespace HideAndSeekMonster
             _nextRoundAt = Time.time + (mapChange ? 6f : 3f);
         }
 
+        /// <summary>Lobby, shop, main menu, arena ... – anything that isn't a playable level (a map change in between
+        /// two levels is not counted, so the planned next round survives it).</summary>
+        private static bool OutsideLevels()
+        {
+            try { return SemiFunc.RunIsLobbyMenu() || SemiFunc.RunIsLobby() || SemiFunc.RunIsShop() || SemiFunc.MenuLevel() || SemiFunc.IsMainMenu() || SemiFunc.RunIsArena(); }
+            catch { return false; }
+        }
+
+        /// <summary>Left the level (lobby restarted, back to the menu ...): forget everything of the after-round.</summary>
+        private void CancelAfterRound()
+        {
+            if (_afterRound != null) { StopCoroutine(_afterRound); _afterRound = null; }
+            bool any = _voteOpen || _inspectEndAt > 0f || _nextRoundAt > 0f || _afterMonster != null || _revealIds.Length > 0;
+            _voteOpen = false;
+            _inspectEndAt = 0f;
+            _nextRoundAt = 0f;
+            _revealIds = new int[0];
+            _voteResultUntil = 0f;
+            RemoveAfterMonster();
+            if (any) Plugin.Log.LogInfo("[AfterRound] cancelled – not in a level anymore");
+        }
+
         private void NextRoundTick()
         {
+            if (OutsideLevels()) { CancelAfterRound(); return; }
             if (RoundActive) { _nextRoundAt = 0f; return; }
             if (_nextRoundAt <= 0f || !IsHost || Time.time < _nextRoundAt || _voteOpen) return;
             if (!InLevel() || !LevelReady()) return; // a voted map is still loading

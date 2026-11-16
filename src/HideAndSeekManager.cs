@@ -864,7 +864,7 @@ namespace HideAndSeekMonster
                         OnRegroup((Vector3)data[2]);
                         break;
                     case MsgVoteStart:
-                        if (!SenderIsMaster(sender)) return;
+                        if (!SenderIsMaster(sender) || OutsideLevels()) return;
                         OnVoteStart((string[])data[2], (float)data[3]);
                         break;
                     case MsgVote:
@@ -876,7 +876,7 @@ namespace HideAndSeekMonster
                         OnVoteState((string[])data[2], (int[])data[3], (float)data[4]);
                         break;
                     case MsgInspect:
-                        if (!SenderIsMaster(sender)) return;
+                        if (!SenderIsMaster(sender) || OutsideLevels()) return;
                         OnInspect((float)data[2], (int)data[3], (int)data[4]);
                         break;
                     case MsgVoteResult:
@@ -1139,12 +1139,12 @@ namespace HideAndSeekMonster
         {
             if (!RoundActive) return;
             string seekerName = NameOf(Seeker);
-            if (IsHost && showBanner && winner != Winner.Aborted && !_roundTest && Plugin.AfterRound.Value)
+            if (IsHost && showBanner && winner != Winner.Aborted && !_roundTest && Plugin.AfterRound.Value && InLevel())
             {
                 // all hiders of this round get marked while everyone looks at the hiding spots
                 HostBeginAfterRound(_hiderViewIds.ToList());
             }
-            bool afterRound = winner != Winner.Aborted && !_roundTest;
+            bool afterRound = winner != Winner.Aborted && !_roundTest && InLevel();
 
             _laserEndTime = -1f;
             ClearAbilities();

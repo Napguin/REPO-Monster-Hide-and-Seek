@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.24 (beta)
+- Fix: when the lobby was restarted during / right after a round, the vote showed up in the lobby. Leaving the
+  level now cancels everything of the after-round (vote, time to look at the hiding spots, next-round start).
+
 ## 2.0.23 (beta)
 - Fix: the hider markers (and the Peeper scan markers) were at the wrong height when the game window isn't 16:9 –
   they now follow the picture's black bars.

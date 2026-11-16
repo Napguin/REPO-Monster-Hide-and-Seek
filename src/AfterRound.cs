@@ -92,7 +92,8 @@ namespace HideAndSeekMonster
             yield return new WaitForSeconds(1.5f);
             if (RoundActive) yield break;
 
-            // vote: next monster + map
+            // vote: next monster + map (only on a level – never in the lobby / menu)
+            if (!InLevel()) { _afterRound = null; yield break; }
             HostStartVote();
             float vend = Time.time + VoteSeconds;
             while (Time.time < vend && _voteOpen && !RoundActive) yield return null;
