@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.19 (beta)
+- **Next round starts by itself** 60 seconds after a round ended (countdown on screen; config Round /
+  NextRoundSeconds, 0 = start by hand). A voted map change loads first, then the round starts.
+- The monster **stays in its monster form** during the break between rounds.
+- **All items are recharged** at every round start (weapons, melee durability, equipment with a battery).
+- How To Play: new page about the end of a round, updated points page.
+
 ## 2.0.18 (beta)
 - Gambit: opens its mouth on attack, opens its mouth and traps (wheel animation) when gambling – without lifting
   the model.

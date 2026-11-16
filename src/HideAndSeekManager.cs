@@ -160,6 +160,7 @@ namespace HideAndSeekMonster
             Safe("weapon ban", WeaponBanTick);
             Safe("free item", FreeItemKeys);
             Safe("hunter melee", HunterMeleeTick);
+            Safe("next round", NextRoundTick);
 
             if (CursorWanted)
             {
@@ -1035,6 +1036,7 @@ namespace HideAndSeekMonster
                 Plugin.BanWeapons.Value && Plugin.Mode.Value == GameMode.Monster, // classic: weapons are the point
                 Plugin.FreeItem.Value,
                 Plugin.Mode.Value == GameMode.Classic);
+            HostRechargeAll();
             _menuOpen = false;
         }
 
@@ -1080,6 +1082,8 @@ namespace HideAndSeekMonster
             Later(1f, () => { if (CanPickFreeItem) Banner(L.FreeItemPress, new Color(0.4f, 0.7f, 1f), 4f); });
             _phaseEndTime = Time.time + hide;
 
+            RemoveAfterMonster();
+            _nextRoundAt = 0f;
             _monster = MonsterVisual.Create(seeker, monster, scale);
             _monsterName = _monster != null ? _monster.MonsterName : monster;
 
@@ -1132,10 +1136,12 @@ namespace HideAndSeekMonster
                 var survivors = AliveHiders().Select(h => h.photonView.ViewID).ToList();
                 HostBeginAfterRound(survivors);
             }
+            bool afterRound = winner != Winner.Aborted && !_roundTest;
 
             _laserEndTime = -1f;
             ClearAbilities();
-            if (_monster != null) _monster.Remove();
+            if (afterRound) { KeepMonsterAfterRound(); ScheduleNextRound(); } // stays a monster until the next round
+            else { if (_monster != null) _monster.Remove(); RemoveAfterMonster(); _nextRoundAt = 0f; }
             _monster = null;
             ThirdPersonCamera.Active = false;
             ThirdPersonCamera.RestoreAll();
@@ -1263,6 +1269,7 @@ namespace HideAndSeekMonster
 
             if (Time.time < _resultsUntil && _sbNames.Length > 0) DrawResults(sw, sh, u);
             try { DrawRevealSurvivors(u); } catch (System.Exception ex) { _lastError = "reveal: " + ex.Message; }
+            try { DrawNextRound(sw, u); } catch (System.Exception ex) { _lastError = "next round: " + ex.Message; }
             if (!_menuOpen)
             {
                 try { DrawVote(sw, sh, u); }

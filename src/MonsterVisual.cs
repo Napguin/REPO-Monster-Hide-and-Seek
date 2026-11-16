@@ -45,6 +45,7 @@ namespace HideAndSeekMonster
         private static Shader _unlit;
 
         public string MonsterName => _entry != null ? _entry.Name : "Monster";
+        public bool IsLocalMonster => _isLocal;
         public bool IsFallback { get; private set; }
         public float BodyHeight { get; private set; } = 2f;
         /// <summary>Forward roll in degrees (0 = upright).</summary>

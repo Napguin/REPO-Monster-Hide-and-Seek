@@ -9,6 +9,7 @@ namespace HideAndSeekMonster
         public static string OnlyInLevel => De ? "Runden können nur in einem Level gestartet werden." : "Rounds can only be started inside a level.";
         public static string ChooseSeeker => De ? "Wer ist der Seeker (Monster)?" : "Who is the seeker (monster)?";
         public static string Random => De ? "Zufällig" : "Random";
+        public static string NextRoundIn(int s) => De ? $"Nächste Runde in {s} s" : $"Next round in {s}s";
         public static string HideTime => De ? "Versteckzeit" : "Hide time";
         public static string RoundTime => De ? "Suchzeit" : "Hunt time";
         public static string SeekerSpeed => De ? "Monster-Tempo" : "Monster speed";

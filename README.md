@@ -136,7 +136,9 @@ weapons owned by a hider stay in the truck for that round and can't be used.
 ### After the round
 Surviving hiders are shown to everyone for a few seconds. Then all dead players are revived and healed and everyone
 is teleported back into the truck. A vote follows: volunteer to be the next monster (a random volunteer gets it)
-and vote whether to stay on this map or switch to one of three other maps. The host then starts the next round with F8.
+and vote whether to stay on this map or switch to one of three other maps. The monster stays in its monster form
+during this break, and **60 seconds after the round ended the next one starts by itself** (or earlier with F8).
+At every round start all weapons, equipment and items with a battery are recharged.
 Can be turned off in the F8 menu.
 
 ## Configuration
@@ -156,6 +158,7 @@ The round settings of the **host** are used for everyone.
 | Round / FreeItem | true | Every hider may take 1 free item while hiding (I key); in Classic mode the hunter picks the start weapon |
 | Round / BanWeapons | true | Monster mode: guns, melee weapons and cart cannons can't be grabbed (tranq / pulse pistol allowed, but only 2 shots per round and no recharging) |
 | Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
+| Round / NextRoundSeconds | 60 | The next round starts by itself this many seconds after a round ended (0 = start by hand) |
 | Seeker / AttackRange | 2.8 | Reach of the attack in metres |
 | Seeker / AttackCooldown | 1.2 | Seconds between attacks |
 | Seeker / AttackDamage | 40 | Damage of the main attack |
