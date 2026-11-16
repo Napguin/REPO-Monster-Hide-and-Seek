@@ -356,9 +356,8 @@ namespace HideAndSeekMonster
                 var p = FindByViewId(id);
                 if (p == null) continue;
                 Vector3 wp = PlayerPos(p) + Vector3.up * 2f;
-                Vector3 sp = cam.WorldToScreenPoint(wp);
-                if (sp.z <= 0) continue;
-                float x = sp.x * Screen.width / cam.pixelWidth, y = Screen.height - sp.y * Screen.height / cam.pixelHeight;
+                if (!UiUtil.WorldToGui(cam, wp, out var gp)) continue;
+                float x = gp.x, y = gp.y;
                 float s = 20 * u;
                 GUI.color = new Color(0.4f, 1f, 0.5f, pulse);
                 GUI.DrawTexture(new Rect(x - s / 2, y - s / 2, s, s), _white);

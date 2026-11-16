@@ -1069,9 +1069,8 @@ namespace HideAndSeekMonster
             float pulse = 0.7f + 0.3f * Mathf.Sin(Time.time * 8f);
             foreach (var t in targets)
             {
-                Vector3 sp = cam.WorldToScreenPoint(t.pos);
-                if (sp.z <= 0) continue;
-                float x = sp.x * Screen.width / cam.pixelWidth, y = Screen.height - sp.y * Screen.height / cam.pixelHeight;
+                if (!UiUtil.WorldToGui(cam, t.pos, out var gp)) continue;
+                float x = gp.x, y = gp.y;
                 float s = 18 * u;
                 GUI.color = new Color(col.r, col.g, col.b, pulse);
                 GUI.DrawTexture(new Rect(x - s / 2, y - s / 2, s, s), _white);

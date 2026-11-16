@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.23 (beta)
+- Fix: the hider markers (and the Peeper scan markers) were at the wrong height when the game window isn't 16:9 –
+  they now follow the picture's black bars.
+
 ## 2.0.22 (beta)
 - While everyone looks at the hiding spots, **all hiders stay marked** (through walls) the whole time.
 - Fix: after a voted map change the hiding phase started before everyone was on the new map – the next round now
