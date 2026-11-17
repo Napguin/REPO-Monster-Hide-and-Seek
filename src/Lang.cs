@@ -9,6 +9,7 @@ namespace HideAndSeekMonster
         public static string OnlyInLevel => De ? "Runden können nur in einem Level gestartet werden." : "Rounds can only be started inside a level.";
         public static string ChooseSeeker => De ? "Wer ist der Seeker (Monster)?" : "Who is the seeker (monster)?";
         public static string Random => De ? "Zufällig" : "Random";
+        public static string StunnedNoAbilities => De ? "Betäubt – keine Fähigkeiten!" : "Stunned – no abilities!";
         public static string InspectStart => De ? "Runde vorbei – schaut euch die Verstecke an!" : "Round over – go look at the hiding spots!";
         public static string InspectCountdown(int s) => De ? $"Verstecke anschauen: {s} s" : $"Look at the hiding spots: {s}s";
         public static string InspectSkip(string key, bool mine, int n, int total) =>

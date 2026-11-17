@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.26 (beta)
+- The monster can't attack, roar or use its special while it is stunned / knocked over (tranq dart, pulse or stun
+  grenade …). Tick's own Tumble-Bash doesn't count – pressing again still stops the roll.
+
 ## 2.0.25 (beta)
 - Elsa: the slap animation is removed.
 - Headman: goes back to its normal face after every action (it stayed on the open-jaw face), and bites with its own

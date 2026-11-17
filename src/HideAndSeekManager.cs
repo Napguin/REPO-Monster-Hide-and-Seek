@@ -205,6 +205,26 @@ namespace HideAndSeekMonster
             if (IsHost) Safe("host", HostTick);
         }
 
+        /// <summary>
+        /// The monster is knocked over (tranq dart, pulse / stun grenade, a hit that makes it tumble …): no attack,
+        /// roar or special until it stands again. Its own Tumble-Bash (Tick) doesn't count.
+        /// </summary>
+        private bool SeekerStunned()
+        {
+            var me = Seeker;
+            if (me == null || Bashing) return false;
+            var tumble = Compat.Get<Component>(me, "tumble");
+            return Compat.Get<bool>(me, "isTumbling") || (tumble != null && Compat.Get<bool>(tumble, "isTumbling"));
+        }
+
+        private float _stunnedMsgAt;
+        private bool StunnedBlocks()
+        {
+            if (!SeekerStunned()) return false;
+            if (Time.time >= _stunnedMsgAt) { _stunnedMsgAt = Time.time + 1.5f; Banner(L.StunnedNoAbilities, new Color(1f, 0.8f, 0.3f), 1.2f); }
+            return true;
+        }
+
         private void LocalSeekerTick()
         {
             bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
@@ -264,6 +284,7 @@ namespace HideAndSeekMonster
             Safe("attack key", () =>
             {
                 if (!_attackAction.WasPressedThisFrame() || Time.time < _attackReadyAt) return;
+                if (StunnedBlocks()) return;
                 if (AttackBlocked) { Banner(L.NoAttackWhileCharging, Abilities.UnityColor(Charging ? _chargeType : _grabType), 1f); return; }
                 _attackReadyAt = Time.time + Cd(Plugin.AttackCooldown.Value);
                 _lungeUntil = Time.time + 0.35f;
@@ -275,6 +296,7 @@ namespace HideAndSeekMonster
             Safe("roar key", () =>
             {
                 if (!_roarAction.WasPressedThisFrame() || Time.time < _roarReadyAt) return;
+                if (StunnedBlocks()) return;
                 _roarReadyAt = Time.time + Cd(Plugin.RoarCooldown.Value);
                 Plugin.Log.LogInfo("[Monster] roar pressed");
                 Send(MsgRoar, SeekerPosition());
