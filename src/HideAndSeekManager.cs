@@ -201,6 +201,7 @@ namespace HideAndSeekMonster
             Safe("next round", NextRoundTick);
             Safe("inspect keys", InspectKeys);
             Safe("pick", PickTick);
+            Safe("owned items", HostOwnedItemsTick);
 
             if (CursorWanted)
             {

@@ -158,6 +158,40 @@ namespace HideAndSeekMonster
             if (Time.time >= _banMsgAt) { _banMsgAt = Time.time + 2f; Banner(locked ? L.ItemLockedInTruck : L.HunterMeleeNo, new Color(1f, 0.4f, 0.3f), 1.5f); }
         }
 
+        // ---- used up vs. left behind ----
+        // An owned item that disappears while the same map keeps running was used up / broken (health pack eaten,
+        // upgrade used ...) and stays gone. One that is only missing on a new map was left behind and comes back.
+        private Object _ownedScanLevel;
+        private float _ownedScanAt;
+        private readonly HashSet<int> _ownedMissing = new HashSet<int>();
+        internal bool MapChanging;
+
+        private void HostOwnedItemsTick()
+        {
+            if (!IsHost || Time.time < _ownedScanAt) return;
+            _ownedScanAt = Time.time + 1f;
+            var lg = LevelGenerator.Instance;
+            var gd = GameDirector.instance;
+            bool steady = !MapChanging && lg != null && Compat.Get(lg, "Generated", false) && InLevel()
+                          && gd != null && gd.currentState == GameDirector.gameState.Main;
+            if (!steady || lg != _ownedScanLevel) { _ownedScanLevel = steady ? lg : null; _ownedMissing.Clear(); return; }
+            foreach (var kv in _itemOwner.ToList())
+            {
+                if (PhotonView.Find(kv.Key) != null) { _ownedMissing.Remove(kv.Key); continue; }
+                // missing twice in a row on the same running map: used up
+                if (!_ownedMissing.Add(kv.Key))
+                {
+                    _itemOwner.Remove(kv.Key);
+                    _ownedMissing.Remove(kv.Key);
+                    string key = _hostItemKey.TryGetValue(kv.Key, out var k) ? k : "?";
+                    var it = StatsManager.instance != null && StatsManager.instance.itemDictionary != null && StatsManager.instance.itemDictionary.TryGetValue(key, out var i2) ? i2 : null;
+                    if (ComesBackWhenGone(it)) { _itemOwner[kv.Key] = kv.Value; continue; } // weapons / explosives always come back
+                    _hostItemKey.Remove(kv.Key);
+                    Plugin.Log.LogInfo($"[Items] '{key}' was used up – it won't come back");
+                }
+            }
+        }
+
         /// <summary>Host, at round start: every remembered item goes back to its owner (in front of them).</summary>
         private void HostReturnOwnedItems()
         {
@@ -170,14 +204,13 @@ namespace HideAndSeekMonster
                 if (owner == null) continue; // owner left – keep it for later
                 if (pv == null)
                 {
-                    // gone (left in the old level, used up, broken ...). Rules: only explosives always come back;
-                    // used-up things like player upgrades or health packs stay used.
+                    // gone: used-up things (health pack eaten, upgrade used) were already forgotten by HostOwnedItemsTick,
+                    // so whatever is still remembered here was left behind on the old map – it comes back.
                     _itemOwner.Remove(kv.Key);
                     if (!_hostItemKey.TryGetValue(kv.Key, out string key)) continue;
                     _hostItemKey.Remove(kv.Key);
                     var sm = StatsManager.instance;
                     if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it) || it?.prefab == null) continue;
-                    if (!ComesBackWhenGone(it)) continue;
                     Vector3 fw = owner.transform.forward; fw.y = 0; if (fw.sqrMagnitude < 0.01f) fw = Vector3.forward;
                     var go = SpawnPrefabAt(ItemLabel(key), it.prefab, PlayerPos(owner) + fw.normalized * 1.2f + Vector3.up * (1f + 0.3f * n), true);
                     HostRegisterOwner(go, kv.Value, key);

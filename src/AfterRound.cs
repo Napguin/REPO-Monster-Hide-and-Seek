@@ -199,8 +199,10 @@ namespace HideAndSeekMonster
 
         private IEnumerator HostChangeMap(string levelId, float delay = 3f)
         {
+            MapChanging = true; // owned items disappearing now are left behind, not used up
+            Later(60f, () => MapChanging = false);
             if (delay > 0f) yield return new WaitForSeconds(delay);
-            if (RoundActive) yield break;
+            if (RoundActive) { MapChanging = false; yield break; }
             PendingLevel = levelId;
             var rm = RunManager.instance;
             // Map size: the level generator builds bigger maps for higher levels (levels completed).
