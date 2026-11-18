@@ -1,182 +1,46 @@
 # Changelog
 
-## 2.0.38 (beta)
-- The defibrillator is for the hiders only – the hunter (monster and classic) can't pick it.
+## 2.1.0
 
-## 2.0.37 (beta)
-- The hunter may pick the hiders' (blue) items too: the monster gets every item except guns and melee weapons (tranq
-  and pulse pistol allowed), the classic hunter gets every item. Hiders keep their blue + the shared items.
+### New round flow
+- **Item time at round start** (60 s): everyone stands still and picks their free item with **I** – the hiding time
+  only starts afterwards. It ends early when everyone is done (taking your item counts, **J** = done / skip).
+- **After the round:** everyone is revived and healed where they are and gets **60 s to look at the hiding spots** –
+  all hiders of the round stay marked (through walls) and the monster keeps its form. **J** votes to skip (majority).
+- Then everyone goes into the truck for a **15 s vote** (next monster + map), and the **next round starts by itself**
+  – after a voted map has fully loaded.
+- At every round start everyone is healed to full health and all battery items are recharged.
+- Leaving the level (lobby restart, main menu) cancels everything of the after-round.
+- The end of a round and the scores are sent exactly once.
 
-## 2.0.36 (beta)
-- Item picker follows the **item gallery** (How To Play):
-  - Hiders (both modes): tranq + pulse pistol, stun grenade, pulse grenade + mine, leaf blower and all shared items.
-  - Monster: grenade, duct-tape grenade, explosive mine, zap trap and all shared items (no guns / melee).
-  - Classic hunter: all weapons (start weapon) plus the hunter's and the shared items.
-  - Shared: duck bucket, walkie talkie, bridge, POCKET C.A.R.T., med-kit, defibrillator, orbs, drones, staffs, upgrades.
-- The log lists every item of the game with its role once (to find items that are missing in the picker).
+### Items
+- The item picker follows Flyguy's **item gallery**: hiders get their items (tranq, pulse pistol, stun / pulse
+  grenade, pulse mine, leaf blower) plus the shared ones; the monster may now pick an item too – every item except
+  guns, melee weapons and the defibrillator; the classic hunter gets every item except the defibrillator.
+- Weapons don't run out of energy during a round – for everyone (hider pistols still have 2 shots per round).
+- Unused owned items (health packs, upgrades …) left behind on the old map come back to their owner; used-up ones
+  stay gone.
 
-## 2.0.35 (beta)
-- New credits (How To Play page, menu, READMEs): special thanks to SongoCat, MadKitKat, Looley18 and Stewberryicetea.
+### Monsters & animations
+- **New animation system:** the monsters play their own clips directly – idle, walk, run, jump, fall, attack,
+  special and a loop while charging / sprinting.
+  - Robe, Headgrab, Reaper, Chef, Gnome, Banger, Clown, Huntsman, Trudge, Rugrat, Cleanup Crew, Mentalist, Bowtie,
+    Gambit, Upscream, Birthday Boy and Apex Predator got fitting animations for their attacks and specials.
+  - Elsa stays in her big form with a calm standing pose; Animal no longer faces backwards.
+  - Monsters animated by the game's code got procedural animations: the Pony gallops, Spewer, Heart Hugger and Oogly
+    move, Bella's tricycle wheels turn and the girl only shows herself while attacking or sprinting.
+  - Headman goes back to its normal face after every action and bites with its own chomp.
+- **Animation tuner** (F7 → Animations): pick, cut, speed up and preview the clip of every action and save it.
+- The monster player's robot casts no shadow any more.
+- The monster can't attack, scan or use its special while it is knocked over / stunned.
+- Charge follows slopes and climbs stairs instead of launching the monster into the air.
+- Clown laser: 50 damage per hit.
 
-## 2.0.34 (beta)
-- The monster may pick a free item too (I), like everyone else – from the same list as the hiders. Before, the
-  monster saw "press I" but the picker didn't open.
-
-## 2.0.33 (beta)
-- Fix: unused items (health packs, upgrades …) left behind on the old map came back only if they were weapons or
-  explosives. Now every owned item that wasn't used up comes back to its owner on the next map / round. Items that
-  were used up (health pack eaten, upgrade used) still stay gone.
-
-## 2.0.32 (beta)
-- Fix: the item time didn't show up – the host started it before its own round start had arrived.
-
-## 2.0.31 (beta)
-- **Item time at the start of a round** (60 s, config Round / PickSeconds): everyone stands still and picks their
-  item with **I** – the hiding time only starts afterwards. It ends early as soon as everyone is done: taking your
-  item counts as done, **J** = done / skip.
-- Weapons no longer run out of energy during a round – for the hiders too (the tranq / pulse pistols still have only
-  2 shots per round).
-
-## 2.0.30 (beta)
-- Fix: the end of a round (and the scores) was sent several times while the end message was on its way – now
-  exactly once per round.
-
-## 2.0.29 (beta)
-- Fix: the monster keys (attack, scan, special, camera) didn't react at all – the mod's key bindings had been
-  switched off (by the game or another mod). They are switched on again automatically and the keys are also read
-  straight from mouse and keyboard.
-- Diagnostics: pressing a monster key logs what could block it.
-
-## 2.0.27 (beta)
-- Fix: since 2.0.26 no monster could attack, scan or use its special – the stun check thought every monster was
-  knocked over. Only a real knock-over (the body is actually tumbling) blocks the abilities now.
-
-## 2.0.26 (beta)
-- The monster can't attack, roar or use its special while it is stunned / knocked over (tranq dart, pulse or stun
-  grenade …). Tick's own Tumble-Bash doesn't count – pressing again still stops the roll.
-
-## 2.0.25 (beta)
-- Elsa: the slap animation is removed.
-- Headman: goes back to its normal face after every action (it stayed on the open-jaw face), and bites with its own
-  chomp on attack.
-- Pony: the body stays much stiller while galloping.
-- Clown: the laser does 50 damage per hit (was 25).
-
-## 2.0.24 (beta)
-- Fix: when the lobby was restarted during / right after a round, the vote showed up in the lobby. Leaving the
-  level now cancels everything of the after-round (vote, time to look at the hiding spots, next-round start).
-
-## 2.0.23 (beta)
-- Fix: the hider markers (and the Peeper scan markers) were at the wrong height when the game window isn't 16:9 –
-  they now follow the picture's black bars.
-
-## 2.0.22 (beta)
-- While everyone looks at the hiding spots, **all hiders stay marked** (through walls) the whole time.
-- Fix: after a voted map change the hiding phase started before everyone was on the new map – the next round now
-  waits until the new map is loaded and running for a few seconds.
-- Fix: some players had only 1 HP after being revived – everyone is healed several times after the revive and at
-  every round start.
-- Fix: texts in the F8 rules column were cut off – everything there wraps to the column width now.
-
-## 2.0.21 (beta)
-- Menus no longer show a left / right scrollbar – they only scroll up and down.
-
-## 2.0.20 (beta)
-- New after-round flow:
-  1. survivors are shown, everyone is revived and healed where they are,
-  2. **60 s to look at the hiding spots** – the monster keeps its form; press **J** to vote for skipping (majority),
-  3. everyone into the truck, **15 s vote** for the next monster ("I want to be the monster") and the map,
-  4. the next round starts by itself (after a voted map has loaded).
-- Config: Round / InspectSeconds (60), AutoNextRound (true), SkipKey (J).
-
-## 2.0.19 (beta)
-- **Next round starts by itself** 60 seconds after a round ended (countdown on screen; config Round /
-  NextRoundSeconds, 0 = start by hand). A voted map change loads first, then the round starts.
-- The monster **stays in its monster form** during the break between rounds.
-- **All items are recharged** at every round start (weapons, melee durability, equipment with a battery).
-- How To Play: new page about the end of a round, updated points page.
-
-## 2.0.18 (beta)
-- Gambit: opens its mouth on attack, opens its mouth and traps (wheel animation) when gambling – without lifting
-  the model.
-- Pony: gallops instead of walking (front and hind legs in pairs, the body rocks with the stride).
-- Spewer: the jaws open the right way.
-- Loom and Headman: the made-up animations are removed; they look like the game shows them without its code.
-- Elsa: no more bouncing up and down while running or attacking – her body height is smoothed.
-- All monsters: no flickering between standing and walking at very low speed.
-- Elsa: her head no longer grows while walking – it keeps the size of her standing pose.
-- Elsa: stands in the upright pose from the end of her transformation in idle (only a slight breathing sway, no more walking on the spot); the slap is about twice as
-  fast.
-
-## 2.0.13 (beta)
-- Elsa: standing still plays her chase slowly with a breathing sway instead of a frozen pose.
-- Elsa: the slap swings the right arm forward across the body (it only moved outwards before), the upper body turns
-  with it.
-
-## 2.0.11 (beta)
-- Fix: Elsa stayed in her small form – the start animation that makes her tallest is picked automatically now.
-- Fix: Gambit floated: a far-away part (switched on again by the animations) lifted the model when it was put on the
-  ground. Trimmed parts stay off, and far-away / huge parts no longer count for the ground position.
-
-## 2.0.10 (beta)
-- Elsa: plays her big-form clips directly now (idle, chase, jump, fall, sprint) plus the slap on attack.
-- Gambit: no longer floats – the model's base pose is the first idle frame, not the end of the spawn animation.
-- Pony: rears up and bites on attack.
-
-## 2.0.9 (beta)
-- Fix: the monster player's own robot became visible inside the monster (2.0.7). The robot is hidden again and still
-  casts no shadow.
-
-## 2.0.8 (beta)
-- Fix: since 2.0.6 no monster was shown and the monster couldn't be changed (a broken animation table stopped the
-  monster from being built).
-
-## 2.0.7 (beta)
-- The monster player's robot no longer casts a shadow – only the monster does (for everyone, the monster player too).
-
-## 2.0.6 (beta)
-- **Procedural animations** for the monsters the game animates by code (no animation clips):
-  - Pony (Snatcher): legs walk, body bounces, head bites on attack
-  - Spewer: floats and sways, tentacle wiggles, mouth opens while puking, bites on attack
-  - Heart Hugger: stem and arms sway, heart breathes, the heart halves open on attack / gas
-  - Loom: hunches while moving, arms swing, reaches out on attack, jaw moves
-  - Oogly: idle float, fingers move, grabs on attack
-  - Headman: floats, chomps on attack
-  - Elsa: slaps on attack
-- Bella: the girl is invisible (the tricycle stays visible) and only shows herself while attacking or sprinting; the
-  wheels and pedals turn while moving.
-- Headgrab: the normal attack animation while charging. Gambit: no longer floats up when gambling.
-
-## 2.0.5 (beta)
-- Fix: monsters were **invisible / flattened** with the new animations (Reaper, Trudge, Banger, Clown, Headgrab,
-  Huntsman, Mentalist, Chef's lunge). The clips are now played on top of the monster's spawned, visible pose.
-- Fix: Trudge used its idle clip for walking ("walk" matched "Slow Walker"); clip names are matched by whole words.
-- Elsa, Headman, Loom and Peeper use the game's own animator again (Elsa's model was broken, Headman sank into the
-  floor – its clips are empty, it's animated by code).
-- Clip choices set from the clip list: Clown (melee, laser), Huntsman (aim + shoot), Trudge (walk, slam),
-  Headgrab (walk, attack without dropkick, dropkick on charge), Robe, Cleanup Crew, Chef (wind-up on lunge).
-- Menus: text that doesn't fit gets smaller instead of being cut off; the animation tuner fits the screen and
-  scrolls.
-
-## 2.0.4 (beta)
-- **New monster animations:** the monsters now play their own animation clips directly – idle, walking, running,
-  jumping and falling, the main attack, the special and a loop while charging / sprinting. Changes per monster:
-  - Robe: attack animation while charging · Headgrab: attack without the dropkick, the dropkick while charging
-  - Headman: bite on attack, chase animation while lunging · Chef: tumble on lunge, hops while moving
-  - Gnome, Banger, Cleanup Crew, Trudge, Pony, Clown, Huntsman, Rugrat: walking (and jumping) animations
-  - Rugrat: pick-up, carry and throw animations · Reaper: walking, attack animation while sprinting
-  - Apex Predator: transforms and chomps while flying · Mentalist: spell cast on Zero-G Grab
-  - Bowtie: short scream on Tornado · Gambit: short animation on Gamble · Upscream: its scream on Launch
-  - Clown: kick on attack, laser animation while firing · Spewer: vomiting on Puke · Trudge: slam on Impulse
-  - Bella: invisible to the hiders, shows itself while attacking or sprinting
-  - Animal: no longer faces backwards
-- **Animation tuner** (F7 → Animations): pick which clip plays for which action, cut it, change its speed, preview and
-  save it. "Dump clips to log" writes every monster's clip list to the log.
-
-## 2.0.3 (beta)
-- Fix: **Charge** no longer launches the monster into the air over a small ramp / incline (it then floated until the
-  charge ended). The charge now follows slopes and falls down over edges.
-- Fix: **Charge goes up stairs** – a step in front is climbed instead of stopping the charge.
+### Fixes
+- Monster keys work again with game version v0.5.2 (the game switched the mod's key bindings off).
+- Markers (hiders, scan) sit at the right height when the game window isn't 16:9.
+- Menus: no left / right scrollbars, texts wrap or shrink instead of being cut off.
+- New How To Play pages (end of the round, points) and new credits.
 
 ## 2.0.0 – R.E.P.O. Hide 'n Seek
 

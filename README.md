@@ -9,7 +9,7 @@
   <sub>by <b>Flyguy</b> (art &amp; animation) and <b>Napguin</b> (programming) · Thunderstore package: <code>HideAndSeekMonster</code></sub><br><br>
   <!-- Static badges: shields.io can't reach Thunderstore any more ("inaccessible"). Update the version on each release. -->
   <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/Thunderstore-Download-2a9d8f" alt="Download on Thunderstore"></a>
-  <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/release-2.0.0-e76f51" alt="Latest release 2.0.0"></a>
+  <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/release-2.1.0-e76f51" alt="Latest release 2.1.0"></a>
   <a href="https://thunderstore.io/c/repo/p/Napguin/HideAndSeekMonster/"><img src="https://img.shields.io/badge/R.E.P.O.-BepInEx_mod-6c5ce7" alt="R.E.P.O. BepInEx mod"></a>
   <a href="https://github.com/Napguin/REPO-Monster-Hide-and-Seek/issues"><img src="https://img.shields.io/github/issues/Napguin/REPO-Monster-Hide-and-Seek?label=Issues" alt="GitHub issues"></a>
 </p>
@@ -119,11 +119,22 @@ Points add up over all rounds. They are shown after each round and in the F8 men
 ### Phases
 | Phase | What happens |
 |---|---|
+| **Item time** | Everyone stands still and picks their free item (**I**). Ends after 60 s or when everyone is done (**J** = skip). |
 | **Hiding** | The monster is frozen and its screen is black. Hiders run and hide. |
 | **Hunting** | The monster is released and hunts. |
 | **End** | The monster wins when every hider is dead. The hiders win if at least one survives the hunt timer. |
 
 Normal enemies are despawned while a round is running (can be turned off).
+
+### Items
+Every player picks 1 free item at round start (item time, **I** key), following the item gallery in How To Play:
+- **Hiders:** tranq and pulse pistol, stun grenade, pulse grenade and mine, leaf blower, plus the shared items.
+- **Monster:** every item except guns, melee weapons and the defibrillator.
+- **Classic hunter:** a start weapon of choice, then every item except the defibrillator.
+- **Shared:** duck bucket, walkie talkie, bridge, POCKET C.A.R.T., med-kit, defibrillator (hiders), orbs, drones, staffs, upgrades.
+
+Weapons don't run out of energy during a round (the hiders' pistols still have only 2 shots per round). Owned items
+come back to their owner at the next round start – unless they were used up.
 
 ### Classic mode
 Switch it on in the F8 menu (`Round / Mode`). The hunter stays a normal player: while the others hide they press **I**

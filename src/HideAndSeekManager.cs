@@ -236,7 +236,7 @@ namespace HideAndSeekMonster
             {
                 if (Pressed(_attackAction)) _rawAttackPresses++;
                 if (Pressed(_roarAction)) _rawRoarPresses++;
-                InputDiag();
+                if (Plugin.TestMode.Value) InputDiag(); // key diagnostics only in test mode
             });
             if (_roundTest && !_menuOpen && !_debugOpen && !_animTunerOpen) Safe("test keys", TestKeys);
             Safe("choice keys", ChoiceKeys);
