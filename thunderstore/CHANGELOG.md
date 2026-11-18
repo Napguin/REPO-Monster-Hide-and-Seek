@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.31 (beta)
+- **Item time at the start of a round** (60 s, config Round / PickSeconds): everyone stands still and picks their
+  item with **I** – the hiding time only starts afterwards. It ends early as soon as everyone is done: taking your
+  item counts as done, **J** = done / skip.
+- Weapons no longer run out of energy during a round – for the hiders too (the tranq / pulse pistols still have only
+  2 shots per round).
+
 ## 2.0.30 (beta)
 - Fix: the end of a round (and the scores) was sent several times while the end message was on its way – now
   exactly once per round.

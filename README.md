@@ -159,6 +159,7 @@ The round settings of the **host** are used for everyone.
 | Round / FreeItem | true | Every hider may take 1 free item while hiding (I key); in Classic mode the hunter picks the start weapon |
 | Round / BanWeapons | true | Monster mode: guns, melee weapons and cart cannons can't be grabbed (tranq / pulse pistol allowed, but only 2 shots per round and no recharging) |
 | Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
+| Round / PickSeconds | 60 | Round start: time to pick your item (I) before the hiding time starts – ends early when everyone is done (J = skip) |
 | Round / InspectSeconds | 60 | After a round: time to look at the hiding spots (majority vote with J skips it), 0 = none |
 | Round / AutoNextRound | true | The next round starts by itself after the 15 s vote in the truck |
 | Round / SkipKey | J | Vote to skip the time to look at the hiding spots |

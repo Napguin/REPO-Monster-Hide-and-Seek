@@ -69,6 +69,18 @@ namespace HideAndSeekMonster
             }
         }
 
+        /// <summary>
+        /// Any weapon (gun, melee, launcher) during a round: its energy / durability never runs out – for the hunter and the
+        /// hiders. The hiders' tranq / pulse pistols are still limited to their shots per round (ItemRules).
+        /// </summary>
+        internal static bool IsRoundWeapon(Component c)
+        {
+            var mgr = Instance;
+            if (mgr == null || !mgr.RoundActive || c == null) return false;
+            var it = ItemOf(c);
+            return it != null && (it.itemType == SemiFunc.itemType.gun || it.itemType == SemiFunc.itemType.melee || it.itemType == SemiFunc.itemType.launcher);
+        }
+
         /// <summary>The hunter's weapons (held by the hunter or handed out to them): unlimited energy during a round.</summary>
         internal static bool IsSeekerWeapon(Component c)
         {
@@ -206,7 +218,7 @@ namespace HideAndSeekMonster
     {
         private static bool Prefix(ItemBattery __instance)
         {
-            if (HideAndSeekManager.IsSeekerWeapon(__instance)) return false; // the hunter's weapons: unlimited energy
+            if (HideAndSeekManager.IsSeekerWeapon(__instance) || HideAndSeekManager.IsRoundWeapon(__instance)) return false; // weapons: unlimited energy in a round
             var mgr = HideAndSeekManager.Instance;
             if (mgr == null || !mgr.ClassicActive) return true;
             var attr = __instance.GetComponent<ItemAttributes>() ?? __instance.GetComponentInParent<ItemAttributes>();
@@ -218,7 +230,7 @@ namespace HideAndSeekMonster
     [HarmonyLib.HarmonyPatch(typeof(ItemBattery), "RemoveFullBar")]
     internal static class ClassicMeleeBarPatch
     {
-        private static bool Prefix(ItemBattery __instance) => !HideAndSeekManager.IsSeekerWeapon(__instance) && ClassicMeleeDrainPatch_Allow(__instance);
+        private static bool Prefix(ItemBattery __instance) => !HideAndSeekManager.IsSeekerWeapon(__instance) && !HideAndSeekManager.IsRoundWeapon(__instance) && ClassicMeleeDrainPatch_Allow(__instance);
         internal static bool ClassicMeleeDrainPatch_Allow(ItemBattery b)
         {
             var mgr = HideAndSeekManager.Instance;

@@ -200,6 +200,7 @@ namespace HideAndSeekMonster
             Safe("hunter melee", HunterMeleeTick);
             Safe("next round", NextRoundTick);
             Safe("inspect keys", InspectKeys);
+            Safe("pick", PickTick);
 
             if (CursorWanted)
             {
@@ -959,11 +960,16 @@ namespace HideAndSeekMonster
                         break;
                     case MsgVote:
                         if (IsHost && (int)data[2] == VoteSkip) HostOnSkip(sender, (int)data[3] != 0);
+                        else if (IsHost && (int)data[2] == VotePickSkip) HostOnPickSkip(sender, (int)data[3] != 0);
                         else if (IsHost) HostOnVote(sender, (int)data[2], (int)data[3]);
                         break;
                     case MsgVoteState:
                         if (!SenderIsMaster(sender)) return;
                         OnVoteState((string[])data[2], (int[])data[3], (float)data[4]);
+                        break;
+                    case MsgPick:
+                        if (!SenderIsMaster(sender)) return;
+                        OnPick((float)data[2], (int)data[3], (int)data[4]);
                         break;
                     case MsgInspect:
                         if (!SenderIsMaster(sender) || OutsideLevels()) return;
@@ -1132,6 +1138,7 @@ namespace HideAndSeekMonster
                 Plugin.BanWeapons.Value && Plugin.Mode.Value == GameMode.Monster, // classic: weapons are the point
                 Plugin.FreeItem.Value,
                 Plugin.Mode.Value == GameMode.Classic);
+            if (RoundHasPicking) StartCoroutine(HostPickPhase(test ? Mathf.Min(Plugin.PickSeconds.Value, 20f) : Plugin.PickSeconds.Value));
             HostRechargeAll();
             _menuOpen = false;
         }
@@ -1178,6 +1185,7 @@ namespace HideAndSeekMonster
             ResetPistolShots();
             Later(1f, () => { if (CanPickFreeItem) Banner(L.FreeItemPress, new Color(0.4f, 0.7f, 1f), 4f); });
             _phaseEndTime = Time.time + hide;
+            _pickEndAt = 0f;
             Later(0.5f, HealLocalFull); // everyone starts a round with full health
 
             RemoveAfterMonster();
@@ -1369,6 +1377,7 @@ namespace HideAndSeekMonster
             if (Time.time < _resultsUntil && _sbNames.Length > 0) DrawResults(sw, sh, u);
             try { DrawRevealSurvivors(u); } catch (System.Exception ex) { _lastError = "reveal: " + ex.Message; }
             try { DrawInspect(sw, u); } catch (System.Exception ex) { _lastError = "inspect: " + ex.Message; }
+            try { DrawPick(sw, u); } catch (System.Exception ex) { _lastError = "pick: " + ex.Message; }
             if (!_menuOpen)
             {
                 try { DrawVote(sw, sh, u); }

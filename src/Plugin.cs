@@ -18,7 +18,7 @@ namespace HideAndSeekMonster
     {
         public const string Guid = "HideAndSeekMonster";
         public const string Name = "Hide And Seek Monster";
-        public const string Version = "2.0.30";
+        public const string Version = "2.0.31";
 
         internal static ManualLogSource Log;
 
@@ -55,6 +55,7 @@ namespace HideAndSeekMonster
         internal static ConfigEntry<int> TestDummyCount;
         internal static ConfigEntry<bool> AfterRound;
         internal static ConfigEntry<float> InspectSeconds;
+        internal static ConfigEntry<float> PickSeconds;
         internal static ConfigEntry<bool> AutoNextRound;
         internal static ConfigEntry<Key> SkipKey;
         internal static ConfigEntry<int> MapLevel;
@@ -140,6 +141,9 @@ namespace HideAndSeekMonster
             InspectSeconds = Config.Bind("Round", "InspectSeconds", 60f,
                 new ConfigDescription("After a round: seconds to look at the hiding spots before everyone goes back to the truck (host). A majority vote skips it. 0 = no inspection.",
                     new AcceptableValueRange<float>(0f, 600f)));
+            PickSeconds = Config.Bind("Round", "PickSeconds", 60f,
+                new ConfigDescription("Round start: seconds to pick the free item / start weapon before the hiding time starts (everyone stands still). Ends early when everyone is done or voted skip. 0 = pick during the hiding time.",
+                    new AcceptableValueRange<float>(0f, 300f)));
             AutoNextRound = Config.Bind("Round", "AutoNextRound", true,
                 "Start the next round by itself after the vote in the truck (host).");
             SkipKey = Config.Bind("Round", "SkipKey", Key.J,
