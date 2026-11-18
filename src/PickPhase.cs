@@ -30,7 +30,10 @@ namespace HideAndSeekMonster
         private IEnumerator HostPickPhase(float seconds)
         {
             _hostPickSkip.Clear();
-            yield return null; // after the start message
+            // the start message comes back over the network a bit later: wait until the round really runs here
+            for (float t = 0f; t < 5f && !(RoundActive && Phase == Phase.Hiding); t += Time.deltaTime) yield return null;
+            if (!(RoundActive && Phase == Phase.Hiding)) { Plugin.Log.LogWarning("[Pick] round didn't start – no item time"); yield break; }
+            Plugin.Log.LogInfo($"[Pick] item time {seconds:0} s");
             float end = Time.time + seconds;
             int last = -1;
             float sendAt = 0f;

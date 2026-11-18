@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.32 (beta)
+- Fix: the item time didn't show up – the host started it before its own round start had arrived.
+
 ## 2.0.31 (beta)
 - **Item time at the start of a round** (60 s, config Round / PickSeconds): everyone stands still and picks their
   item with **I** – the hiding time only starts afterwards. It ends early as soon as everyone is done: taking your
