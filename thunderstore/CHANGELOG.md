@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.38 (beta)
+- The defibrillator is for the hiders only – the hunter (monster and classic) can't pick it.
+
 ## 2.0.37 (beta)
 - The hunter may pick the hiders' (blue) items too: the monster gets every item except guns and melee weapons (tranq
   and pulse pistol allowed), the classic hunter gets every item. Hiders keep their blue + the shared items.

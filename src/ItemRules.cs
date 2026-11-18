@@ -115,6 +115,13 @@ namespace HideAndSeekMonster
         }
 
         private static bool Usable(Item it) => it != null && !it.disabled && it.prefab != null && it.prefab.IsValid();
+        /// <summary>The defibrillator (revives players) is for the hiders only.</summary>
+        private static bool IsDefibrillator(Item it)
+        {
+            string n = ((it.itemName ?? "") + " " + it.name).ToLowerInvariant();
+            return n.Contains("defib") || n.Contains("revive");
+        }
+
         private static bool IsGunOrMelee(Item it) => it.itemType == SemiFunc.itemType.gun || it.itemType == SemiFunc.itemType.melee;
 
         /// <summary>Hiders (both modes): their own items and the shared ones.</summary>
@@ -129,7 +136,7 @@ namespace HideAndSeekMonster
         /// (the tranq and pulse pistol are allowed).</summary>
         internal static bool AllowedForMonster(Item it)
         {
-            if (!Usable(it) || (IsGunOrMelee(it) && RoleOf(it) == ItemRole.Hunter)) return false;
+            if (!Usable(it) || IsDefibrillator(it) || (IsGunOrMelee(it) && RoleOf(it) == ItemRole.Hunter)) return false;
             return RoleOf(it) != ItemRole.None;
         }
 
@@ -178,7 +185,7 @@ namespace HideAndSeekMonster
         }
 
         /// <summary>Classic hunter's second item: every item – the hunter may take the hiders' ones too.</summary>
-        internal static bool AllowedHunterExtra(Item it) => Usable(it) && RoleOf(it) != ItemRole.None;
+        internal static bool AllowedHunterExtra(Item it) => Usable(it) && !IsDefibrillator(it) && RoleOf(it) != ItemRole.None;
 
         private System.Collections.Generic.List<string> _monsterItemList;
         private System.Collections.Generic.List<string> MonsterItemList()
