@@ -125,12 +125,12 @@ namespace HideAndSeekMonster
             return r == ItemRole.Hiders || r == ItemRole.Both;
         }
 
-        /// <summary>Monster mode hunter: the hunter's items and the shared ones – no guns or melee weapons.</summary>
+        /// <summary>Monster mode hunter: every item (the hiders' ones too) – except guns and melee weapons
+        /// (the tranq and pulse pistol are allowed).</summary>
         internal static bool AllowedForMonster(Item it)
         {
             if (!Usable(it) || (IsGunOrMelee(it) && RoleOf(it) == ItemRole.Hunter)) return false;
-            var r = RoleOf(it);
-            return r == ItemRole.Hunter || r == ItemRole.Both;
+            return RoleOf(it) != ItemRole.None;
         }
 
         private System.Collections.Generic.List<string> FreeItemList()
@@ -177,13 +177,8 @@ namespace HideAndSeekMonster
             return _hunterExtraList;
         }
 
-        /// <summary>Classic hunter's second item: the hunter's items (all weapons) and the shared ones.</summary>
-        internal static bool AllowedHunterExtra(Item it)
-        {
-            if (!Usable(it)) return false;
-            var r = RoleOf(it);
-            return r == ItemRole.Hunter || r == ItemRole.Both;
-        }
+        /// <summary>Classic hunter's second item: every item – the hunter may take the hiders' ones too.</summary>
+        internal static bool AllowedHunterExtra(Item it) => Usable(it) && RoleOf(it) != ItemRole.None;
 
         private System.Collections.Generic.List<string> _monsterItemList;
         private System.Collections.Generic.List<string> MonsterItemList()

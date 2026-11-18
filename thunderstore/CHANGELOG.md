@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.37 (beta)
+- The hunter may pick the hiders' (blue) items too: the monster gets every item except guns and melee weapons (tranq
+  and pulse pistol allowed), the classic hunter gets every item. Hiders keep their blue + the shared items.
+
 ## 2.0.36 (beta)
 - Item picker follows the **item gallery** (How To Play):
   - Hiders (both modes): tranq + pulse pistol, stun grenade, pulse grenade + mine, leaf blower and all shared items.
