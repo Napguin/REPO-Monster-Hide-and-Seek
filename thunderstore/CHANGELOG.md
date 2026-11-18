@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.30 (beta)
+- Fix: the end of a round (and the scores) was sent several times while the end message was on its way – now
+  exactly once per round.
+
 ## 2.0.29 (beta)
 - Fix: the monster keys (attack, scan, special, camera) didn't react at all – the mod's key bindings had been
   switched off (by the game or another mod). They are switched on again automatically and the keys are also read

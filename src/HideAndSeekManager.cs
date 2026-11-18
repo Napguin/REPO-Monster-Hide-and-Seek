@@ -455,6 +455,7 @@ namespace HideAndSeekMonster
 
         private void HostTick()
         {
+            if (_hostEndSent) return; // the round is already over, waiting for the end message
             if (Plugin.DisableEnemies.Value)
             {
                 _enemyTick -= Time.deltaTime;
@@ -473,8 +474,7 @@ namespace HideAndSeekMonster
             if (!IsAlive(Seeker))
             {
                 Plugin.Log.LogInfo("[Round] monster died – hiders win");
-                HostSendScores();
-                Send(MsgEnd, (int)Winner.MonsterDied);
+                HostEnd(Winner.MonsterDied, true);
                 return;
             }
 
@@ -484,20 +484,28 @@ namespace HideAndSeekMonster
                 // Test mode keeps running so you can respawn dummies (F10) and try more monsters.
                 if (hiders.Count == 0 && AliveDummies().Count == 0 && !_roundTest)
                 {
-                    HostSendScores();
-                    Send(MsgEnd, (int)Winner.Seeker);
+                    HostEnd(Winner.Seeker, true);
                     return;
                 }
                 if (Time.time >= _phaseEndTime)
                 {
-                    HostSendScores();
-                    Send(MsgEnd, (int)Winner.Hiders);
+                    HostEnd(Winner.Hiders, true);
                 }
             }
             else if (Phase == Phase.Hiding && hiders.Count == 0 && !_roundTest)
             {
-                Send(MsgEnd, (int)Winner.Aborted);
+                HostEnd(Winner.Aborted, false);
             }
+        }
+
+        // The end message needs a moment to come back: send it (and the scores) only once per round.
+        private bool _hostEndSent;
+        private void HostEnd(Winner w, bool scores)
+        {
+            if (_hostEndSent) return;
+            _hostEndSent = true;
+            if (scores) HostSendScores();
+            Send(MsgEnd, (int)w);
         }
 
         private void HostKill(PlayerAvatar h)
@@ -1163,6 +1171,7 @@ namespace HideAndSeekMonster
             _attackReadyAt = _roarReadyAt = 0f;
 
             Phase = Phase.Hiding;
+            _hostEndSent = false;
             _freeItemTaken = false; _startWeaponTaken = false; _freePickOpen = false;
             _hostFreeItemGiven.Clear(); _hostStartWeaponGiven.Clear();
             _lockedItems.Clear();
