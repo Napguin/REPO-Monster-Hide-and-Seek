@@ -185,10 +185,10 @@ The round settings of the **host** are used for everyone.
 ## Credits
 | | |
 |---|---|
-| **Flyguy** | Art and animation – logo, How To Play pages, Monster Showcase drawings |
-| **Napguin** | Programming |
+| **Flyguy** | Art and animation – logo, How To Play pages, Monster Showcase drawings (made with Aseprite) |
+| **Napguin** | Programming (mostly AI) |
 
-**Honorable mentions – ideas & playtesting:** Looley18, MadKitKat, SongoCat ([twitch.tv/songocat](https://www.twitch.tv/songocat))
+**Special thanks:** SongoCat ([twitch.tv/songocat](https://www.twitch.tv/songocat)), MadKitKat, Looley18, Stewberryicetea
 
 ## Coming soon
 - More monsters and specials

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.35 (beta)
+- New credits (How To Play page, menu, READMEs): special thanks to SongoCat, MadKitKat, Looley18 and Stewberryicetea.
+
 ## 2.0.34 (beta)
 - The monster may pick a free item too (I), like everyone else – from the same list as the hiders. Before, the
   monster saw "press I" but the picker didn't open.
