@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.27 (beta)
+- Fix: since 2.0.26 no monster could attack, scan or use its special – the stun check thought every monster was
+  knocked over. Only a real knock-over (the body is actually tumbling) blocks the abilities now.
+
 ## 2.0.26 (beta)
 - The monster can't attack, roar or use its special while it is stunned / knocked over (tranq dart, pulse or stun
   grenade …). Tick's own Tumble-Bash doesn't count – pressing again still stops the roll.

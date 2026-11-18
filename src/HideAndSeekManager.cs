@@ -213,14 +213,19 @@ namespace HideAndSeekMonster
         {
             var me = Seeker;
             if (me == null || Bashing) return false;
+            // Only a real knock-over counts: the tumble body is tumbling AND physically simulated (not kinematic).
+            // (PlayerAvatar.isTumbling alone was true for monsters that weren't knocked over at all.)
             var tumble = Compat.Get<Component>(me, "tumble");
-            return Compat.Get<bool>(me, "isTumbling") || (tumble != null && Compat.Get<bool>(tumble, "isTumbling"));
+            if (tumble == null || !Compat.Get<bool>(tumble, "isTumbling")) return false;
+            var rb = Compat.Get<Rigidbody>(tumble, "rb");
+            return rb != null && !rb.isKinematic;
         }
 
         private float _stunnedMsgAt;
         private bool StunnedBlocks()
         {
             if (!SeekerStunned()) return false;
+            if (Time.time >= _stunnedMsgAt) Plugin.Log.LogInfo("[Monster] ability blocked: knocked over");
             if (Time.time >= _stunnedMsgAt) { _stunnedMsgAt = Time.time + 1.5f; Banner(L.StunnedNoAbilities, new Color(1f, 0.8f, 0.3f), 1.2f); }
             return true;
         }
