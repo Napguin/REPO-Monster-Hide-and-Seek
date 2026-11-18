@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.28 (beta)
+- Diagnostics: pressing a monster key logs what could block it (for the "nothing works" bug).
+
 ## 2.0.27 (beta)
 - Fix: since 2.0.26 no monster could attack, scan or use its special – the stun check thought every monster was
   knocked over. Only a real knock-over (the body is actually tumbling) blocks the abilities now.

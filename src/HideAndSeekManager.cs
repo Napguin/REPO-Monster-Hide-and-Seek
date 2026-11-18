@@ -196,6 +196,7 @@ namespace HideAndSeekMonster
             {
                 if (_attackAction.WasPressedThisFrame()) _rawAttackPresses++;
                 if (_roarAction.WasPressedThisFrame()) _rawRoarPresses++;
+                InputDiag();
             });
             if (_roundTest && !_menuOpen && !_debugOpen && !_animTunerOpen) Safe("test keys", TestKeys);
             Safe("choice keys", ChoiceKeys);
@@ -218,10 +219,26 @@ namespace HideAndSeekMonster
             var tumble = Compat.Get<Component>(me, "tumble");
             if (tumble == null || !Compat.Get<bool>(tumble, "isTumbling")) return false;
             var rb = Compat.Get<Rigidbody>(tumble, "rb");
-            return rb != null && !rb.isKinematic;
+            return rb != null && !rb.isKinematic && rb.gameObject.activeInHierarchy;
         }
 
-        private float _stunnedMsgAt;
+        private float _stunnedMsgAt, _diagAt;
+
+        /// <summary>Diagnostics: a monster key was pressed – log what could stop it (once per second).</summary>
+        private void InputDiag()
+        {
+            bool any = _attackAction.WasPressedThisFrame() || _roarAction.WasPressedThisFrame()
+                       || _specialAction.WasPressedThisFrame() || _viewAction.WasPressedThisFrame();
+            if (!any || Time.time < _diagAt) return;
+            _diagAt = Time.time + 1f;
+            bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
+            var tumble = Seeker != null ? Compat.Get<Component>(Seeker, "tumble") : null;
+            var trb = tumble != null ? Compat.Get<Rigidbody>(tumble, "rb") : null;
+            Plugin.Log.LogInfo($"[Diag] key: seeker={localSeeker} phase={Phase} classic={_roundClassic} menu={_menuOpen} debug={_debugOpen} " +
+                $"tuner={_animTunerOpen} pick={_freePickOpen} typing={GameRefs.IsTyping} cursor={CursorWanted} " +
+                $"tumbling={(tumble != null && Compat.Get<bool>(tumble, "isTumbling"))} kinematic={(trb != null ? trb.isKinematic.ToString() : "-")} " +
+                $"cdAttack={Mathf.Max(0f, _attackReadyAt - Time.time):0.0} cdSpecial={Mathf.Max(0f, _specialReadyAt - Time.time):0.0} blocked={AttackBlocked}");
+        }
         private bool StunnedBlocks()
         {
             if (!SeekerStunned()) return false;
