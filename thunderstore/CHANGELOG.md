@@ -1,7 +1,10 @@
 # Changelog
 
-## 2.0.28 (beta)
-- Diagnostics: pressing a monster key logs what could block it (for the "nothing works" bug).
+## 2.0.29 (beta)
+- Fix: the monster keys (attack, scan, special, camera) didn't react at all – the mod's key bindings had been
+  switched off (by the game or another mod). They are switched on again automatically and the keys are also read
+  straight from mouse and keyboard.
+- Diagnostics: pressing a monster key logs what could block it.
 
 ## 2.0.27 (beta)
 - Fix: since 2.0.26 no monster could attack, scan or use its special – the stun check thought every monster was

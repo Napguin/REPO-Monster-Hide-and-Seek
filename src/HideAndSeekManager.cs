@@ -132,6 +132,44 @@ namespace HideAndSeekMonster
             try { _specialAction.Disable(); _specialAction.AddBinding("<Keyboard>/f"); _specialAction.Enable(); } catch { /* optional */ }
         }
 
+        // ------------------------------------------------------------------
+        // Robust key reading: something (the game or another mod) can switch every InputAction off. Then the action is
+        // switched on again and the keys are also read straight from the mouse / keyboard.
+        // ------------------------------------------------------------------
+        private readonly Dictionary<InputAction, List<UnityEngine.InputSystem.Controls.ButtonControl>> _actionControls =
+            new Dictionary<InputAction, List<UnityEngine.InputSystem.Controls.ButtonControl>>();
+        private bool _actionsOffLogged;
+
+        private bool Pressed(InputAction a)
+        {
+            if (a == null) return false;
+            if (!a.enabled)
+            {
+                if (!_actionsOffLogged) { _actionsOffLogged = true; Plugin.Log.LogWarning($"[Input] '{a}' was switched off by something – switched on again, reading the keys directly"); }
+                try { a.Enable(); } catch { /* ignore */ }
+            }
+            bool viaAction = false;
+            try { viaAction = a.WasPressedThisFrame(); } catch { /* ignore */ }
+            if (viaAction) return true;
+            if (!_actionControls.TryGetValue(a, out var list))
+            {
+                list = new List<UnityEngine.InputSystem.Controls.ButtonControl>();
+                foreach (var b in a.bindings)
+                {
+                    try
+                    {
+                        foreach (var c in InputSystem.FindControls(b.effectivePath))
+                            if (c is UnityEngine.InputSystem.Controls.ButtonControl bc) list.Add(bc);
+                    }
+                    catch { /* bad path */ }
+                }
+                if (list.Count > 0) _actionControls[a] = list; // no mouse / keyboard yet: look again next time
+            }
+            foreach (var bc in list)
+                if (bc != null && bc.wasPressedThisFrame) return true;
+            return false;
+        }
+
         private static InputAction MakeAction(string binding, string fallback)
         {
             InputAction a;
@@ -194,8 +232,8 @@ namespace HideAndSeekMonster
 
             Safe("input", () =>
             {
-                if (_attackAction.WasPressedThisFrame()) _rawAttackPresses++;
-                if (_roarAction.WasPressedThisFrame()) _rawRoarPresses++;
+                if (Pressed(_attackAction)) _rawAttackPresses++;
+                if (Pressed(_roarAction)) _rawRoarPresses++;
                 InputDiag();
             });
             if (_roundTest && !_menuOpen && !_debugOpen && !_animTunerOpen) Safe("test keys", TestKeys);
@@ -227,8 +265,8 @@ namespace HideAndSeekMonster
         /// <summary>Diagnostics: a monster key was pressed – log what could stop it (once per second).</summary>
         private void InputDiag()
         {
-            bool any = _attackAction.WasPressedThisFrame() || _roarAction.WasPressedThisFrame()
-                       || _specialAction.WasPressedThisFrame() || _viewAction.WasPressedThisFrame();
+            bool any = Pressed(_attackAction) || Pressed(_roarAction)
+                       || Pressed(_specialAction) || Pressed(_viewAction);
             if (!any || Time.time < _diagAt) return;
             _diagAt = Time.time + 1f;
             bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
@@ -237,7 +275,7 @@ namespace HideAndSeekMonster
             Plugin.Log.LogInfo($"[Diag] key: seeker={localSeeker} phase={Phase} classic={_roundClassic} menu={_menuOpen} debug={_debugOpen} " +
                 $"tuner={_animTunerOpen} pick={_freePickOpen} typing={GameRefs.IsTyping} cursor={CursorWanted} " +
                 $"tumbling={(tumble != null && Compat.Get<bool>(tumble, "isTumbling"))} kinematic={(trb != null ? trb.isKinematic.ToString() : "-")} " +
-                $"cdAttack={Mathf.Max(0f, _attackReadyAt - Time.time):0.0} cdSpecial={Mathf.Max(0f, _specialReadyAt - Time.time):0.0} blocked={AttackBlocked}");
+                $"actionsOn={_attackAction.enabled}/{_specialAction.enabled} cdAttack={Mathf.Max(0f, _attackReadyAt - Time.time):0.0} cdSpecial={Mathf.Max(0f, _specialReadyAt - Time.time):0.0} blocked={AttackBlocked}");
         }
         private bool StunnedBlocks()
         {
@@ -298,14 +336,14 @@ namespace HideAndSeekMonster
 
             Safe("view key", () =>
             {
-                if (!_viewAction.WasPressedThisFrame()) return;
+                if (!Pressed(_viewAction)) return;
                 _thirdPerson = !_thirdPerson;
                 Plugin.Log.LogInfo($"[Monster] view -> {(_thirdPerson ? "third" : "first")} person (camera: {ThirdPersonCamera.MainCameraName})");
             });
 
             Safe("attack key", () =>
             {
-                if (!_attackAction.WasPressedThisFrame() || Time.time < _attackReadyAt) return;
+                if (!Pressed(_attackAction) || Time.time < _attackReadyAt) return;
                 if (StunnedBlocks()) return;
                 if (AttackBlocked) { Banner(L.NoAttackWhileCharging, Abilities.UnityColor(Charging ? _chargeType : _grabType), 1f); return; }
                 _attackReadyAt = Time.time + Cd(Plugin.AttackCooldown.Value);
@@ -317,7 +355,7 @@ namespace HideAndSeekMonster
 
             Safe("roar key", () =>
             {
-                if (!_roarAction.WasPressedThisFrame() || Time.time < _roarReadyAt) return;
+                if (!Pressed(_roarAction) || Time.time < _roarReadyAt) return;
                 if (StunnedBlocks()) return;
                 _roarReadyAt = Time.time + Cd(Plugin.RoarCooldown.Value);
                 Plugin.Log.LogInfo("[Monster] roar pressed");
@@ -326,7 +364,7 @@ namespace HideAndSeekMonster
 
             Safe("special key", () =>
             {
-                if (!_specialAction.WasPressedThisFrame()) return;
+                if (!Pressed(_specialAction)) return;
                 TriggerSpecial();
             });
 
