@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.36 (beta)
+- Item picker follows the **item gallery** (How To Play):
+  - Hiders (both modes): tranq + pulse pistol, stun grenade, pulse grenade + mine, leaf blower and all shared items.
+  - Monster: grenade, duct-tape grenade, explosive mine, zap trap and all shared items (no guns / melee).
+  - Classic hunter: all weapons (start weapon) plus the hunter's and the shared items.
+  - Shared: duck bucket, walkie talkie, bridge, POCKET C.A.R.T., med-kit, defibrillator, orbs, drones, staffs, upgrades.
+- The log lists every item of the game with its role once (to find items that are missing in the picker).
+
 ## 2.0.35 (beta)
 - New credits (How To Play page, menu, READMEs): special thanks to SongoCat, MadKitKat, Looley18 and Stewberryicetea.
 

@@ -83,25 +83,54 @@ namespace HideAndSeekMonster
         private readonly System.Collections.Generic.HashSet<int> _hostFreeItemGiven = new System.Collections.Generic.HashSet<int>();
         private readonly System.Collections.Generic.HashSet<int> _hostStartWeaponGiven = new System.Collections.Generic.HashSet<int>();
 
-        internal static bool AllowedFreeItemForHider(Item it)
+        // ---- who may pick which item (Flyguy's item gallery: blue = hiders, red = hunter, white = both) ----
+        internal enum ItemRole { None, Both, Hiders, Hunter }
+
+        internal static ItemRole RoleOf(Item it)
         {
-            if (it == null || it.disabled || it.prefab == null || !it.prefab.IsValid()) return false;
-            if (IsBannedWeapon(it)) return false;
+            if (it == null || it.prefab == null || !it.prefab.IsValid()) return ItemRole.None;
             string n = ((it.itemName ?? "") + " " + it.name).ToLowerInvariant();
-            if (n.Contains("scout")) return false;                      // scouts are banned
+            if (n.Contains("scout")) return ItemRole.None;                 // not in the gallery
             switch (it.itemType)
             {
-                case SemiFunc.itemType.cart:
                 case SemiFunc.itemType.power_crystal:
                 case SemiFunc.itemType.vehicle:
-                    return false;
-                case SemiFunc.itemType.grenade:
-                case SemiFunc.itemType.mine:
-                    // hiders may only use weapons that do no damage
-                    return !(n.Contains("explosive") || n.Contains("duct") || n.Contains("human"));
-                default:
-                    return true;
+                case SemiFunc.itemType.launcher:                            // cart cannons are banned
+                    return ItemRole.None;
+                case SemiFunc.itemType.cart:
+                    return n.Contains("small") || n.Contains("pocket") ? ItemRole.Both : ItemRole.None; // only the POCKET C.A.R.T.
+                case SemiFunc.itemType.melee:
+                    return ItemRole.Hunter;                                 // f-pan, sword, prod-z, sledge, bat, hammer, whip
+                case SemiFunc.itemType.gun:
+                    // tranq + pulse pistol: hiders; every other gun: hunter
+                    return n.Contains("tranq") || n.Contains("shockwave") || n.Contains("pulse") ? ItemRole.Hiders : ItemRole.Hunter;
             }
+            // no-damage things: hiders (stun grenade / mine, pulse grenade / mine, leaf blower)
+            if (n.Contains("stun") || n.Contains("shockwave") || n.Contains("pulse") || n.Contains("leaf") || n.Contains("blower"))
+                return ItemRole.Hiders;
+            // damage: hunter (grenade, duct-tape grenade, human grenade, explosive mine, zap trap)
+            if (n.Contains("explosive") || n.Contains("duct") || n.Contains("human") || n.Contains("trap") || n.Contains("zap"))
+                return ItemRole.Hunter;
+            return ItemRole.Both; // duck bucket, walkie talkie, bridge, cart, med-kit, defibrillator, orbs, drones, staffs, upgrades
+        }
+
+        private static bool Usable(Item it) => it != null && !it.disabled && it.prefab != null && it.prefab.IsValid();
+        private static bool IsGunOrMelee(Item it) => it.itemType == SemiFunc.itemType.gun || it.itemType == SemiFunc.itemType.melee;
+
+        /// <summary>Hiders (both modes): their own items and the shared ones.</summary>
+        internal static bool AllowedFreeItemForHider(Item it)
+        {
+            if (!Usable(it)) return false;
+            var r = RoleOf(it);
+            return r == ItemRole.Hiders || r == ItemRole.Both;
+        }
+
+        /// <summary>Monster mode hunter: the hunter's items and the shared ones – no guns or melee weapons.</summary>
+        internal static bool AllowedForMonster(Item it)
+        {
+            if (!Usable(it) || (IsGunOrMelee(it) && RoleOf(it) == ItemRole.Hunter)) return false;
+            var r = RoleOf(it);
+            return r == ItemRole.Hunter || r == ItemRole.Both;
         }
 
         private System.Collections.Generic.List<string> FreeItemList()
@@ -113,6 +142,7 @@ namespace HideAndSeekMonster
             foreach (var kv in sm.itemDictionary)
                 if (AllowedFreeItemForHider(kv.Value)) _freeItemList.Add(kv.Key);
             _freeItemList.Sort((a, b) => string.Compare(ItemLabel(a), ItemLabel(b), System.StringComparison.OrdinalIgnoreCase));
+            LogItemRoles();
             return _freeItemList;
         }
 
@@ -147,16 +177,44 @@ namespace HideAndSeekMonster
             return _hunterExtraList;
         }
 
+        /// <summary>Classic hunter's second item: the hunter's items (all weapons) and the shared ones.</summary>
         internal static bool AllowedHunterExtra(Item it)
         {
-            if (it == null || it.disabled || it.prefab == null || !it.prefab.IsValid()) return false;
-            string n = ((it.itemName ?? "") + " " + it.name).ToLowerInvariant();
-            if (n.Contains("scout")) return false;
-            switch (it.itemType)
+            if (!Usable(it)) return false;
+            var r = RoleOf(it);
+            return r == ItemRole.Hunter || r == ItemRole.Both;
+        }
+
+        private System.Collections.Generic.List<string> _monsterItemList;
+        private System.Collections.Generic.List<string> MonsterItemList()
+        {
+            if (_monsterItemList != null && _monsterItemList.Count > 0) return _monsterItemList;
+            _monsterItemList = new System.Collections.Generic.List<string>();
+            var sm = StatsManager.instance;
+            if (sm == null || sm.itemDictionary == null) return _monsterItemList;
+            foreach (var kv in sm.itemDictionary)
+                if (AllowedForMonster(kv.Value)) _monsterItemList.Add(kv.Key);
+            _monsterItemList.Sort((a, b) => string.Compare(ItemLabel(a), ItemLabel(b), System.StringComparison.OrdinalIgnoreCase));
+            LogItemRoles();
+            return _monsterItemList;
+        }
+
+        private static bool _rolesLogged;
+        /// <summary>Once: every item of the game with its role (to compare with the item gallery).</summary>
+        private static void LogItemRoles()
+        {
+            if (_rolesLogged) return;
+            var sm = StatsManager.instance;
+            if (sm == null || sm.itemDictionary == null || sm.itemDictionary.Count == 0) return;
+            _rolesLogged = true;
+            var sb = new System.Text.StringBuilder("[Items] roles (item – type – role):\n");
+            foreach (var kv in sm.itemDictionary.OrderBy(k => k.Key))
             {
-                case SemiFunc.itemType.launcher: case SemiFunc.itemType.cart: case SemiFunc.itemType.power_crystal: case SemiFunc.itemType.vehicle: return false;
-                default: return true;
+                var it = kv.Value;
+                string extra = it == null ? " (null)" : it.disabled ? " (disabled in the game)" : (it.prefab == null || !it.prefab.IsValid()) ? " (no prefab)" : "";
+                sb.Append("  ").Append(kv.Key).Append(" – ").Append(it != null ? it.itemType.ToString() : "?").Append(" – ").Append(RoleOf(it)).Append(extra).Append('\n');
             }
+            Plugin.Log.LogInfo(sb.ToString());
         }
 
         private System.Collections.Generic.List<string> _startWeaponList;
@@ -209,7 +267,7 @@ namespace HideAndSeekMonster
             if (!startWeapon && !_hostFreeItemGiven.Add(actor)) { Plugin.Log.LogInfo($"[FreeItem] {NameOf(who)} already took one"); return; }
             var sm = StatsManager.instance;
             if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it)
-                || !(startWeapon ? IsStartWeapon(it) : classicHunter ? AllowedHunterExtra(it) : AllowedFreeItemForHider(it)))
+                || !(startWeapon ? IsStartWeapon(it) : classicHunter ? AllowedHunterExtra(it) : hunter ? AllowedForMonster(it) : AllowedFreeItemForHider(it)))
             {
                 if (!startWeapon) _hostFreeItemGiven.Remove(actor);
                 Plugin.Log.LogInfo($"[FreeItem] '{key}' not allowed");
@@ -379,7 +437,8 @@ namespace HideAndSeekMonster
             _cellLabel.fontSize = Mathf.RoundToInt(13 * u);
             bool weapon = CanPickStartWeapon;
             bool hunterExtra = !weapon && _roundClassic && Seeker != null && GameRefs.IsLocal(Seeker); // the monster picks from the normal list
-            var list = weapon ? StartWeaponList() : hunterExtra ? HunterExtraList() : FreeItemList();
+            bool monsterPick = !weapon && !_roundClassic && Seeker != null && GameRefs.IsLocal(Seeker);
+            var list = weapon ? StartWeaponList() : hunterExtra ? HunterExtraList() : monsterPick ? MonsterItemList() : FreeItemList();
             if (_freePickSel >= list.Count) _freePickSel = -1;
 
             float w = Mathf.Min(900 * u, sw - 40 * u), h = Mathf.Min(760 * u, sh - 60 * u);
