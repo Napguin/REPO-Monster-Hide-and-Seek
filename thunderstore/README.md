@@ -120,7 +120,7 @@ The round settings of the **host** are used for everyone.
 | Round / DisableEnemies | true | Despawn normal enemies during a round |
 | Round / MapLevel | 0 | Level (map size) for new maps from the menu / map vote, 0 = keep current |
 | Round / Mode | Monster | Monster: hunter becomes a monster. Classic: hunter stays a player with a melee weapon of choice |
-| Round / FreeItem | true | Every hider may take 1 free item while hiding (I key); in Classic mode the hunter picks the start weapon |
+| Round / FreeItem | true | Everyone – hiders and the monster – may take 1 free item at round start (I key); in Classic mode the hunter picks the start weapon first |
 | Round / BanWeapons | true | Monster mode: guns, melee weapons and cart cannons can't be grabbed (tranq / pulse pistol allowed, but only 2 shots per round and no recharging) |
 | Round / AfterRound | true | Reveal survivors, revive + heal, truck, vote for seeker and map |
 | Round / PickSeconds | 60 | Round start: time to pick your item (I) before the hiding time starts – ends early when everyone is done (J = skip) |

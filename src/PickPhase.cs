@@ -94,7 +94,7 @@ namespace HideAndSeekMonster
             bool seeker = Seeker != null && GameRefs.IsLocal(Seeker);
             if (seeker)
             {
-                if (!_roundClassic) return true;                       // monster: nothing to pick
+                if (!_roundClassic) return !_roundFreeItem || _freeItemTaken; // monster: one item like everyone
                 return _startWeaponTaken && (!_roundFreeItem || _freeItemTaken);
             }
             return !_roundFreeItem || _freeItemTaken || !IsAlive(me);

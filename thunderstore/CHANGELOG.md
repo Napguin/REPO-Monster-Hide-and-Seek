@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.34 (beta)
+- The monster may pick a free item too (I), like everyone else – from the same list as the hiders. Before, the
+  monster saw "press I" but the picker didn't open.
+
 ## 2.0.33 (beta)
 - Fix: unused items (health packs, upgrades …) left behind on the old map came back only if they were weapons or
   explosives. Now every owned item that wasn't used up comes back to its owner on the next map / round. Items that

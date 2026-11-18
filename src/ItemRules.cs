@@ -127,7 +127,8 @@ namespace HideAndSeekMonster
         private bool _roundFreeItem;
         private bool _startWeaponTaken;
         private bool CanPickFreeItem => _roundFreeItem && RoundActive && Phase == Phase.Hiding && !_freeItemTaken
-            && (LocalHider(out _) || (ClassicActive && _startWeaponTaken && Seeker != null && GameRefs.IsLocal(Seeker)));
+            && (LocalHider(out _)
+                || (Seeker != null && GameRefs.IsLocal(Seeker) && (!_roundClassic || (ClassicActive && _startWeaponTaken)))); // the monster gets an item too
 
         /// <summary>Per frame: I opens / closes the picker while hiding.</summary>
         private bool PickerAvailable => CanPickFreeItem || CanPickStartWeapon;
@@ -202,12 +203,13 @@ namespace HideAndSeekMonster
             var who = AvatarOfActor(actor);
             if (who == null || !IsAlive(who)) return;
             bool hunter = who == Seeker;
-            if (hunter ? !_roundClassic : !_hiderViewIds.Contains(who.photonView.ViewID)) return; // monster-mode hunter gets nothing
-            bool startWeapon = hunter && !_hostStartWeaponGiven.Contains(actor);
+            if (!hunter && !_hiderViewIds.Contains(who.photonView.ViewID)) return;
+            bool startWeapon = hunter && _roundClassic && !_hostStartWeaponGiven.Contains(actor); // classic hunter: weapon first
+            bool classicHunter = hunter && _roundClassic;
             if (!startWeapon && !_hostFreeItemGiven.Add(actor)) { Plugin.Log.LogInfo($"[FreeItem] {NameOf(who)} already took one"); return; }
             var sm = StatsManager.instance;
             if (sm == null || sm.itemDictionary == null || !sm.itemDictionary.TryGetValue(key, out var it)
-                || !(startWeapon ? IsStartWeapon(it) : hunter ? AllowedHunterExtra(it) : AllowedFreeItemForHider(it)))
+                || !(startWeapon ? IsStartWeapon(it) : classicHunter ? AllowedHunterExtra(it) : AllowedFreeItemForHider(it)))
             {
                 if (!startWeapon) _hostFreeItemGiven.Remove(actor);
                 Plugin.Log.LogInfo($"[FreeItem] '{key}' not allowed");
@@ -376,7 +378,7 @@ namespace HideAndSeekMonster
             if (_cellLabel == null) _cellLabel = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperCenter, wordWrap = true, richText = true };
             _cellLabel.fontSize = Mathf.RoundToInt(13 * u);
             bool weapon = CanPickStartWeapon;
-            bool hunterExtra = !weapon && Seeker != null && GameRefs.IsLocal(Seeker);
+            bool hunterExtra = !weapon && _roundClassic && Seeker != null && GameRefs.IsLocal(Seeker); // the monster picks from the normal list
             var list = weapon ? StartWeaponList() : hunterExtra ? HunterExtraList() : FreeItemList();
             if (_freePickSel >= list.Count) _freePickSel = -1;
 
