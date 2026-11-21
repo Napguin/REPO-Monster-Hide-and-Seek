@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.6 (beta)
+- Items handed out by the mod (free item, start weapon, items that come back) go straight into the owner's first free
+  inventory slot. Items that don't fit into the inventory (cart, bridge …) or a full inventory: the item lies in
+  front of you as before.
+
 ## 2.1.5 (beta)
 - Fix: for one player the item picker said "Nothing found". The host now sends the item lists at every round start –
   a player whose own list is empty uses the host's (and the log says why it was empty).

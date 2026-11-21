@@ -1082,7 +1082,7 @@ namespace HideAndSeekMonster
                         break;
                     case MsgOwner:
                         if (!SenderIsMaster(sender)) return;
-                        OnOwner((int)data[2], (int)data[3]);
+                        OnOwner((int)data[2], (int)data[3], data.Length > 4 && data[4] is bool eqp && eqp);
                         break;
                     case MsgFreeItem:
                         if (IsHost) HostGiveFreeItem(sender, (string)data[2]);

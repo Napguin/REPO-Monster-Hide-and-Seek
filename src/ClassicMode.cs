@@ -112,10 +112,44 @@ namespace HideAndSeekMonster
             var pv = go.GetComponent<PhotonView>() ?? go.GetComponentInChildren<PhotonView>();
             if (pv == null || pv.ViewID == 0) return;
             _hostItemKey[pv.ViewID] = key;
-            Send(MsgOwner, pv.ViewID, actor);
+            Send(MsgOwner, pv.ViewID, actor, true); // true: the owner puts it straight into the inventory
         }
 
-        private void OnOwner(int viewId, int actor) => _itemOwner[viewId] = actor;
+        private void OnOwner(int viewId, int actor, bool equip)
+        {
+            _itemOwner[viewId] = actor;
+            var me = GameRefs.LocalAvatar;
+            if (equip && me != null && ActorOf(me) == actor) StartCoroutine(EquipWhenReady(viewId));
+        }
+
+        /// <summary>Owner's PC: put a handed-out item into the first free inventory slot (if it fits in one).</summary>
+        private System.Collections.IEnumerator EquipWhenReady(int viewId)
+        {
+            ItemEquippable eq = null;
+            for (float t = 0f; t < 4f; t += 0.2f)
+            {
+                var pv = PhotonView.Find(viewId);
+                eq = pv != null ? pv.GetComponent<ItemEquippable>() ?? pv.GetComponentInChildren<ItemEquippable>() : null;
+                if (pv != null) break;
+                yield return new WaitForSeconds(0.2f);
+            }
+            if (eq == null) yield break; // doesn't fit into the inventory (cart, bridge …) – stays in front of the player
+            yield return new WaitForSeconds(0.4f); // let it land / sync first
+            var inv = Inventory.instance;
+            var grabber = Compat.Static("PhysGrabber", "instance") as PhysGrabber;
+            int spot = inv != null ? inv.GetFirstFreeInventorySpotIndex() : -1;
+            if (inv == null || grabber == null || spot < 0)
+            {
+                Banner(L.InventoryFull, new Color(1f, 0.8f, 0.3f), 2f);
+                yield break;
+            }
+            try
+            {
+                eq.RequestEquip(spot, grabber.photonView.ViewID);
+                Plugin.Log.LogInfo($"[Items] '{eq.name}' put into inventory slot {spot + 1}");
+            }
+            catch (System.Exception ex) { Plugin.Log.LogWarning("[Items] could not put the item into the inventory: " + ex.Message); }
+        }
 
         private static int OwnerOf(Component c)
         {
