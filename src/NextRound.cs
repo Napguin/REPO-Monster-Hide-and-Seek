@@ -46,6 +46,17 @@ namespace HideAndSeekMonster
             Banner(L.InspectStart, new Color(0.5f, 0.85f, 1f), 4f);
         }
 
+        private float _afterEnemyTick;
+        /// <summary>Host: no game enemies while everyone looks at the hiding spots, votes or waits for the next round.</summary>
+        private void AfterRoundEnemiesTick()
+        {
+            if (!IsHost || RoundActive || !Plugin.DisableEnemies.Value || !InLevel()) return;
+            bool between = Inspecting || _voteOpen || _afterRound != null || _nextRoundAt > 0f || _afterMonster != null;
+            if (!between || Time.time < _despawnPauseUntil || Time.time < _afterEnemyTick) return;
+            _afterEnemyTick = Time.time + 1f;
+            DespawnEnemies();
+        }
+
         private void HealLocalFull()
         {
             var me = GameRefs.LocalAvatar;

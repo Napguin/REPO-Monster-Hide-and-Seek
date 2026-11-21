@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.1 (beta)
+- Fix: a hider who gets revived during the hunt (defibrillator …) counts as alive again for the score – they can
+  still survive (or die again later).
+- Fix: used-up consumables (health packs, upgrades …) came back at the next round. The host now remembers on which
+  map each item was last seen: gone on the same map = used up, stays gone; left on an older map = comes back.
+- Fix: game enemies spawned after the round – they stay off while everyone looks at the hiding spots, votes and
+  waits for the next round.
+
 ## 2.1.0
 
 ### New round flow

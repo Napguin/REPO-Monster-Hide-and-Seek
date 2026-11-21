@@ -202,6 +202,7 @@ namespace HideAndSeekMonster
             Safe("inspect keys", InspectKeys);
             Safe("pick", PickTick);
             Safe("owned items", HostOwnedItemsTick);
+            Safe("after-round enemies", AfterRoundEnemiesTick);
 
             if (CursorWanted)
             {
@@ -548,6 +549,13 @@ namespace HideAndSeekMonster
         {
             foreach (int id in _hiderViewIds)
             {
+                // revived (defibrillator …): back in the game – may still survive or die again later
+                if (_hiderOutTime.ContainsKey(id) && aliveHiders.Any(p => p.photonView.ViewID == id))
+                {
+                    _hiderOutTime.Remove(id);
+                    Plugin.Log.LogInfo($"[Score] {NameOf(FindByViewId(id))} was revived – counts as alive again");
+                    continue;
+                }
                 if (_hiderOutTime.ContainsKey(id)) continue;
                 if (aliveHiders.Any(p => p.photonView.ViewID == id)) continue;
                 _hiderOutTime[id] = Time.time;
