@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.3 (beta)
+- Scores, item owners and the after-round are reset when a new lobby starts (lobby restarted, another lobby joined,
+  back to the main menu). Map changes inside the same lobby keep them.
+
 ## 2.1.2 (beta)
 - **Third-person view for hiders:** press **V** during a round to switch between first and third person – your own
   robot is visible in third person.
