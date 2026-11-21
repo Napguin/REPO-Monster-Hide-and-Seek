@@ -15,6 +15,7 @@ namespace HideAndSeekMonster
         public static string PickSkip(string key, bool mine, int n, int total) =>
             (De ? (mine ? $"[{key}] fertig zurücknehmen" : $"[{key}] fertig / überspringen") : (mine ? $"[{key}] take back done" : $"[{key}] done / skip"))
             + $"  <color=#a0a0a0>({n}/{total} {(De ? "fertig" : "done")})</color>";
+        public static string NoAttackWhileGrabbing => De ? "Kein Angriff, während du etwas festhältst!" : "No attack while you're holding something!";
         public static string StunnedNoAbilities => De ? "Betäubt – keine Fähigkeiten!" : "Stunned – no abilities!";
         public static string InspectStart => De ? "Runde vorbei – schaut euch die Verstecke an!" : "Round over – go look at the hiding spots!";
         public static string InspectCountdown(int s) => De ? $"Verstecke anschauen: {s} s" : $"Look at the hiding spots: {s}s";

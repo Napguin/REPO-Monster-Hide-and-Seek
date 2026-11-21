@@ -266,6 +266,18 @@ namespace HideAndSeekMonster
 
         private float _stunnedMsgAt, _diagAt;
 
+        /// <summary>The monster holds something with its grab beam (item, door, player …): no main attack meanwhile.</summary>
+        private static bool SeekerGrabbing()
+        {
+            var grabber = Compat.Static("PhysGrabber", "instance");
+            if (grabber == null) return false;
+            if (Compat.Get<bool>(grabber, "grabbed") || Compat.Get<bool>(grabber, "physGrabBeamActive")
+                || Compat.Get<Object>(grabber, "grabbedPhysGrabObject") != null) return true;
+            // the same click starts a grab when the monster looks at something grabbable (item, door, cart …)
+            return Plugin.MonsterCanGrab.Value && (Compat.Get<Object>(grabber, "currentlyLookingAtPhysGrabObject") != null
+                                                   || Compat.Get<Object>(grabber, "currentlyLookingAtStaticGrabObject") != null);
+        }
+
         /// <summary>Diagnostics: a monster key was pressed – log what could stop it (once per second).</summary>
         private void InputDiag()
         {
@@ -350,6 +362,11 @@ namespace HideAndSeekMonster
             {
                 if (!Pressed(_attackAction) || Time.time < _attackReadyAt) return;
                 if (StunnedBlocks()) return;
+                if (SeekerGrabbing())
+                {
+                    if (Time.time >= _stunnedMsgAt) { _stunnedMsgAt = Time.time + 1.5f; Banner(L.NoAttackWhileGrabbing, new Color(1f, 0.8f, 0.3f), 1.2f); }
+                    return;
+                }
                 if (AttackBlocked) { Banner(L.NoAttackWhileCharging, Abilities.UnityColor(Charging ? _chargeType : _grabType), 1f); return; }
                 _attackReadyAt = Time.time + Cd(Plugin.AttackCooldown.Value);
                 _lungeUntil = Time.time + 0.35f;

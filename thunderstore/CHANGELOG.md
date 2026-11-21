@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.4 (beta)
+- The monster can't attack while it holds something with its grab beam – and a click on something grabbable
+  (item, door, cart …) only grabs, it doesn't attack too.
+
 ## 2.1.3 (beta)
 - Scores, item owners and the after-round are reset when a new lobby starts (lobby restarted, another lobby joined,
   back to the main menu). Map changes inside the same lobby keep them.
