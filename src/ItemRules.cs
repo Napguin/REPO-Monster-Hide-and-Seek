@@ -158,7 +158,7 @@ namespace HideAndSeekMonster
             var sm = StatsManager.instance;
             if (sm != null && sm.itemDictionary != null && sm.itemDictionary.TryGetValue(key, out var it) && it != null && !string.IsNullOrEmpty(it.itemName))
                 return it.itemName;
-            return key.Replace("Item ", "");
+            return HostLabel(key) ?? key.Replace("Item ", "");
         }
 
         private bool _roundFreeItem;
@@ -405,7 +405,7 @@ namespace HideAndSeekMonster
         {
             var sm = StatsManager.instance;
             if (sm != null && sm.itemDictionary != null && sm.itemDictionary.TryGetValue(key, out var it) && it != null) return it.itemType;
-            return null;
+            return HostType(key);
         }
 
         private static readonly SemiFunc.itemType[] CategoryOrder =
@@ -440,7 +440,10 @@ namespace HideAndSeekMonster
             bool weapon = CanPickStartWeapon;
             bool hunterExtra = !weapon && _roundClassic && Seeker != null && GameRefs.IsLocal(Seeker); // the monster picks from the normal list
             bool monsterPick = !weapon && !_roundClassic && Seeker != null && GameRefs.IsLocal(Seeker);
-            var list = weapon ? StartWeaponList() : hunterExtra ? HunterExtraList() : monsterPick ? MonsterItemList() : FreeItemList();
+            var list = weapon ? OrHost(StartWeaponList(), _hostWeapons, "start weapon")
+                     : hunterExtra ? OrHost(HunterExtraList(), _hostHunter, "hunter")
+                     : monsterPick ? OrHost(MonsterItemList(), _hostMonster, "monster")
+                     : OrHost(FreeItemList(), _hostHider, "hider");
             if (_freePickSel >= list.Count) _freePickSel = -1;
 
             float w = Mathf.Min(900 * u, sw - 40 * u), h = Mathf.Min(760 * u, sh - 60 * u);

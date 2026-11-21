@@ -995,6 +995,10 @@ namespace HideAndSeekMonster
                         if (!SenderIsMaster(sender)) return;
                         OnVoteState((string[])data[2], (int[])data[3], (float)data[4]);
                         break;
+                    case MsgItemLists:
+                        if (!SenderIsMaster(sender)) return;
+                        OnItemLists((string[])data[2], (string[])data[3], (string[])data[4], (string[])data[5], (string[])data[6], (string[])data[7], (int[])data[8]);
+                        break;
                     case MsgPick:
                         if (!SenderIsMaster(sender)) return;
                         OnPick((float)data[2], (int)data[3], (int)data[4]);
@@ -1168,6 +1172,7 @@ namespace HideAndSeekMonster
                 Plugin.Mode.Value == GameMode.Classic);
             if (RoundHasPicking) StartCoroutine(HostPickPhase(test ? Mathf.Min(Plugin.PickSeconds.Value, 20f) : Plugin.PickSeconds.Value));
             HostRechargeAll();
+            HostSendItemLists();
             _menuOpen = false;
         }
 

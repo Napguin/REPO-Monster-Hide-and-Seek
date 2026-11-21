@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.5 (beta)
+- Fix: for one player the item picker said "Nothing found". The host now sends the item lists at every round start –
+  a player whose own list is empty uses the host's (and the log says why it was empty).
+
 ## 2.1.4 (beta)
 - The monster can't attack while it holds something with its grab beam – and a click on something grabbable
   (item, door, cart …) only grabs, it doesn't attack too.
