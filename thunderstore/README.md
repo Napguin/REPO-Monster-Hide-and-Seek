@@ -20,6 +20,8 @@ Everyone else has a short time to hide. Then the hunter is released and hunts th
 
 New to the mod? Open **How To Play** (the drawn rules) and **Monster Showcase** (every special with a drawn animation, its cooldown and which monsters have it) in the F8 menu.
 
+Hiders can press **V** during a round to switch to a third-person view.
+
 ### As the monster
 | Control | Action |
 |---|---|

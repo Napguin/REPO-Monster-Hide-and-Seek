@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.2 (beta)
+- **Third-person view for hiders:** press **V** during a round to switch between first and third person – your own
+  robot is visible in third person.
+
 ## 2.1.1 (beta)
 - Fix: a hider who gets revived during the hunt (defibrillator …) counts as alive again for the score – they can
   still survive (or die again later).

@@ -291,6 +291,7 @@ namespace HideAndSeekMonster
         private void LocalSeekerTick()
         {
             bool localSeeker = Seeker != null && GameRefs.IsLocal(Seeker);
+            if (!localSeeker && HiderCameraTick()) return; // hiders: own third-person view (V)
             ThirdPersonCamera.Active = localSeeker && Phase == Phase.Hunting && _thirdPerson && !_roundClassic;
             if (_roundClassic)
             {
@@ -1261,6 +1262,7 @@ namespace HideAndSeekMonster
             _monster = null;
             ThirdPersonCamera.Active = false;
             ThirdPersonCamera.RestoreAll();
+            ShowOwnBody(false);
 
             Phase = Phase.None;
             Seeker = null;
