@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.7 (beta)
+- Everyone sees a message when a hider gets revived during the round ("… was revived!").
+
 ## 2.1.6 (beta)
 - Items handed out by the mod (free item, start weapon, items that come back) go straight into the owner's first free
   inventory slot. Items that don't fit into the inventory (cart, bridge …) or a full inventory: the item lies in

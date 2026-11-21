@@ -16,6 +16,7 @@ namespace HideAndSeekMonster
             (De ? (mine ? $"[{key}] fertig zurücknehmen" : $"[{key}] fertig / überspringen") : (mine ? $"[{key}] take back done" : $"[{key}] done / skip"))
             + $"  <color=#a0a0a0>({n}/{total} {(De ? "fertig" : "done")})</color>";
         public static string NoAttackWhileGrabbing => De ? "Kein Angriff, während du etwas festhältst!" : "No attack while you're holding something!";
+        public static string PlayerRevived(string n) => De ? $"{n} wurde wiederbelebt!" : $"{n} was revived!";
         public static string InventoryFull => De ? "Inventar voll – das Item liegt vor dir" : "Inventory full – the item is in front of you";
         public static string StunnedNoAbilities => De ? "Betäubt – keine Fähigkeiten!" : "Stunned – no abilities!";
         public static string InspectStart => De ? "Runde vorbei – schaut euch die Verstecke an!" : "Round over – go look at the hiding spots!";

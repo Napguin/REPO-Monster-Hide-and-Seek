@@ -33,6 +33,7 @@ namespace HideAndSeekMonster
 
         private const byte EventCode = 147;
         private const string Magic = "HNSM";
+        private const int MsgRevived = 33;
         private const int MsgStart = 1, MsgKill = 2, MsgEnd = 3, MsgAttack = 4, MsgRoar = 5, MsgLaser = 6, MsgAim = 7, MsgChoose = 8, MsgScore = 9, MsgMonsterSet = 24;
         private const string RandomMonster = "<random>";
 
@@ -573,6 +574,7 @@ namespace HideAndSeekMonster
                 {
                     _hiderOutTime.Remove(id);
                     Plugin.Log.LogInfo($"[Score] {NameOf(FindByViewId(id))} was revived – counts as alive again");
+                    if (IsHost) Send(MsgRevived, NameOf(FindByViewId(id))); // everyone sees it
                     continue;
                 }
                 if (_hiderOutTime.ContainsKey(id)) continue;
@@ -994,6 +996,10 @@ namespace HideAndSeekMonster
                     case MsgVoteState:
                         if (!SenderIsMaster(sender)) return;
                         OnVoteState((string[])data[2], (int[])data[3], (float)data[4]);
+                        break;
+                    case MsgRevived:
+                        if (!SenderIsMaster(sender) || !RoundActive) return;
+                        Banner(L.PlayerRevived((string)data[2]), new Color(0.4f, 1f, 0.5f), 3f);
                         break;
                     case MsgItemLists:
                         if (!SenderIsMaster(sender)) return;
